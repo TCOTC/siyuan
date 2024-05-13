@@ -42,6 +42,13 @@ export const initBlockPopover = (app: App) => {
                         }
                         aElement.style.overflow = "";
                     }
+                    if (aElement.dataset.wrap == "true") {
+                        aElement.style.overflow = "auto";
+                        if (aElement.scrollHeight > aElement.clientHeight) {
+                            tip = getCellText(aElement);
+                        }
+                        aElement.style.overflow = "";
+                    }
                 }
             }
             if (!tip) {
