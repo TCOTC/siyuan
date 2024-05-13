@@ -35,16 +35,9 @@ export const initBlockPopover = (app: App) => {
                             tip = aElement.firstElementChild.getAttribute("data-href");
                         }
                     }
-                    if (!tip && aElement.dataset.wrap !== "true" && event.target.dataset.type !== "block-more" && !hasClosestByClassName(event.target, "block__icon")) {
+                    if (!tip && event.target.dataset.type !== "block-more" && !hasClosestByClassName(event.target, "block__icon")) {
                         aElement.style.overflow = "auto";
-                        if (aElement.scrollWidth > aElement.clientWidth + 2) {
-                            tip = getCellText(aElement);
-                        }
-                        aElement.style.overflow = "";
-                    }
-                    if (aElement.dataset.wrap == "true") {
-                        aElement.style.overflow = "auto";
-                        if (aElement.scrollHeight > aElement.clientHeight) {
+                        if (aElement.scrollWidth > aElement.clientWidth + 2 || aElement.scrollHeight > aElement.clientHeight) {
                             tip = getCellText(aElement);
                         }
                         aElement.style.overflow = "";
