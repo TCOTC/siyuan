@@ -41,3 +41,5 @@ yarn.lock
 
 # workflows
 **/__pycache__
+cd.yml
+auto_aur_release_stable.yml
