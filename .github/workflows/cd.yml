@@ -78,6 +78,7 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         with:
+          allowUpdates: true
           name: ${{ steps.release_info.outputs.release_version }}
           tag: ${{ github.ref }}
           body: ${{ env.release_body }}
