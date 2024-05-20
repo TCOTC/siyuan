@@ -13,6 +13,7 @@ import {genAVValueHTML} from "./blockAttr";
 import {Constants} from "../../../constants";
 import {hintRef} from "../../hint/extend";
 import {pathPosix} from "../../../util/pathName";
+import {mergeAddOption} from "./select";
 
 const renderCellURL = (urlContent: string) => {
     let host = urlContent;
@@ -118,7 +119,7 @@ export const genCellValueByElement = (colType: TAVCol, cellElement: HTMLElement)
             mAsset.push({
                 type: isImg ? "image" : "file",
                 content: isImg ? item.getAttribute("src") : item.getAttribute("data-url"),
-                name: isImg ? "" : item.textContent
+                name: isImg ? "" : item.getAttribute("data-name")
             });
         });
         cellValue.mAsset = mAsset;
@@ -514,7 +515,8 @@ const updateCellValueByInput = (protyle: IProtyle, type: TAVCol, blockElement: H
     });
 };
 
-export const updateCellsValue = (protyle: IProtyle, nodeElement: HTMLElement, value?: any, cElements?: HTMLElement[]) => {
+export const updateCellsValue = (protyle: IProtyle, nodeElement: HTMLElement, value?: any, cElements?: HTMLElement[],
+                                 columns?: IAVColumn[], html?: string) => {
     const doOperations: IOperation[] = [];
     const undoOperations: IOperation[] = [];
 
@@ -535,7 +537,7 @@ export const updateCellsValue = (protyle: IProtyle, nodeElement: HTMLElement, va
             });
         }
     }
-
+    const isCustomAttr = hasClosestByClassName(cellElements[0], "custom-attr");
     cellElements.forEach((item: HTMLElement, elementIndex) => {
         const rowElement = hasClosestByClassName(item, "av__row");
         if (!rowElement) {
@@ -567,9 +569,27 @@ export const updateCellsValue = (protyle: IProtyle, nodeElement: HTMLElement, va
         if (type === "mAsset") {
             if (Array.isArray(value)) {
                 value = oldValue.mAsset.concat(value);
-            } else if (typeof value !== "undefined") {
-                // 不传入为删除，传入字符串不进行处理
-                return;
+            } else if (typeof value !== "undefined") { // 不传入为删除，传入字符串不进行处理
+                let link = protyle.lute.GetLinkDest(value);
+                let name = "";
+                if (html) {
+                    const tempElement = document.createElement("template")
+                    tempElement.innerHTML = html
+                    const aElement = tempElement.content.querySelector('[data-type~="a"]')
+                    if (aElement) {
+                        link = aElement.getAttribute("data-href");
+                        name = aElement.textContent
+                    }
+                }
+                if (!link && !name) {
+                    return;
+                }
+                // 支持解析 https://github.com/siyuan-note/siyuan/issues/11463
+                value = oldValue.mAsset.concat({
+                    type: "file",
+                    content: link,
+                    name
+                });
             }
         } else if (type === "mSelect") {
             // 不传入为删除
@@ -585,6 +605,11 @@ export const updateCellsValue = (protyle: IProtyle, nodeElement: HTMLElement, va
         if ((cellValue.type === "date" && typeof cellValue.date === "string") ||
             (cellValue.type === "relation" && typeof cellValue.relation === "string")) {
             return;
+        }
+        if (columns && (type === "select" || type === "mSelect")) {
+            const operations = mergeAddOption(columns.find(e => e.id === colId), cellValue, avID);
+            doOperations.push(...operations.doOperations);
+            undoOperations.push(...operations.undoOperations);
         }
         if (objEquals(cellValue, oldValue)) {
             return;
@@ -617,10 +642,10 @@ export const updateCellsValue = (protyle: IProtyle, nodeElement: HTMLElement, va
             rowID,
             data: oldValue
         });
-        if (!hasClosestByClassName(cellElements[0], "custom-attr")) {
-            updateAttrViewCellAnimation(item, cellValue);
-        } else {
+        if (isCustomAttr) {
             item.innerHTML = genAVValueHTML(cellValue);
+        } else {
+            updateAttrViewCellAnimation(item, cellValue);
         }
     });
     if (doOperations.length > 0) {
@@ -668,12 +693,11 @@ export const renderCell = (cellValue: IAVCellValue, rowIndex = 0) => {
     } else if ("url" === cellValue.type) {
         text = renderCellURL(cellValue?.url?.content || "");
     } else if (cellValue.type === "block") {
+        // 不可使用换行 https://github.com/siyuan-note/siyuan/issues/11365
         if (cellValue?.isDetached) {
-            text = `<span class="av__celltext">${cellValue.block.content || ""}</span>
-<span class="b3-chip b3-chip--info b3-chip--small" data-type="block-more">${window.siyuan.languages.more}</span>`;
+            text = `<span class="av__celltext">${cellValue.block.content || ""}</span><span class="b3-chip b3-chip--info b3-chip--small" data-type="block-more">${window.siyuan.languages.more}</span>`;
         } else {
-            text = `<span data-type="block-ref" data-id="${cellValue.block.id}" data-subtype="s" class="av__celltext av__celltext--ref">${cellValue.block.content || window.siyuan.languages.untitled}</span>
-<span class="b3-chip b3-chip--info b3-chip--small" data-type="block-more">${window.siyuan.languages.update}</span>`;
+            text = `<span data-type="block-ref" data-id="${cellValue.block.id}" data-subtype="s" class="av__celltext av__celltext--ref">${cellValue.block.content || window.siyuan.languages.untitled}</span><span class="b3-chip b3-chip--info b3-chip--small" data-type="block-more">${window.siyuan.languages.update}</span>`;
         }
     } else if (cellValue.type === "number") {
         text = `<span class="av__celltext" data-content="${cellValue?.number.isNotEmpty ? cellValue?.number.content : ""}">${cellValue?.number.formattedContent || cellValue?.number.content || ""}</span>`;
@@ -706,7 +730,7 @@ export const renderCell = (cellValue: IAVCellValue, rowIndex = 0) => {
             if (item.type === "image") {
                 text += `<img class="av__cellassetimg ariaLabel" aria-label="${item.content}" src="${item.content}">`;
             } else {
-                text += `<span class="b3-chip av__celltext--url ariaLabel" aria-label="${item.content}" data-url="${item.content}">${item.name}</span>`;
+                text += `<span class="b3-chip av__celltext--url ariaLabel" aria-label="${item.content}" data-name="${item.name}" data-url="${item.content}">${item.name || item.content}</span>`;
             }
         });
     } else if (cellValue.type === "checkbox") {

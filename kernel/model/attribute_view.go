@@ -41,8 +41,8 @@ import (
 	"github.com/xrash/smetrics"
 )
 
-func GetAttributeViewSelectOptions(avID string, keyID string) (ret []*av.SelectOption) {
-	ret = []*av.SelectOption{}
+func GetAttributeViewKeysByAvID(avID string) (ret []*av.Key) {
+	ret = []*av.Key{}
 
 	attrView, err := av.ParseAttributeView(avID)
 	if nil != err {
@@ -50,17 +50,9 @@ func GetAttributeViewSelectOptions(avID string, keyID string) (ret []*av.SelectO
 		return
 	}
 
-	key, _ := attrView.GetKey(keyID)
-	if nil == key {
-		return
-	}
-
-	if av.KeyTypeSelect != key.Type && av.KeyTypeMSelect != key.Type {
-		return
-	}
-
-	if 0 < len(key.Options) {
-		ret = key.Options
+	for _, keyValues := range attrView.KeyValues {
+		key := keyValues.Key
+		ret = append(ret, key)
 	}
 	return ret
 }
@@ -596,7 +588,7 @@ func GetBlockAttributeViewKeys(blockID string) (ret []*BlockAttributeViewKeys) {
 
 		ret = append(ret, &BlockAttributeViewKeys{
 			AvID:      avID,
-			AvName:    attrView.Name,
+			AvName:    getAttrViewName(attrView),
 			BlockIDs:  blockIDs,
 			KeyValues: keyValues,
 		})
@@ -3236,7 +3228,7 @@ func getAttrViewViewByBlockID(attrView *av.AttributeView, blockID string) (ret *
 }
 
 func getAttrViewName(attrView *av.AttributeView) string {
-	ret := attrView.Name
+	ret := strings.TrimSpace(attrView.Name)
 	if "" == ret {
 		ret = Conf.language(105)
 	}
