@@ -14,6 +14,7 @@ import {Constants} from "../../../constants";
 import {hintRef} from "../../hint/extend";
 import {pathPosix} from "../../../util/pathName";
 import {mergeAddOption} from "./select";
+import {escapeAttr} from "../../../util/escape";
 
 const renderCellURL = (urlContent: string) => {
     let host = urlContent;
@@ -29,9 +30,10 @@ const renderCellURL = (urlContent: string) => {
         }
     } catch (e) {
         // 不是 url 地址
+        host = Lute.EscapeHTMLStr(urlContent);
     }
     // https://github.com/siyuan-note/siyuan/issues/9291
-    return `<span class="av__celltext av__celltext--url" data-type="url" data-href="${urlContent}"><span>${host}</span><span class="ft__on-surface">${suffix}</span></span>`;
+    return `<span class="av__celltext av__celltext--url" data-type="url" data-href="${escapeAttr(urlContent)}"><span>${host}</span><span class="ft__on-surface">${suffix}</span></span>`;
 };
 
 export const getCellText = (cellElement: HTMLElement | false) => {
@@ -148,7 +150,7 @@ export const genCellValue = (colType: TAVCol, value: string | any) => {
             cellValue = {
                 type: colType,
                 [colType]: {
-                    content: ["block", "text", "url", "phone", "email"].includes(colType) ? Lute.EscapeHTMLStr(value) : value
+                    content: value
                 }
             };
         } else if (colType === "mSelect" || colType === "select") {
@@ -572,24 +574,39 @@ export const updateCellsValue = (protyle: IProtyle, nodeElement: HTMLElement, va
             } else if (typeof value !== "undefined") { // 不传入为删除，传入字符串不进行处理
                 let link = protyle.lute.GetLinkDest(value);
                 let name = "";
+                let imgSrc = "";
                 if (html) {
-                    const tempElement = document.createElement("template")
-                    tempElement.innerHTML = html
-                    const aElement = tempElement.content.querySelector('[data-type~="a"]')
+                    const tempElement = document.createElement("template");
+                    tempElement.innerHTML = html;
+                    const aElement = tempElement.content.querySelector('[data-type~="a"]');
                     if (aElement) {
                         link = aElement.getAttribute("data-href");
-                        name = aElement.textContent
+                        name = aElement.textContent;
+                    } else {
+                        const imgElement = tempElement.content.querySelector('.img img');
+                        if (imgElement) {
+                            imgSrc = imgElement.getAttribute("data-src");
+                        }
                     }
                 }
-                if (!link && !name) {
+                if (!link && !name && !imgSrc) {
                     return;
                 }
-                // 支持解析 https://github.com/siyuan-note/siyuan/issues/11463
-                value = oldValue.mAsset.concat({
-                    type: "file",
-                    content: link,
-                    name
-                });
+                if (imgSrc) {
+                    // 支持解析 ![]() https://github.com/siyuan-note/siyuan/issues/11487
+                    value = oldValue.mAsset.concat({
+                        type: "image",
+                        content: imgSrc,
+                        name: ""
+                    });
+                } else {
+                    // 支持解析 https://github.com/siyuan-note/siyuan/issues/11463
+                    value = oldValue.mAsset.concat({
+                        type: "file",
+                        content: link,
+                        name
+                    });
+                }
             }
         } else if (type === "mSelect") {
             // 不传入为删除
@@ -686,10 +703,12 @@ export const renderCellAttr = (cellElement: Element, value: IAVCellValue) => {
 
 export const renderCell = (cellValue: IAVCellValue, rowIndex = 0) => {
     let text = "";
-    if (["text", "template"].includes(cellValue.type)) {
-        text = `<span class="av__celltext">${cellValue ? (cellValue[cellValue.type as "text"].content || "") : ""}</span>`;
+    if ("template" === cellValue.type) {
+        text = `<span class="av__celltext">${cellValue ? (cellValue.template.content || "") : ""}</span>`;
+    } else if ("text" === cellValue.type) {
+        text = `<span class="av__celltext">${cellValue ? Lute.EscapeHTMLStr(cellValue.text.content || "") : ""}</span>`;
     } else if (["email", "phone"].includes(cellValue.type)) {
-        text = `<span class="av__celltext av__celltext--url" data-type="${cellValue.type}">${cellValue ? cellValue[cellValue.type as "email"].content : ""}</span>`;
+        text = `<span class="av__celltext av__celltext--url" data-type="${cellValue.type}">${cellValue ? Lute.EscapeHTMLStr(cellValue[cellValue.type as "email"].content || "") : ""}</span>`;
     } else if ("url" === cellValue.type) {
         text = renderCellURL(cellValue?.url?.content || "");
     } else if (cellValue.type === "block") {
@@ -730,7 +749,7 @@ export const renderCell = (cellValue: IAVCellValue, rowIndex = 0) => {
             if (item.type === "image") {
                 text += `<img class="av__cellassetimg ariaLabel" aria-label="${item.content}" src="${item.content}">`;
             } else {
-                text += `<span class="b3-chip av__celltext--url ariaLabel" aria-label="${item.content}" data-name="${item.name}" data-url="${item.content}">${item.name || item.content}</span>`;
+                text += `<span class="b3-chip av__celltext--url ariaLabel" aria-label="${escapeAttr(item.content)}" data-name="${escapeAttr(item.name)}" data-url="${escapeAttr(item.content)}">${item.name || item.content}</span>`;
             }
         });
     } else if (cellValue.type === "checkbox") {

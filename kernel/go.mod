@@ -8,7 +8,7 @@ require (
 	github.com/88250/epub v0.0.0-20230830085737-c19055cd1f48
 	github.com/88250/go-humanize v0.0.0-20240424102817-4f78fac47ea7
 	github.com/88250/gulu v1.2.3-0.20240505150113-bc43bd50f866
-	github.com/88250/lute v1.7.7-0.20240520140444-22dd5810b592
+	github.com/88250/lute v1.7.7-0.20240525091726-a500a25a2c80
 	github.com/88250/pdfcpu v0.3.14-0.20230401044135-c7369a99720c
 	github.com/88250/vitess-sqlparser v0.0.0-20210205111146-56a2ded2aba1
 	github.com/ClarkThan/ahocorasick v0.0.0-20231011042242-30d1ef1347f4
@@ -66,7 +66,7 @@ require (
 	github.com/xrash/smetrics v0.0.0-20240312152122-5f08fbb34913
 	github.com/xuri/excelize/v2 v2.8.1
 	golang.org/x/image v0.16.0
-	golang.org/x/mobile v0.0.0-20240506190922-a1a533f289d3
+	golang.org/x/mobile v0.0.0-20240520174638-fa72addaaa1b
 	golang.org/x/mod v0.17.0
 	golang.org/x/text v0.15.0
 	golang.org/x/time v0.5.0
