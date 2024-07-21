@@ -301,16 +301,15 @@ export const setZoom = (type: "zoomIn" | "zoomOut" | "restore") => {
 
 const openPlugin = (app: App, target: Element) => {
     const menu = new Menu("topBarPlugin");
-    if (!isHuawei()) {
-        menu.addItem({
-            icon: "iconSettings",
-            label: window.siyuan.languages.manage,
-            click() {
-                openSetting(app).element.querySelector('.b3-tab-bar [data-name="bazaar"]').dispatchEvent(new CustomEvent("click"));
-            }
-        });
-        menu.addSeparator();
-    }
+    menu.addItem({
+        icon: "iconSettings",
+        label: window.siyuan.languages.manage,
+        ignore: isHuawei() || window.siyuan.config.readonly,
+        click() {
+            openSetting(app).element.querySelector('.b3-tab-bar [data-name="bazaar"]').dispatchEvent(new CustomEvent("click"));
+        }
+    });
+    menu.addSeparator(undefined, isHuawei() || window.siyuan.config.readonly);
     let hasPlugin = false;
     app.plugins.forEach((plugin) => {
         // @ts-ignore
@@ -374,7 +373,7 @@ const openPlugin = (app: App, target: Element) => {
         }
     });
     if (!hasPlugin) {
-        window.siyuan.menus.menu.element.querySelector(".b3-menu__separator").remove();
+        window.siyuan.menus.menu.element.querySelector(".b3-menu__separator")?.remove();
     }
     let rect = target.getBoundingClientRect();
     if (rect.width === 0) {

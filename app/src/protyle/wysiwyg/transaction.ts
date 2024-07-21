@@ -81,76 +81,13 @@ const promiseTransaction = () => {
             document.getElementById("toolbarSync").classList.remove("fn__none");
         }
         /// #endif
-        if (response.data[0].doOperations[0].action === "setAttrs") {
-            const gutterFoldElement = protyle.gutter.element.querySelector('[data-type="fold"]');
-            if (gutterFoldElement) {
-                gutterFoldElement.removeAttribute("disabled");
-            }
-            // 仅在 alt+click 箭头折叠时才会触发
-            protyle.wysiwyg.element.querySelectorAll('[data-type="NodeBlockQueryEmbed"]').forEach((item) => {
-                if (item.querySelector(`[data-node-id="${response.data[0].doOperations[0].id}"]`)) {
-                    item.removeAttribute("data-render");
-                    blockRender(protyle, item);
-                }
-            });
-            return;
-        }
-
         let range: Range;
         if (getSelection().rangeCount > 0) {
             range = getSelection().getRangeAt(0);
         }
         response.data[0].doOperations.forEach((operation: IOperation) => {
             if (operation.action === "unfoldHeading" || operation.action === "foldHeading") {
-                const gutterFoldElement = protyle.gutter.element.querySelector('[data-type="fold"]');
-                if (gutterFoldElement) {
-                    gutterFoldElement.removeAttribute("disabled");
-                }
-                if (operation.action === "unfoldHeading") {
-                    const scrollTop = protyle.contentElement.scrollTop;
-                    protyle.wysiwyg.element.querySelectorAll(`[data-node-id="${operation.id}"]`).forEach(item => {
-                        if (!item.lastElementChild.classList.contains("protyle-attr")) {
-                            item.lastElementChild.remove();
-                        }
-                        removeUnfoldRepeatBlock(operation.retData, protyle);
-                        item.insertAdjacentHTML("afterend", operation.retData);
-                        if (operation.data === "remove") {
-                            // https://github.com/siyuan-note/siyuan/issues/2188
-                            const selection = getSelection();
-                            if (selection.rangeCount > 0 && item.contains(selection.getRangeAt(0).startContainer)) {
-                                focusBlock(item.nextElementSibling, undefined, true);
-                            }
-                            item.remove();
-                        }
-                    });
-                    if (protyle.disabled) {
-                        disabledProtyle(protyle);
-                    }
-                    processRender(protyle.wysiwyg.element);
-                    highlightRender(protyle.wysiwyg.element);
-                    avRender(protyle.wysiwyg.element, protyle);
-                    blockRender(protyle, protyle.wysiwyg.element);
-                    protyle.contentElement.scrollTop = scrollTop;
-                    protyle.scroll.lastScrollTop = scrollTop;
-                    return;
-                }
-                // 折叠标题后未触发动态加载 https://github.com/siyuan-note/siyuan/issues/4168
-                if (protyle.wysiwyg.element.lastElementChild.getAttribute("data-eof") !== "2" &&
-                    !protyle.scroll.element.classList.contains("fn__none") &&
-                    protyle.contentElement.scrollHeight - protyle.contentElement.scrollTop < protyle.contentElement.clientHeight * 2    // https://github.com/siyuan-note/siyuan/issues/7785
-                ) {
-                    fetchPost("/api/filetree/getDoc", {
-                        id: protyle.wysiwyg.element.lastElementChild.getAttribute("data-node-id"),
-                        mode: 2,
-                        size: window.siyuan.config.editor.dynamicLoadBlocks,
-                    }, getResponse => {
-                        onGet({
-                            data: getResponse,
-                            protyle,
-                            action: [Constants.CB_GET_APPEND, Constants.CB_GET_UNCHANGEID],
-                        });
-                    });
-                }
+                processFold(operation, protyle);
                 return;
             }
             if (operation.action === "update") {
@@ -946,7 +883,7 @@ export const turnsIntoTransaction = (options: {
     selectsElement.forEach((item, index) => {
         if ((options.type === "Blocks2Ps" || options.type === "Blocks2Hs") &&
             item.getAttribute("data-type") === "NodeHeading" && item.getAttribute("fold") === "1") {
-            setFold(options.protyle, item);
+            setFold(options.protyle, item, undefined, undefined, false);
         }
         item.classList.remove("protyle-wysiwyg--select");
         item.removeAttribute("select-start");
@@ -1168,12 +1105,47 @@ export const transaction = (protyle: IProtyle, doOperations: IOperation[], undoO
             protyle.model.headElement.classList.remove("item--unupdate");
         }
         protyle.updated = true;
-
         if (needDebounce) {
             protyle.undo.replace(doOperations, protyle);
         } else {
             protyle.undo.add(doOperations, undoOperations, protyle);
         }
+    }
+    window.clearTimeout(transactionsTimeout);
+    // 加速折叠 https://github.com/siyuan-note/siyuan/issues/11828
+    if (doOperations.length === 1 && (
+        doOperations[0].action === "unfoldHeading" ||
+        (doOperations[0].action === "setAttrs" && doOperations[0].data.startsWith('{"fold":'))
+    )) {
+        // 防止 needDebounce 为 true
+        protyle.transactionTime = time + Constants.TIMEOUT_INPUT * 2;
+        fetchPost("/api/transactions", {
+            session: protyle.id,
+            app: Constants.SIYUAN_APPID,
+            transactions: [{
+                doOperations,
+                undoOperations
+            }]
+        }, (response) => {
+            response.data[0].doOperations.forEach((operation: IOperation) => {
+                if (operation.action === "unfoldHeading" || operation.action === "foldHeading") {
+                    processFold(operation, protyle);
+                } else if (operation.action === "setAttrs") {
+                    const gutterFoldElement = protyle.gutter.element.querySelector('[data-type="fold"]');
+                    if (gutterFoldElement) {
+                        gutterFoldElement.removeAttribute("disabled");
+                    }
+                    // 仅在 alt+click 箭头折叠时才会触发
+                    protyle.wysiwyg.element.querySelectorAll('[data-type="NodeBlockQueryEmbed"]').forEach((item) => {
+                        if (item.querySelector(`[data-node-id="${operation.id}"]`)) {
+                            item.removeAttribute("data-render");
+                            blockRender(protyle, item);
+                        }
+                    });
+                }
+            });
+        });
+        return;
     }
     if (needDebounce) {
         // 不能覆盖 undoOperations https://github.com/siyuan-note/siyuan/issues/3727
@@ -1187,7 +1159,6 @@ export const transaction = (protyle: IProtyle, doOperations: IOperation[], undoO
         });
     }
     protyle.transactionTime = time;
-    window.clearTimeout(transactionsTimeout);
     transactionsTimeout = window.setTimeout(() => {
         promiseTransaction();
     }, Constants.TIMEOUT_INPUT * 2);
@@ -1195,10 +1166,65 @@ export const transaction = (protyle: IProtyle, doOperations: IOperation[], undoO
     // 插入块后会导致高度变化，从而产生再次定位 https://github.com/siyuan-note/siyuan/issues/11798
     doOperations.find(item => {
         if (item.action === "insert") {
-            protyle.observerLoad.disconnect()
+            protyle.observerLoad?.disconnect();
             return true;
         }
-    })
+    });
+};
+
+const processFold = (operation: IOperation, protyle: IProtyle) => {
+    if (operation.action === "unfoldHeading" || operation.action === "foldHeading") {
+        const gutterFoldElement = protyle.gutter.element.querySelector('[data-type="fold"]');
+        if (gutterFoldElement) {
+            gutterFoldElement.removeAttribute("disabled");
+        }
+        if (operation.action === "unfoldHeading") {
+            const scrollTop = protyle.contentElement.scrollTop;
+            protyle.wysiwyg.element.querySelectorAll(`[data-node-id="${operation.id}"]`).forEach(item => {
+                if (!item.lastElementChild.classList.contains("protyle-attr")) {
+                    item.lastElementChild.remove();
+                }
+                removeUnfoldRepeatBlock(operation.retData, protyle);
+                item.insertAdjacentHTML("afterend", operation.retData);
+                if (operation.data === "remove") {
+                    // https://github.com/siyuan-note/siyuan/issues/2188
+                    const selection = getSelection();
+                    if (selection.rangeCount > 0 && item.contains(selection.getRangeAt(0).startContainer)) {
+                        focusBlock(item.nextElementSibling, undefined, true);
+                    }
+                    item.remove();
+                }
+            });
+            if (protyle.disabled) {
+                disabledProtyle(protyle);
+            }
+            processRender(protyle.wysiwyg.element);
+            highlightRender(protyle.wysiwyg.element);
+            avRender(protyle.wysiwyg.element, protyle);
+            blockRender(protyle, protyle.wysiwyg.element);
+            protyle.contentElement.scrollTop = scrollTop;
+            protyle.scroll.lastScrollTop = scrollTop;
+            return;
+        }
+        // 折叠标题后未触发动态加载 https://github.com/siyuan-note/siyuan/issues/4168
+        if (protyle.wysiwyg.element.lastElementChild.getAttribute("data-eof") !== "2" &&
+            !protyle.scroll.element.classList.contains("fn__none") &&
+            protyle.contentElement.scrollHeight - protyle.contentElement.scrollTop < protyle.contentElement.clientHeight * 2    // https://github.com/siyuan-note/siyuan/issues/7785
+        ) {
+            fetchPost("/api/filetree/getDoc", {
+                id: protyle.wysiwyg.element.lastElementChild.getAttribute("data-node-id"),
+                mode: 2,
+                size: window.siyuan.config.editor.dynamicLoadBlocks,
+            }, getResponse => {
+                onGet({
+                    data: getResponse,
+                    protyle,
+                    action: [Constants.CB_GET_APPEND, Constants.CB_GET_UNCHANGEID],
+                });
+            });
+        }
+        return;
+    }
 };
 
 export const updateTransaction = (protyle: IProtyle, id: string, newHTML: string, html: string) => {

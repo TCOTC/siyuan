@@ -324,9 +324,7 @@ func CheckAuth(c *gin.Context) {
 }
 
 func CheckAdminRole(c *gin.Context) {
-	if IsValidRole(GetGinContextRole(c), []Role{
-		RoleAdministrator,
-	}) {
+	if IsAdminRoleContext(c) {
 		c.Next()
 	} else {
 		c.AbortWithStatus(http.StatusForbidden)
@@ -386,11 +384,7 @@ func Timing(c *gin.Context) {
 }
 
 func Recover(c *gin.Context) {
-	defer func() {
-		logging.Recover()
-		c.Status(http.StatusInternalServerError)
-	}()
-
+	defer logging.Recover()
 	c.Next()
 }
 

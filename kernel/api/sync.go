@@ -18,12 +18,13 @@ package api
 
 import (
 	"encoding/hex"
-	"github.com/siyuan-note/logging"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/siyuan-note/logging"
 
 	"github.com/88250/gulu"
 	"github.com/gin-gonic/gin"

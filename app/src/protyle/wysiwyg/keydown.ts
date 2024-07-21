@@ -54,7 +54,7 @@ import {
     getStartEndElement,
     upSelect
 } from "./commonHotkey";
-import {fileAnnotationRefMenu, linkMenu, refMenu, setFold, tagMenu} from "../../menus/protyle";
+import {fileAnnotationRefMenu, inlineMathMenu, linkMenu, refMenu, setFold, tagMenu} from "../../menus/protyle";
 import {openAttr} from "../../menus/commonMenuItem";
 import {Constants} from "../../constants";
 import {fetchPost} from "../../util/fetch";
@@ -256,7 +256,11 @@ export const keydown = (protyle: IProtyle, editorElement: HTMLElement) => {
                         }
                     } else if (protyle.title && protyle.title.editElement &&
                         (protyle.wysiwyg.element.firstElementChild.getAttribute("data-eof") === "1" || protyle.contentElement.scrollTop === 0)) {
-                        protyle.title.editElement.focus();
+                        const titleRange = setLastNodeRange(protyle.title.editElement, range, false);
+                        titleRange.collapse(false);
+                        focusByRange(titleRange);
+                        event.stopPropagation();
+                        event.preventDefault();
                     } else if (protyle.contentElement.scrollTop !== 0) {
                         protyle.contentElement.scrollTop = 0;
                         protyle.scroll.lastScrollTop = 8;
@@ -549,8 +553,6 @@ export const keydown = (protyle: IProtyle, editorElement: HTMLElement) => {
         if (!event.altKey && !event.shiftKey &&
             ((event.key.indexOf("Arrow") > -1 && isNotCtrl(event)) || event.key === "Enter") &&
             !protyle.hint.element.classList.contains("fn__none") && protyle.hint.select(event, protyle)) {
-            event.stopPropagation();
-            event.preventDefault();
             return;
         }
         if (matchHotKey("⌘/", event)) {
@@ -590,14 +592,14 @@ export const keydown = (protyle: IProtyle, editorElement: HTMLElement) => {
                         previousSibling.nodeType !== 3 &&
                         previousSibling.getAttribute("data-type")?.indexOf("inline-math") > -1
                     ) {
-                        protyle.toolbar.showRender(protyle, previousSibling);
+                        inlineMathMenu(protyle, previousSibling);
                         return;
                     } else if (!previousSibling &&
                         range.startContainer.parentElement.previousSibling &&
                         range.startContainer.parentElement.previousSibling.isSameNode(range.startContainer.parentElement.previousElementSibling) &&
                         range.startContainer.parentElement.previousElementSibling.getAttribute("data-type")?.indexOf("inline-math") > -1
                     ) {
-                        protyle.toolbar.showRender(protyle, range.startContainer.parentElement.previousElementSibling);
+                        inlineMathMenu(protyle, range.startContainer.parentElement.previousElementSibling);
                         return;
                     }
                 }
@@ -650,7 +652,11 @@ export const keydown = (protyle: IProtyle, editorElement: HTMLElement) => {
                         if (protyle.title && protyle.title.editElement &&
                             (protyle.wysiwyg.element.firstElementChild.getAttribute("data-eof") === "1" ||
                                 protyle.contentElement.scrollTop === 0)) {
-                            protyle.title.editElement.focus();
+                            const titleRange = setLastNodeRange(protyle.title.editElement, range, false);
+                            titleRange.collapse(false);
+                            focusByRange(titleRange);
+                            event.stopPropagation();
+                            event.preventDefault();
                         } else {
                             protyle.contentElement.scrollTop = 0;
                             protyle.scroll.lastScrollTop = 8;
@@ -805,7 +811,9 @@ export const keydown = (protyle: IProtyle, editorElement: HTMLElement) => {
                     // 段末反向删除 https://github.com/siyuan-note/insider/issues/274
                     if (position.end === editElement.textContent.length ||
                         // 软换行后删除 https://github.com/siyuan-note/siyuan/issues/11118
-                        (position.end === editElement.textContent.length - 1 && editElement.textContent.endsWith("\n"))) {
+                        (position.end === editElement.textContent.length - 1 && editElement.textContent.endsWith("\n")) ||
+                        // 图片后无内容删除 https://github.com/siyuan-note/siyuan/issues/11868
+                        (position.end === editElement.textContent.length - 1 && editElement.textContent.endsWith(Constants.ZWSP))) {
                         const nextElement = getNextBlock(getTopAloneElement(nodeElement));
                         if (nextElement) {
                             const nextRange = focusBlock(nextElement);
@@ -1174,11 +1182,40 @@ export const keydown = (protyle: IProtyle, editorElement: HTMLElement) => {
 
         // h1 - h6 hotkey
         if (matchHotKey(window.siyuan.config.keymap.editor.heading.paragraph.custom, event)) {
-            turnsIntoTransaction({
-                protyle,
-                nodeElement,
-                type: "Blocks2Ps",
-            });
+            const selectsElement = Array.from(protyle.wysiwyg.element.querySelectorAll(".protyle-wysiwyg--select"));
+            if (selectsElement.length === 0) {
+                selectsElement.push(nodeElement);
+            }
+            if (selectsElement.length > 1) {
+                turnsIntoTransaction({
+                    protyle,
+                    nodeElement: selectsElement[0],
+                    type: "Blocks2Ps",
+                });
+            } else {
+                const type = selectsElement[0].getAttribute("data-type");
+                if (type === "NodeHeading") {
+                    turnsIntoTransaction({
+                        protyle,
+                        nodeElement: selectsElement[0],
+                        type: "Blocks2Ps",
+                    });
+                } else if (type === "NodeList") {
+                    turnsOneInto({
+                        protyle,
+                        nodeElement: selectsElement[0],
+                        id: selectsElement[0].getAttribute("data-node-id"),
+                        type: "CancelList",
+                    });
+                } else if (type === "NodeBlockquote") {
+                    turnsOneInto({
+                        protyle,
+                        nodeElement: selectsElement[0],
+                        id: selectsElement[0].getAttribute("data-node-id"),
+                        type: "CancelBlockquote",
+                    });
+                }
+            }
             event.preventDefault();
             event.stopPropagation();
             return true;

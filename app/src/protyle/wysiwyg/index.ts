@@ -23,7 +23,7 @@ import {
     contentMenu,
     enterBack,
     fileAnnotationRefMenu,
-    imgMenu,
+    imgMenu, inlineMathMenu,
     linkMenu,
     refMenu,
     setFold,
@@ -750,7 +750,7 @@ export class WYSIWYG {
             this.element.querySelectorAll("iframe").forEach(item => {
                 item.style.pointerEvents = "none";
             });
-            const needScroll = ["IMG", "VIDEO", "AUDIO"].includes(target.tagName) || target.classList.contains("img")
+            const needScroll = ["IMG", "VIDEO", "AUDIO"].includes(target.tagName) || target.classList.contains("img");
             documentSelf.onmousemove = (moveEvent: MouseEvent) => {
                 const moveTarget = moveEvent.target as HTMLElement;
                 // table cell select
@@ -1673,6 +1673,11 @@ export class WYSIWYG {
                     }
                     return false;
                 }
+            }
+            const inlineMathElement = hasClosestByAttribute(target, "data-type", "inline-math");
+            if (inlineMathElement) {
+                inlineMathMenu(protyle, inlineMathElement);
+                return false;
             }
             if (target.tagName === "IMG" && hasClosestByClassName(target, "img")) {
                 imgMenu(protyle, protyle.toolbar.range, target.parentElement.parentElement, {

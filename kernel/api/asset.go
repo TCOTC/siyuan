@@ -53,6 +53,9 @@ func statAsset(c *gin.Context) {
 
 	} else if strings.HasPrefix(path, "file://") {
 		p = strings.TrimPrefix(path, "file://")
+		if strings.Contains(p, ":") {
+			p = strings.TrimPrefix(p, "/")
+		}
 	} else {
 		ret.Code = 1
 		return
@@ -156,12 +159,15 @@ func renameAsset(c *gin.Context) {
 
 	oldPath := arg["oldPath"].(string)
 	newName := arg["newName"].(string)
-	err := model.RenameAsset(oldPath, newName)
+	newPath, err := model.RenameAsset(oldPath, newName)
 	if nil != err {
 		ret.Code = -1
 		ret.Msg = err.Error()
 		ret.Data = map[string]interface{}{"closeTimeout": 5000}
 		return
+	}
+	ret.Data = map[string]interface{}{
+		"newPath": newPath,
 	}
 }
 

@@ -85,6 +85,11 @@ func initDBTables() {
 	if nil != err {
 		logging.LogFatalf(logging.ExitCodeReadOnlyDatabase, "create table [blocktrees] failed: %s", err)
 	}
+
+	_, err = db.Exec("CREATE INDEX idx_blocktrees_id ON blocktrees(id)")
+	if nil != err {
+		logging.LogFatalf(logging.ExitCodeReadOnlyDatabase, "create index [idx_blocktrees_id] failed: %s", err)
+	}
 }
 
 func initDBConnection() {
@@ -146,7 +151,7 @@ func removeDatabaseFile() (err error) {
 
 func GetBlockTreesByType(typ string) (ret []*BlockTree) {
 	sqlStmt := "SELECT * FROM blocktrees WHERE type = ?"
-	rows, err := db.Query(sqlStmt)
+	rows, err := db.Query(sqlStmt, typ)
 	if nil != err {
 		logging.LogErrorf("sql query [%s] failed: %s", sqlStmt, err)
 		return
@@ -306,6 +311,10 @@ func ExistBlockTree(id string) bool {
 
 func ExistBlockTrees(ids []string) (ret map[string]bool) {
 	ret = map[string]bool{}
+	if 1 > len(ids) {
+		return
+	}
+
 	for _, id := range ids {
 		ret[id] = false
 	}
@@ -330,6 +339,10 @@ func ExistBlockTrees(ids []string) (ret map[string]bool) {
 
 func GetBlockTrees(ids []string) (ret map[string]*BlockTree) {
 	ret = map[string]*BlockTree{}
+	if 1 > len(ids) {
+		return
+	}
+
 	sqlStmt := "SELECT * FROM blocktrees WHERE id IN ('" + strings.Join(ids, "','") + "')"
 	rows, err := db.Query(sqlStmt)
 	if nil != err {
