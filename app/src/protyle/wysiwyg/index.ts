@@ -2155,6 +2155,7 @@ export class WYSIWYG {
                             action,
                             zoomIn
                         });
+                        window.dispatchEvent(new KeyboardEvent("keydown", {key: "Escape"}));
                     } else if (event.altKey) {
                         openFileById({
                             app: protyle.app,
@@ -2226,8 +2227,11 @@ export class WYSIWYG {
                 return;
             }
 
-            // 如果aLink 为空时，当 data-type="a inline-math" 可继续后续操作
-            if (aElement && range.toString() === "" && aLink) {
+            if (aElement &&
+                // https://github.com/siyuan-note/siyuan/issues/11980
+                (event.shiftKey || range.toString() === "") &&
+                // 如果aLink 为空时，当 data-type="a inline-math" 可继续后续操作
+                aLink) {
                 event.stopPropagation();
                 event.preventDefault();
                 openLink(protyle, aLink, event, ctrlIsPressed);
@@ -2513,44 +2517,6 @@ export class WYSIWYG {
 
             if (avClick(protyle, event)) {
                 return;
-            }
-
-            // 点击空白
-            if (event.target.contains(this.element) && this.element.lastElementChild && !protyle.disabled) {
-                const lastRect = this.element.lastElementChild.getBoundingClientRect();
-                if (event.y > lastRect.bottom) {
-                    const lastEditElement = getContenteditableElement(getLastBlock(this.element.lastElementChild));
-                    if (!lastEditElement ||
-                        (this.element.lastElementChild.getAttribute("data-type") !== "NodeParagraph" && protyle.wysiwyg.element.getAttribute("data-doc-type") !== "NodeListItem") ||
-                        (this.element.lastElementChild.getAttribute("data-type") === "NodeParagraph" && getContenteditableElement(lastEditElement).innerHTML !== "")) {
-                        const emptyElement = genEmptyElement(false, false);
-                        this.element.insertAdjacentElement("beforeend", emptyElement);
-                        transaction(protyle, [{
-                            action: "insert",
-                            data: emptyElement.outerHTML,
-                            id: emptyElement.getAttribute("data-node-id"),
-                            previousID: emptyElement.previousElementSibling.getAttribute("data-node-id"),
-                            parentID: protyle.block.parentID
-                        }], [{
-                            action: "delete",
-                            id: emptyElement.getAttribute("data-node-id")
-                        }]);
-                        const emptyEditElement = getContenteditableElement(emptyElement) as HTMLInputElement;
-                        range.selectNodeContents(emptyEditElement);
-                        range.collapse(true);
-                        focusByRange(range);
-                        // 需等待 range 更新再次进行渲染
-                        if (protyle.options.render.breadcrumb) {
-                            setTimeout(() => {
-                                protyle.breadcrumb.render(protyle);
-                            }, Constants.TIMEOUT_TRANSITION);
-                        }
-                    } else if (lastEditElement) {
-                        range.selectNodeContents(lastEditElement);
-                        range.collapse(false);
-                        focusByRange(range);
-                    }
-                }
             }
 
             setTimeout(() => {
