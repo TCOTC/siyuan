@@ -192,6 +192,7 @@ ${unicode2Emoji(emoji.unicode)}</button>`;
         if (this.splitChar === "/" || this.splitChar === "、") {
             clearTimeout(this.timeId);
             if (this.enableSlash && !isMobile()) {
+                this.element.setAttribute("data-menuid", "hintMenu_complete");
                 this.genHTML(hintSlash(key, protyle), protyle, false, "hint");
             }
             return;
@@ -201,6 +202,11 @@ ${unicode2Emoji(emoji.unicode)}</button>`;
             if (item.key === this.splitChar) {
                 clearTimeout(this.timeId);
                 this.timeId = window.setTimeout(() => {
+                    if (key) {
+                        this.element.setAttribute("data-menuid", "hintMenu_filtered");
+                    } else {
+                        this.element.setAttribute("data-menuid", "hintMenu_complete");
+                    }
                     this.genHTML(item.hint(key, protyle, "hint"), protyle, false, "hint");
                 }, protyle.options.hint.delay);
             }
