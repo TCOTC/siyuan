@@ -196,7 +196,7 @@
     /* 表格 */
     --b3-table-even-background: rgba(255, 255, 255, .03);
 
-    /* 潜入块 */
+    /* 嵌入块 */
     --b3-embed-background: var(--b3-table-even-background);
 
     /* 引述块 */
