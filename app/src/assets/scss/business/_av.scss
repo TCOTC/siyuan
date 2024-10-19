@@ -586,7 +586,7 @@ $backgrounds: (
     $bg-av-hover-variable: if($count == 1, "--b3-#{$key}-av-hover", "--b3-#{$key}#{$i}-av-hover");
     // 外层没有被选中的块时，从最近的“带背景色的父块（包括数据库块本身）”继承背景色
     [data-node-id][style*="background-color: var(#{$bg-variable})"] {
-      --b3-av-background: var(#{$bg-variable}) !important;
+      --b3-av-background: var(#{$bg-variable});
       --b3-av-hover: var(#{$bg-av-hover-variable});
     }
   }
@@ -600,7 +600,7 @@ $backgrounds: (
     [data-node-id][style*="background-color: var(#{$bg-variable})"] {
       .protyle-wysiwyg--select,
       .protyle-wysiwyg--hl {
-        --b3-av-background: var(#{$bg-select-variable}) !important;
+        --b3-av-background: var(#{$bg-select-variable});
         --b3-av-hover: var(#{$bg-av-hover-variable});
       }
     }
@@ -615,7 +615,7 @@ $backgrounds: (
     [data-node-id][style*="background-color: var(#{$bg-variable})"] {
       &.protyle-wysiwyg--select,
       &.protyle-wysiwyg--hl {
-        --b3-av-background: var(#{$bg-select-variable}) !important;
+        --b3-av-background: var(#{$bg-select-variable});
         --b3-av-hover: var(#{$bg-av-hover-variable});
       }
     }
@@ -630,7 +630,7 @@ $backgrounds: (
     .protyle-wysiwyg--select,
     .protyle-wysiwyg--hl {
       [data-node-id][style*="background-color: var(#{$bg-variable})"] {
-        --b3-av-background: var(#{$bg-select-variable}) !important;
+        --b3-av-background: var(#{$bg-select-variable});
         --b3-av-hover: var(#{$bg-av-hover-variable});
       }
     }
@@ -647,7 +647,7 @@ $backgrounds: (
     [data-node-id][style*="background-color: var(#{$bg-variable})"] {
       .protyle-wysiwyg--select .protyle-wysiwyg--hl,
       .protyle-wysiwyg--hl .protyle-wysiwyg--select {
-        --b3-av-background: var(#{$bg-select-double-variable}) !important;
+        --b3-av-background: var(#{$bg-select-double-variable});
         --b3-av-hover: var(#{$bg-av-hover-variable});
       }
     }
@@ -661,7 +661,7 @@ $backgrounds: (
     // 带背景色的块 在 两个选中块 的中间，并且就是靠外层的选中块
     .protyle-wysiwyg--select[data-node-id][style*="background-color: var(#{$bg-variable})"] .protyle-wysiwyg--hl,
     .protyle-wysiwyg--hl[data-node-id][style*="background-color: var(#{$bg-variable})"] .protyle-wysiwyg--select {
-      --b3-av-background: var(#{$bg-select-double-variable}) !important;
+      --b3-av-background: var(#{$bg-select-double-variable});
       --b3-av-hover: var(#{$bg-av-hover-variable});
     }
   }
@@ -674,7 +674,7 @@ $backgrounds: (
     // 带背景色的块 在 两个选中块 的中间
     .protyle-wysiwyg--select [data-node-id][style*="background-color: var(#{$bg-variable})"] .protyle-wysiwyg--hl,
     .protyle-wysiwyg--hl [data-node-id][style*="background-color: var(#{$bg-variable})"] .protyle-wysiwyg--select {
-      --b3-av-background: var(#{$bg-select-double-variable}) !important;
+      --b3-av-background: var(#{$bg-select-double-variable});
       --b3-av-hover: var(#{$bg-av-hover-variable});
     }
   }
@@ -687,7 +687,7 @@ $backgrounds: (
     // 带背景色的块 在 两个选中块 的中间，并且就是靠内层的选中块
     .protyle-wysiwyg--select [data-node-id][style*="background-color: var(#{$bg-variable})"].protyle-wysiwyg--hl,
     .protyle-wysiwyg--hl [data-node-id][style*="background-color: var(#{$bg-variable})"].protyle-wysiwyg--select {
-      --b3-av-background: var(#{$bg-select-double-variable}) !important;
+      --b3-av-background: var(#{$bg-select-double-variable});
       --b3-av-hover: var(#{$bg-av-hover-variable});
     }
   }
@@ -701,7 +701,7 @@ $backgrounds: (
     .protyle-wysiwyg--select .protyle-wysiwyg--hl,
     .protyle-wysiwyg--hl .protyle-wysiwyg--select {
       [data-node-id][style*="background-color: var(#{$bg-variable})"] {
-        --b3-av-background: var(#{$bg-select-double-variable}) !important;
+        --b3-av-background: var(#{$bg-select-double-variable});
         --b3-av-hover: var(#{$bg-av-hover-variable});
       }
     }
