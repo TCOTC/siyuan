@@ -72,14 +72,19 @@ export const scrollEvent = (protyle: IProtyle, element: HTMLElement) => {
                 protyle.wysiwyg.element.firstElementChild.getAttribute("data-eof") !== "1") {
                 // 禁用滚动时会产生抖动 https://ld246.com/article/1666717094418
                 protyle.contentElement.style.width = (protyle.contentElement.clientWidth) + "px";
-                protyle.contentElement.style.overflow = "hidden";
+                // protyle.contentElement.style.overflow = "hidden";
+                // 这里要用类名查，因为 .protyle-top 元素可能不存在
+                protyle.contentElement.firstElementChild.classList.add("fn__hidden");
                 protyle.wysiwyg.element.setAttribute("data-top", element.scrollTop.toString());
                 fetchPost("/api/filetree/getDoc", {
                     id: protyle.wysiwyg.element.firstElementChild.getAttribute("data-node-id"),
                     mode: 1,
                     size: window.siyuan.config.editor.dynamicLoadBlocks,
                 }, getResponse => {
-                    protyle.contentElement.style.overflow = "";
+                    setTimeout(() => {
+                        // protyle.contentElement.style.overflow = "";
+                        protyle.contentElement.firstElementChild.classList.remove("fn__hidden");
+                    }, 0);
                     protyle.contentElement.style.width = "";
                     onGet({
                         data: getResponse,

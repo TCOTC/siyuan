@@ -80,6 +80,10 @@
 
   &__hidden {
     visibility: hidden;
+
+    &, * {
+      transition: none !important;
+    }
   }
 
   &__a {
