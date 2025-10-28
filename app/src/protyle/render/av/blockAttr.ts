@@ -26,7 +26,7 @@ const genAVRollupHTML = (value: IAVCellValue) => {
             if (value?.isDetached) {
                 html = `<span>${value.block?.content || window.siyuan.languages.untitled}</span>`;
             } else {
-                html = `<span data-type="block-ref" data-id="${value.block.id}" data-subtype="s" class="av__celltext--ref">${value.block?.content || window.siyuan.languages.untitled}</span>`;
+                html = `<span data-type="block-ref" data-id="${value.block.id}" data-subtype="${value.block.subtype}" class="av__celltext--ref">${value.block?.content || window.siyuan.languages.untitled}</span>`;
             }
             break;
         case "text":
@@ -141,7 +141,7 @@ export const genAVValueHTML = (value: IAVCellValue) => {
                         html += `<span data-row-id="${rowID}" class="av__cell--relation"><span>➖<span class="fn__space--5"></span></span><span class="av__celltext">${Lute.EscapeHTMLStr(item.block.content || window.siyuan.languages.untitled)}</span></span>`;
                     } else {
                         // data-block-id 用于更新 emoji
-                        html += `<span data-row-id="${rowID}" class="av__cell--relation" data-block-id="${item.block.id}"><span class="b3-menu__avemoji" data-unicode="${item.block.icon || ""}">${unicode2Emoji(item.block.icon || window.siyuan.storage[Constants.LOCAL_IMAGES].file)}</span><span data-type="block-ref" data-id="${item.block.id}" data-subtype="s" class="av__celltext av__celltext--ref">${Lute.EscapeHTMLStr(item.block.content || window.siyuan.languages.untitled)}</span></span>`;
+                        html += `<span data-row-id="${rowID}" class="av__cell--relation" data-block-id="${item.block.id}"><span class="b3-menu__avemoji" data-unicode="${item.block.icon || ""}">${unicode2Emoji(item.block.icon || window.siyuan.storage[Constants.LOCAL_IMAGES].file)}</span><span data-type="block-ref" data-id="${item.block.id}" data-subtype="${item.block.subtype}" class="av__celltext av__celltext--ref">${Lute.EscapeHTMLStr(item.block.content || window.siyuan.languages.untitled)}</span></span>`;
                     }
                 }
             });
