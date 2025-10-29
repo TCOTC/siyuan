@@ -462,6 +462,7 @@ type ValueBlock struct {
 	Content string `json:"content"`
 	Created int64  `json:"created,omitempty"`
 	Updated int64  `json:"updated,omitempty"`
+	Subtype string `json:"subtype,omitempty"` // 锚文本类型：'s' 表示静态锚文本，'d' 表示动态锚文本（动态计算，不持久化）
 }
 
 type ValueText struct {

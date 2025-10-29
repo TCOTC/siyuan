@@ -547,11 +547,18 @@ func SaveAttributeView(av *AttributeView) (err error) {
 		}
 	}
 
-	// 清理渲染回填值
 	for _, kv := range av.KeyValues {
+		// 清理渲染回填值
 		for i := len(kv.Values) - 1; i >= 0; i-- {
 			if kv.Values[i].IsRenderAutoFill {
 				kv.Values = append(kv.Values[:i], kv.Values[i+1:]...)
+			}
+		}
+
+		// 清空 Subtype 字段
+		for _, value := range kv.Values {
+			if nil != value.Block {
+				value.Block.Subtype = ""
 			}
 		}
 	}

@@ -1731,7 +1731,16 @@ func GetBlockAttributeViewKeys(nodeID string) (ret []*BlockAttributeViewKeys) {
 				}
 				kv.Values[0].Relation.Contents = nil // 先清空 https://github.com/siyuan-note/siyuan/issues/10670
 				for _, bID := range kv.Values[0].Relation.BlockIDs {
-					kv.Values[0].Relation.Contents = append(kv.Values[0].Relation.Contents, blocks[bID])
+					blockValue := blocks[bID]
+					// 确保 Subtype 字段有值
+					blockValue.Block.Subtype = "d" // 默认为动态锚文本
+					// 检查是否有静态锚文本
+					attrs := sql.GetBlockAttrs(blockValue.Block.ID)
+					if staticText := attrs[av.NodeAttrViewStaticText+"-"+destAv.ID]; staticText != "" {
+						blockValue.Block.Content = staticText
+						blockValue.Block.Subtype = "s" // 静态锚文本
+					}
+					kv.Values[0].Relation.Contents = append(kv.Values[0].Relation.Contents, blockValue)
 				}
 			}
 		}
