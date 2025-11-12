@@ -292,37 +292,61 @@ func WaitForTesseractInit() {
 }
 
 func InitTesseract() {
+	logging.LogInfof("InitTesseract: starting initialization, TesseractEnabled=%v", TesseractEnabled)
+
 	ver := getTesseractVer()
+	logging.LogInfof("InitTesseract: getTesseractVer() returned ver=%q, TesseractEnabled=%v", ver, TesseractEnabled)
+
 	if "" == ver {
+		logging.LogInfof("InitTesseract: tesseract version is empty, exiting initialization")
 		tesseractInited.Store(true)
 		return
 	}
 
 	langs := getTesseractLangs()
+	logging.LogInfof("InitTesseract: getTesseractLangs() returned %d langs: %v", len(langs), langs)
+
 	if 1 > len(langs) {
 		logging.LogWarnf("no tesseract langs found")
 		TesseractEnabled = false
+		logging.LogInfof("InitTesseract: no langs found, setting TesseractEnabled=false and exiting")
 		tesseractInited.Store(true)
 		return
 	}
 
 	maxSizeVal := os.Getenv("SIYUAN_TESSERACT_MAX_SIZE")
+	logging.LogInfof("InitTesseract: SIYUAN_TESSERACT_MAX_SIZE env var=%q", maxSizeVal)
 	if "" != maxSizeVal {
 		if maxSize, parseErr := strconv.ParseUint(maxSizeVal, 10, 64); nil == parseErr {
 			TesseractMaxSize = maxSize
+			logging.LogInfof("InitTesseract: parsed maxSize=%d", maxSize)
+		} else {
+			logging.LogWarnf("InitTesseract: failed to parse SIYUAN_TESSERACT_MAX_SIZE=%q, error=%v", maxSizeVal, parseErr)
 		}
 	}
 
 	// Supports via environment var `SIYUAN_TESSERACT_ENABLED=false` to close OCR https://github.com/siyuan-note/siyuan/issues/9619
-	if enabled := os.Getenv("SIYUAN_TESSERACT_ENABLED"); "" != enabled {
-		if enabledBool, parseErr := strconv.ParseBool(enabled); nil == parseErr {
+	enabled := os.Getenv("SIYUAN_TESSERACT_ENABLED")
+	logging.LogInfof("InitTesseract: SIYUAN_TESSERACT_ENABLED env var=%q (empty=%v), current TesseractEnabled=%v", enabled, "" == enabled, TesseractEnabled)
+
+	if "" != enabled {
+		enabledBool, parseErr := strconv.ParseBool(enabled)
+		logging.LogInfof("InitTesseract: parsed SIYUAN_TESSERACT_ENABLED=%q to bool=%v, parseErr=%v", enabled, enabledBool, parseErr)
+
+		if nil == parseErr {
 			TesseractEnabled = enabledBool
+			logging.LogInfof("InitTesseract: set TesseractEnabled=%v based on env var", enabledBool)
+
 			if !enabledBool {
 				logging.LogInfof("tesseract-ocr disabled by env")
 				tesseractInited.Store(true)
 				return
 			}
+		} else {
+			logging.LogWarnf("InitTesseract: failed to parse SIYUAN_TESSERACT_ENABLED=%q as bool, error=%v, keeping TesseractEnabled=%v", enabled, parseErr, TesseractEnabled)
 		}
+	} else {
+		logging.LogInfof("InitTesseract: SIYUAN_TESSERACT_ENABLED env var is empty, keeping TesseractEnabled=%v", TesseractEnabled)
 	}
 
 	TesseractLangs = filterTesseractLangs(langs)
@@ -332,16 +356,21 @@ func InitTesseract() {
 
 func filterTesseractLangs(langs []string) (ret []string) {
 	ret = []string{}
+	logging.LogInfof("filterTesseractLangs: starting with %d input langs: %v", len(langs), langs)
 
 	envLangsVal := os.Getenv("SIYUAN_TESSERACT_LANGS")
+	logging.LogInfof("filterTesseractLangs: SIYUAN_TESSERACT_LANGS env var=%q", envLangsVal)
+
 	if "" != envLangsVal {
 		envLangs := strings.Split(envLangsVal, "+")
+		logging.LogInfof("filterTesseractLangs: filtering by env langs: %v", envLangs)
 		for _, lang := range langs {
 			if gulu.Str.Contains(lang, envLangs) {
 				ret = append(ret, lang)
 			}
 		}
 	} else {
+		logging.LogInfof("filterTesseractLangs: no env langs specified, using default filter")
 		for _, lang := range langs {
 			if "eng" == lang || strings.HasPrefix(lang, "chi") || "fra" == lang || "spa" == lang || "deu" == lang ||
 				"rus" == lang || "jpn" == lang || "osd" == lang {
@@ -349,50 +378,77 @@ func filterTesseractLangs(langs []string) (ret []string) {
 			}
 		}
 	}
+
+	logging.LogInfof("filterTesseractLangs: filtered to %d langs: %v", len(ret), ret)
 	return ret
 }
 
 func getTesseractVer() (ret string) {
+	logging.LogInfof("getTesseractVer: starting, ContainerStd=%v, Container=%v, TesseractBin=%q, TesseractEnabled=%v", ContainerStd, Container, TesseractBin, TesseractEnabled)
+
 	if ContainerStd != Container {
+		logging.LogInfof("getTesseractVer: ContainerStd != Container, returning empty version")
 		return
 	}
 
 	cmd := exec.Command(TesseractBin, "--version")
 	gulu.CmdAttr(cmd)
+	logging.LogInfof("getTesseractVer: trying TesseractBin=%q", TesseractBin)
 	data, err := cmd.CombinedOutput()
+
 	if err != nil {
+		logging.LogInfof("getTesseractVer: first attempt failed, error=%v, error string=%q", err, err.Error())
 		if strings.Contains(err.Error(), "executable file not found") {
 			// macOS 端 Tesseract OCR 安装后不识别 https://github.com/siyuan-note/siyuan/issues/7107
 			TesseractBin = "/usr/local/bin/tesseract"
 			cmd = exec.Command(TesseractBin, "--version")
 			gulu.CmdAttr(cmd)
+			logging.LogInfof("getTesseractVer: trying fallback path=%q", TesseractBin)
 			data, err = cmd.CombinedOutput()
+
 			if err != nil && strings.Contains(err.Error(), "executable file not found") {
 				TesseractBin = "/opt/homebrew/bin/tesseract"
 				cmd = exec.Command(TesseractBin, "--version")
 				gulu.CmdAttr(cmd)
+				logging.LogInfof("getTesseractVer: trying second fallback path=%q", TesseractBin)
 				data, err = cmd.CombinedOutput()
 			}
 		}
 	}
+
 	if err != nil {
+		logging.LogInfof("getTesseractVer: all attempts failed, error=%v, returning empty version", err)
 		return
 	}
+
+	outputPrefix := string(data)
+	if len(outputPrefix) > 50 {
+		outputPrefix = outputPrefix[:50]
+	}
+	logging.LogInfof("getTesseractVer: command succeeded, output length=%d, output prefix=%q", len(data), outputPrefix)
 
 	if strings.HasPrefix(string(data), "tesseract ") {
 		parts := bytes.Split(data, []byte("\n"))
 		if 0 < len(parts) {
 			ret = strings.TrimPrefix(string(parts[0]), "tesseract ")
 			ret = strings.TrimSpace(ret)
+			logging.LogInfof("getTesseractVer: extracted version=%q, setting TesseractEnabled=true", ret)
 			TesseractEnabled = true
+		} else {
+			logging.LogWarnf("getTesseractVer: output has 'tesseract ' prefix but no parts after split")
 		}
 		return
 	}
+
+	logging.LogWarnf("getTesseractVer: output does not have 'tesseract ' prefix, output=%q", string(data))
 	return
 }
 
 func getTesseractLangs() (ret []string) {
+	logging.LogInfof("getTesseractLangs: starting, TesseractEnabled=%v, TesseractBin=%q", TesseractEnabled, TesseractBin)
+
 	if !TesseractEnabled {
+		logging.LogInfof("getTesseractLangs: TesseractEnabled is false, returning nil")
 		return nil
 	}
 
@@ -400,8 +456,11 @@ func getTesseractLangs() (ret []string) {
 	gulu.CmdAttr(cmd)
 	data, err := cmd.CombinedOutput()
 	if err != nil {
+		logging.LogWarnf("getTesseractLangs: command failed, error=%v", err)
 		return nil
 	}
+
+	logging.LogInfof("getTesseractLangs: command succeeded, output length=%d", len(data))
 
 	parts := bytes.Split(data, []byte("\n"))
 	if 0 < len(parts) {
@@ -414,6 +473,8 @@ func getTesseractLangs() (ret []string) {
 		}
 		ret = append(ret, string(part))
 	}
+
+	logging.LogInfof("getTesseractLangs: found %d languages: %v", len(ret), ret)
 	return
 }
 
