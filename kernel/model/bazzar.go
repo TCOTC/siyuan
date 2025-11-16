@@ -414,7 +414,7 @@ func InstalledThemes(keyword string) (ret []*bazaar.Theme) {
 	return
 }
 
-func InstallBazaarTheme(repoURL, repoHash, themeName string, mode int, update bool) error {
+func InstallBazaarTheme(repoURL, repoHash, themeName string, modes []string, update bool) error {
 	closeThemeWatchers()
 
 	installPath := filepath.Join(util.ThemesPath, themeName)
@@ -424,13 +424,53 @@ func InstallBazaarTheme(repoURL, repoHash, themeName string, mode int, update bo
 	}
 
 	if !update {
-		// 更新主题后不需要对该主题进行切换 https://github.com/siyuan-note/siyuan/issues/4966
-		if 0 == mode {
-			Conf.Appearance.ThemeLight = themeName
-		} else {
-			Conf.Appearance.ThemeDark = themeName
+		// 如果前端没有传递 modes，从主题配置文件中读取
+		if len(modes) == 0 {
+			if themeConf, err := bazaar.ThemeJSON(themeName); err == nil && nil != themeConf {
+				modes = themeConf.Modes
+			}
 		}
-		Conf.Appearance.Mode = mode
+
+		// 根据主题支持的模式更新对应的主题配置
+		hasLight := false
+		hasDark := false
+		for _, mode := range modes {
+			if mode == "light" {
+				hasLight = true
+				Conf.Appearance.ThemeLight = themeName
+			} else if mode == "dark" {
+				hasDark = true
+				Conf.Appearance.ThemeDark = themeName
+			}
+		}
+
+		// 判断当前实际外观模式
+		// 如果 ModeOS 为 true，当前实际模式取决于系统主题，但后端无法获取，所以使用 Mode 的值作为当前模式
+		currentMode := Conf.Appearance.Mode
+		currentModeStr := "light"
+		if currentMode == 1 {
+			currentModeStr = "dark"
+		}
+
+		// 判断主题是否支持当前实际外观模式
+		supportsCurrentMode := false
+		if (currentModeStr == "light" && hasLight) || (currentModeStr == "dark" && hasDark) {
+			supportsCurrentMode = true
+		}
+
+		// 如果主题不支持当前实际外观模式，需要切换外观模式
+		if !supportsCurrentMode {
+			// 优先切换到主题支持的模式
+			if hasLight {
+				Conf.Appearance.Mode = 0
+			} else if hasDark {
+				Conf.Appearance.Mode = 1
+			}
+			// 如果主题不支持当前模式，取消跟随系统设置
+			Conf.Appearance.ModeOS = false
+		}
+		// 如果主题支持当前模式，不修改 Mode 和 ModeOS
+
 		Conf.Appearance.ThemeJS = gulu.File.IsExist(filepath.Join(installPath, "theme.js"))
 		Conf.Save()
 	}

@@ -243,14 +243,14 @@ export const bazaar = {
     },
     _genCardHTML(item: IBazaarItem, bazaarType: TBazaarType) {
         let hide = false;
-        let themeMode = "";
+        let themeModes: string[] = [];
         if (bazaarType === "themes") {
             const themeValue = (bazaar.element.querySelector("#bazaarSelect") as HTMLSelectElement).value;
             if ((themeValue === "0" && item.modes.includes("dark")) ||
                 themeValue === "1" && item.modes.includes("light")) {
                 hide = true;
             }
-            themeMode = item.modes.toString();
+            themeModes = item.modes || [];
         }
         let showSwitch = false;
         if (["icons", "themes"].includes(bazaarType)) {
@@ -258,7 +258,7 @@ export const bazaar = {
         }
         const dataObj = {
             bazaarType,
-            themeMode: themeMode,
+            themeModes: themeModes,
             updated: item.updated,
             name: item.name,
             repoURL: item.repoURL,
@@ -305,7 +305,7 @@ export const bazaar = {
     _genUpdateItemHTML(item: IBazaarItem, bazaarType: TBazaarType) {
         const dataObj = {
             bazaarType,
-            themeMode: item.modes?.toString(),
+            themeModes: item.modes || [],
             updated: item.updated,
             name: item.name,
             repoURL: item.repoURL,
@@ -404,7 +404,7 @@ export const bazaar = {
                 response.data.packages.forEach((item: IBazaarItem) => {
                     const dataObj = {
                         bazaarType,
-                        themeMode: item.modes?.toString(),
+                        themeModes: item.modes || [],
                         updated: item.updated,
                         name: item.name,
                         repoURL: item.repoURL,
@@ -501,7 +501,7 @@ type="checkbox">
         }
         const dataObj1 = {
             bazaarType,
-            themeMode: data.modes?.toString(),
+            themeModes: data.modes || [],
             name: data.name,
             repoURL: data.repoURL,
             repoHash: data.repoHash,
@@ -695,7 +695,7 @@ type="checkbox">
                             repoURL: dataObj.repoURL,
                             packageName: dataObj.name,
                             repoHash: dataObj.repoHash,
-                            mode: dataObj.themeMode === "dark" ? 1 : 0,
+                            modes: dataObj.themeModes || [],
                             frontend: getFrontend()
                         }, async response => {
                             bazaar._onBazaar(response, bazaarType);
@@ -755,7 +755,7 @@ type="checkbox">
                                 repoURL: dataObj.repoURL,
                                 packageName: dataObj.name,
                                 repoHash: dataObj.repoHash,
-                                mode: dataObj.themeMode === "dark" ? 1 : 0,
+                                modes: dataObj.themeModes || [],
                                 update: true,
                                 frontend: getFrontend()
                             }, async response => {
@@ -819,7 +819,6 @@ type="checkbox">
                 } else if (type === "switch") {
                     const bazaarType = dataObj.bazaarType as TBazaarType;
                     const packageName = dataObj.name;
-                    const mode = dataObj.themeMode === "dark" ? 1 : 0;
                     if (bazaarType === "icons") {
                         fetchPost("/api/setting/setAppearance", Object.assign({}, window.siyuan.config.appearance, {
                             icon: packageName,
@@ -832,11 +831,35 @@ type="checkbox">
                             });
                         });
                     } else if (bazaarType === "themes") {
+                        const themeModes: string[] = Array.isArray(dataObj.themeModes) ? dataObj.themeModes : [];
+                        const hasLight = themeModes.includes("light");
+                        const hasDark = themeModes.includes("dark");
+                        // 判断当前实际外观模式
+                        const currentMode = window.siyuan.config.appearance.mode;
+                        const currentModeStr = currentMode === 0 ? "light" : "dark";
+                        // 判断主题是否支持当前实际外观模式
+                        const supportsCurrentMode = (currentModeStr === "light" && hasLight) || (currentModeStr === "dark" && hasDark);
+                        
+                        // 如果主题支持当前模式，不修改 mode 和 modeOS；否则切换到主题支持的模式
+                        let mode = currentMode;
+                        let modeOS = window.siyuan.config.appearance.modeOS;
+                        if (!supportsCurrentMode) {
+                            // 优先切换到主题支持的模式
+                            if (hasLight) {
+                                mode = 0;
+                            } else if (hasDark) {
+                                mode = 1;
+                            }
+                            // 如果主题不支持当前模式，取消跟随系统设置
+                            modeOS = false;
+                        }
+                        // 如果主题支持当前模式，不修改 mode 和 modeOS
+                        
                         fetchPost("/api/setting/setAppearance", Object.assign({}, window.siyuan.config.appearance, {
                             mode,
-                            modeOS: false,
-                            themeDark: mode === 1 ? packageName : window.siyuan.config.appearance.themeDark,
-                            themeLight: mode === 0 ? packageName : window.siyuan.config.appearance.themeLight,
+                            modeOS,
+                            themeDark: hasDark ? packageName : window.siyuan.config.appearance.themeDark,
+                            themeLight: hasLight ? packageName : window.siyuan.config.appearance.themeLight,
                         }), async (appearanceResponse) => {
                             this._genMyHTML("themes", app, false);
                             fetchPost("/api/bazaar/getBazaarTheme", {}, response => {
@@ -1040,14 +1063,15 @@ type="checkbox">
                     // theme select
                     bazaar.element.querySelectorAll("#configBazaarTheme .b3-card").forEach((item) => {
                         const dataObj = JSON.parse(item.getAttribute("data-obj"));
+                        const themeModes = dataObj.themeModes || [];
                         if (selectElement.value === "0") {
-                            if (dataObj.themeMode.indexOf("light") > -1) {
+                            if (themeModes.includes("light")) {
                                 item.classList.remove("fn__none");
                             } else {
                                 item.classList.add("fn__none");
                             }
                         } else if (selectElement.value === "1") {
-                            if (dataObj.themeMode.indexOf("dark") > -1) {
+                            if (themeModes.includes("dark")) {
                                 item.classList.remove("fn__none");
                             } else {
                                 item.classList.add("fn__none");

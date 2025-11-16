@@ -518,21 +518,26 @@ func installBazaarTheme(c *gin.Context) {
 	repoURL := arg["repoURL"].(string)
 	repoHash := arg["repoHash"].(string)
 	packageName := arg["packageName"].(string)
-	mode := arg["mode"].(float64)
+	var modes []string
+	if modesArg := arg["modes"]; nil != modesArg {
+		if modesInterface, ok := modesArg.([]interface{}); ok {
+			for _, m := range modesInterface {
+				if modeStr, ok := m.(string); ok {
+					modes = append(modes, modeStr)
+				}
+			}
+		}
+	}
 	update := false
 	if nil != arg["update"] {
 		update = arg["update"].(bool)
 	}
-	err := model.InstallBazaarTheme(repoURL, repoHash, packageName, int(mode), update)
+	err := model.InstallBazaarTheme(repoURL, repoHash, packageName, modes, update)
 	if err != nil {
 		ret.Code = 1
 		ret.Msg = err.Error()
 		return
 	}
-
-	// 安装集市主题后不跟随系统切换外观模式
-	model.Conf.Appearance.ModeOS = false
-	model.Conf.Save()
 
 	util.PushMsg(model.Conf.Language(69), 3000)
 	ret.Data = map[string]interface{}{
