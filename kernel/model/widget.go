@@ -45,10 +45,11 @@ func SearchWidget(keyword string) (ret []*Block) {
 			continue
 		}
 
-		widget, _ := bazaar.WidgetJSON(entry.Name())
-		if nil == widget {
+		widgetPkg, _ := bazaar.PackageJSON(bazaar.PackageTypeWidget, entry.Name())
+		if nil == widgetPkg {
 			continue
 		}
+		widget := &bazaar.Widget{Package: widgetPkg}
 
 		widgets = append(widgets, widget)
 	}

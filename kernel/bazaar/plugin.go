@@ -155,10 +155,11 @@ func ParseInstalledPlugin(name, frontend string) (found bool, displayName string
 			continue
 		}
 
-		plugin, parseErr := PluginJSON(dirName)
-		if nil != parseErr || nil == plugin {
+		pkg, parseErr := PackageJSON(PackageTypePlugin, dirName)
+		if nil != parseErr || nil == pkg {
 			return
 		}
+		plugin := &Plugin{Package: pkg}
 
 		found = true
 		displayName = GetPreferredName(plugin.Package)
@@ -193,10 +194,11 @@ func InstalledPlugins(frontend string, checkUpdate bool) (ret []*Plugin) {
 		}
 		dirName := pluginDir.Name()
 
-		plugin, parseErr := PluginJSON(dirName)
-		if nil != parseErr || nil == plugin {
+		pkg, parseErr := PackageJSON(PackageTypePlugin, dirName)
+		if nil != parseErr || nil == pkg {
 			continue
 		}
+		plugin := &Plugin{Package: pkg}
 
 		installPath := filepath.Join(util.DataDir, "plugins", dirName)
 		plugin.Installed = true

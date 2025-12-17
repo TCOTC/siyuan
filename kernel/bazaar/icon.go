@@ -154,10 +154,11 @@ func InstalledIcons() (ret []*Icon) {
 			continue
 		}
 
-		icon, parseErr := IconJSON(dirName)
-		if nil != parseErr || nil == icon {
+		pkg, parseErr := PackageJSON(PackageTypeIcon, dirName)
+		if nil != parseErr || nil == pkg {
 			continue
 		}
+		icon := &Icon{Package: pkg}
 
 		installPath := filepath.Join(util.IconsPath, dirName)
 

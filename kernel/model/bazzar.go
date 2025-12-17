@@ -31,7 +31,6 @@ import (
 	"github.com/siyuan-note/siyuan/kernel/bazaar"
 	"github.com/siyuan-note/siyuan/kernel/task"
 	"github.com/siyuan-note/siyuan/kernel/util"
-	"golang.org/x/mod/semver"
 )
 
 func BatchUpdateBazaarPackages(frontend string) {
@@ -192,16 +191,72 @@ func GetPackageREADME(repoURL, repoHash, packageType string) (ret string) {
 	return
 }
 
+// bazaarPackageType 集市包类型
+type bazaarPackageType int
+
+const (
+	bazaarPackageTypePlugin bazaarPackageType = iota
+	bazaarPackageTypeWidget
+	bazaarPackageTypeTemplate
+	bazaarPackageTypeIcon
+	bazaarPackageTypeTheme
+)
+
+// getBazaarPackageConfig 根据包类型获取包的配置
+// packageName: 包的名称
+// packageType: 包的类型
+// 返回: 包的配置对象和错误
+func getBazaarPackageConfig(packageName string, packageType bazaarPackageType) (*bazaar.Package, error) {
+	var bazaarPackageType bazaar.PackageType
+	switch packageType {
+	case bazaarPackageTypePlugin:
+		bazaarPackageType = bazaar.PackageTypePlugin
+	case bazaarPackageTypeWidget:
+		bazaarPackageType = bazaar.PackageTypeWidget
+	case bazaarPackageTypeTemplate:
+		bazaarPackageType = bazaar.PackageTypeTemplate
+	case bazaarPackageTypeIcon:
+		bazaarPackageType = bazaar.PackageTypeIcon
+	case bazaarPackageTypeTheme:
+		bazaarPackageType = bazaar.PackageTypeTheme
+	default:
+		return nil, fmt.Errorf("unknown package type: %d", packageType)
+	}
+	return bazaar.PackageJSON(bazaarPackageType, packageName)
+}
+
+// checkBazaarPackageInstalled 检查集市包是否已安装
+// packagePath: 包的安装路径
+// packageName: 包的名称
+// packageType: 包的类型
+// bazaarVersion: 集市中的包版本
+// 返回: 是否已安装, 是否过时
+func checkBazaarPackageInstalled(packagePath, packageName string, packageType bazaarPackageType, bazaarVersion string) (installed, outdated bool) {
+	// 检查目录是否存在且包含实际文件（忽略空文件夹和空文件）
+	if !util.IsPathRegularDirOrSymlinkDir(packagePath) || !util.HasFiles(packagePath) {
+		return false, false
+	}
+
+	// 获取包的配置
+	config, err := getBazaarPackageConfig(packageName, packageType)
+	if err != nil || config == nil || "" == config.Version {
+		return false, false
+	}
+
+	installed = true
+	// 比较版本判断是否过时
+	if "" != bazaarVersion {
+		outdated = 0 > bazaar.CompareVersion(config.Version, bazaarVersion)
+	}
+	return
+}
+
 func BazaarPlugins(frontend, keyword string) (plugins []*bazaar.Plugin) {
 	plugins = bazaar.Plugins(frontend)
 	plugins = filterPlugins(plugins, keyword)
 	for _, plugin := range plugins {
-		plugin.Installed = util.IsPathRegularDirOrSymlinkDir(filepath.Join(util.DataDir, "plugins", plugin.Name))
-		if plugin.Installed {
-			if pluginConf, err := bazaar.PluginJSON(plugin.Name); err == nil && nil != plugin {
-				plugin.Outdated = 0 > semver.Compare("v"+pluginConf.Version, "v"+plugin.Version)
-			}
-		}
+		pluginPath := filepath.Join(util.DataDir, "plugins", plugin.Name)
+		plugin.Installed, plugin.Outdated = checkBazaarPackageInstalled(pluginPath, plugin.Name, bazaarPackageTypePlugin, plugin.Version)
 	}
 	return
 }
@@ -265,12 +320,8 @@ func BazaarWidgets(keyword string) (widgets []*bazaar.Widget) {
 	widgets = bazaar.Widgets()
 	widgets = filterWidgets(widgets, keyword)
 	for _, widget := range widgets {
-		widget.Installed = util.IsPathRegularDirOrSymlinkDir(filepath.Join(util.DataDir, "widgets", widget.Name))
-		if widget.Installed {
-			if widgetConf, err := bazaar.WidgetJSON(widget.Name); err == nil && nil != widget {
-				widget.Outdated = 0 > semver.Compare("v"+widgetConf.Version, "v"+widget.Version)
-			}
-		}
+		widgetPath := filepath.Join(util.DataDir, "widgets", widget.Name)
+		widget.Installed, widget.Outdated = checkBazaarPackageInstalled(widgetPath, widget.Name, bazaarPackageTypeWidget, widget.Version)
 	}
 	return
 }
@@ -316,10 +367,8 @@ func BazaarIcons(keyword string) (icons []*bazaar.Icon) {
 	for _, installed := range Conf.Appearance.Icons {
 		for _, icon := range icons {
 			if installed == icon.Name {
-				icon.Installed = true
-				if iconConf, err := bazaar.IconJSON(icon.Name); err == nil {
-					icon.Outdated = 0 > semver.Compare("v"+iconConf.Version, "v"+icon.Version)
-				}
+				iconPath := filepath.Join(util.IconsPath, icon.Name)
+				icon.Installed, icon.Outdated = checkBazaarPackageInstalled(iconPath, icon.Name, bazaarPackageTypeIcon, icon.Version)
 			}
 			icon.Current = icon.Name == Conf.Appearance.Icon
 		}
@@ -379,10 +428,8 @@ func BazaarThemes(keyword string) (ret []*bazaar.Theme) {
 	for _, installed := range installs {
 		for _, theme := range ret {
 			if installed.Name == theme.Name {
-				theme.Installed = true
-				if themeConf, err := bazaar.ThemeJSON(theme.Name); err == nil {
-					theme.Outdated = 0 > semver.Compare("v"+themeConf.Version, "v"+theme.Version)
-				}
+				themePath := filepath.Join(util.ThemesPath, theme.Name)
+				theme.Installed, theme.Outdated = checkBazaarPackageInstalled(themePath, theme.Name, bazaarPackageTypeTheme, theme.Version)
 				theme.Current = theme.Name == Conf.Appearance.ThemeDark || theme.Name == Conf.Appearance.ThemeLight
 			}
 		}
@@ -453,12 +500,8 @@ func BazaarTemplates(keyword string) (templates []*bazaar.Template) {
 	templates = bazaar.Templates()
 	templates = filterTemplates(templates, keyword)
 	for _, template := range templates {
-		template.Installed = util.IsPathRegularDirOrSymlinkDir(filepath.Join(util.DataDir, "templates", template.Name))
-		if template.Installed {
-			if templateConf, err := bazaar.TemplateJSON(template.Name); err == nil && nil != templateConf {
-				template.Outdated = 0 > semver.Compare("v"+templateConf.Version, "v"+template.Version)
-			}
-		}
+		templatePath := filepath.Join(util.DataDir, "templates", template.Name)
+		template.Installed, template.Outdated = checkBazaarPackageInstalled(templatePath, template.Name, bazaarPackageTypeTemplate, template.Version)
 	}
 	return
 }

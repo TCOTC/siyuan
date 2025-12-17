@@ -124,10 +124,11 @@ func loadThemes() {
 			continue
 		}
 		name := themeDir.Name()
-		themeConf, parseErr := bazaar.ThemeJSON(name)
-		if nil != parseErr || nil == themeConf {
+		themePkg, parseErr := bazaar.PackageJSON(bazaar.PackageTypeTheme, name)
+		if nil != parseErr || nil == themePkg {
 			continue
 		}
+		themeConf := &bazaar.Theme{Package: themePkg}
 
 		modes := themeConf.Modes
 		for _, mode := range modes {
@@ -202,10 +203,11 @@ func loadIcons() {
 			continue
 		}
 		name := iconDir.Name()
-		iconConf, err := bazaar.IconJSON(name)
-		if err != nil || nil == iconConf {
+		iconPkg, err := bazaar.PackageJSON(bazaar.PackageTypeIcon, name)
+		if err != nil || nil == iconPkg {
 			continue
 		}
+		iconConf := &bazaar.Icon{Package: iconPkg}
 		Conf.Appearance.Icons = append(Conf.Appearance.Icons, name)
 		if Conf.Appearance.Icon == name {
 			Conf.Appearance.IconVer = iconConf.Version

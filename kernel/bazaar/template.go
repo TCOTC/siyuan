@@ -155,10 +155,11 @@ func InstalledTemplates() (ret []*Template) {
 		}
 		dirName := templateDir.Name()
 
-		template, parseErr := TemplateJSON(dirName)
-		if nil != parseErr || nil == template {
+		pkg, parseErr := PackageJSON(PackageTypeTemplate, dirName)
+		if nil != parseErr || nil == pkg {
 			continue
 		}
+		template := &Template{Package: pkg}
 
 		installPath := filepath.Join(util.DataDir, "templates", dirName)
 

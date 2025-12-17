@@ -116,6 +116,41 @@ func IsEmptyDir(p string) bool {
 	return 1 > len(files)
 }
 
+// HasFiles 递归检查目录是否包含任何实际文件（忽略空文件夹和空文件）
+func HasFiles(dirPath string) bool {
+	if !gulu.File.IsDir(dirPath) {
+		return false
+	}
+
+	entries, err := os.ReadDir(dirPath)
+	if err != nil {
+		return false
+	}
+
+	for _, entry := range entries {
+		entryPath := filepath.Join(dirPath, entry.Name())
+		if entry.IsDir() {
+			// 递归检查子目录
+			if HasFiles(entryPath) {
+				return true
+			}
+		} else {
+			// 检查文件大小，忽略空文件
+			info, err := entry.Info()
+			if err != nil {
+				continue
+			}
+			if info.Size() > 0 {
+				// 找到非空文件，返回 true
+				return true
+			}
+		}
+	}
+
+	// 所有子目录都是空的，没有找到任何非空文件
+	return false
+}
+
 func IsSymlink(dir fs.DirEntry) bool {
 	return dir.Type() == fs.ModeSymlink
 }

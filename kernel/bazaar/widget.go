@@ -152,10 +152,11 @@ func InstalledWidgets() (ret []*Widget) {
 		}
 		dirName := widgetDir.Name()
 
-		widget, parseErr := WidgetJSON(dirName)
-		if nil != parseErr || nil == widget {
+		pkg, parseErr := PackageJSON(PackageTypeWidget, dirName)
+		if nil != parseErr || nil == pkg {
 			continue
 		}
+		widget := &Widget{Package: pkg}
 
 		installPath := filepath.Join(util.DataDir, "widgets", dirName)
 

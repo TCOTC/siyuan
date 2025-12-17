@@ -156,10 +156,11 @@ func InstalledThemes() (ret []*Theme) {
 			continue
 		}
 
-		theme, parseErr := ThemeJSON(dirName)
-		if nil != parseErr || nil == theme {
+		pkg, parseErr := PackageJSON(PackageTypeTheme, dirName)
+		if nil != parseErr || nil == pkg {
 			continue
 		}
+		theme := &Theme{Package: pkg}
 
 		installPath := filepath.Join(util.ThemesPath, dirName)
 

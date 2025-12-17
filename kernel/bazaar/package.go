@@ -456,105 +456,136 @@ func getPreferredFunding(funding *Funding) string {
 	return ""
 }
 
-func PluginJSON(pluginDirName string) (ret *Plugin, err error) {
-	p := filepath.Join(util.DataDir, "plugins", pluginDirName, "plugin.json")
-	if !filelock.IsExist(p) {
+// PackageType 包类型
+type PackageType int
+
+const (
+	PackageTypePlugin PackageType = iota
+	PackageTypeWidget
+	PackageTypeTemplate
+	PackageTypeIcon
+	PackageTypeTheme
+)
+
+// CompareVersion 比较两个版本号
+func CompareVersion(v1, v2 string) int {
+	normalizedV1 := normalizeVersion(v1)
+	normalizedV2 := normalizeVersion(v2)
+
+	return semver.Compare(normalizedV1, normalizedV2)
+}
+
+// normalizeVersion 规范化版本号，确保有且仅有一个 "v" 前缀
+func normalizeVersion(version string) string {
+	if strings.HasPrefix(version, "v") {
+		return version
+	}
+	return "v" + version
+}
+
+// readPackageJSON 读取并解析包的 JSON 配置文件
+// jsonPath: JSON 文件的完整路径
+// useFilelock: 是否使用 filelock 进行文件操作（true 使用 filelock，false 使用 os）
+// ret: 指向要解析的结构体指针
+// 返回: 错误
+func readPackageJSON(jsonPath string, useFilelock bool, ret interface{}) (err error) {
+	// 检查文件是否存在
+	var exists bool
+	if useFilelock {
+		exists = filelock.IsExist(jsonPath)
+	} else {
+		exists = gulu.File.IsExist(jsonPath)
+	}
+	if !exists {
 		err = os.ErrNotExist
 		return
 	}
-	data, err := filelock.ReadFile(p)
-	if err != nil {
-		logging.LogErrorf("read plugin.json [%s] failed: %s", p, err)
-		return
+
+	// 读取文件
+	var data []byte
+	if useFilelock {
+		data, err = filelock.ReadFile(jsonPath)
+	} else {
+		data, err = os.ReadFile(jsonPath)
 	}
-	if err = gulu.JSON.UnmarshalJSON(data, &ret); err != nil {
-		logging.LogErrorf("parse plugin.json [%s] failed: %s", p, err)
+	if err != nil {
+		logging.LogErrorf("read json file [%s] failed: %s", jsonPath, err)
 		return
 	}
 
-	ret.URL = strings.TrimSuffix(ret.URL, "/")
+	// 解析 JSON
+	if err = gulu.JSON.UnmarshalJSON(data, ret); err != nil {
+		logging.LogErrorf("parse json file [%s] failed: %s", jsonPath, err)
+		return
+	}
+
 	return
 }
 
-func WidgetJSON(widgetDirName string) (ret *Widget, err error) {
-	p := filepath.Join(util.DataDir, "widgets", widgetDirName, "widget.json")
-	if !filelock.IsExist(p) {
-		err = os.ErrNotExist
-		return
-	}
-	data, err := filelock.ReadFile(p)
-	if err != nil {
-		logging.LogErrorf("read widget.json [%s] failed: %s", p, err)
-		return
-	}
-	if err = gulu.JSON.UnmarshalJSON(data, &ret); err != nil {
-		logging.LogErrorf("parse widget.json [%s] failed: %s", p, err)
+// PackageJSON 根据包类型读取并解析包的 JSON 配置文件
+// packageType: 包类型
+// packageDirName: 包的目录名称
+// 返回: 包的 Package 配置和错误
+func PackageJSON(packageType PackageType, packageDirName string) (pkg *Package, err error) {
+	var jsonPath string
+	var useFilelock bool
+	var ret interface{}
+
+	switch packageType {
+	case PackageTypePlugin:
+		jsonPath = filepath.Join(util.DataDir, "plugins", packageDirName, "plugin.json")
+		useFilelock = true
+		ret = &Plugin{}
+	case PackageTypeWidget:
+		jsonPath = filepath.Join(util.DataDir, "widgets", packageDirName, "widget.json")
+		useFilelock = true
+		ret = &Widget{}
+	case PackageTypeTemplate:
+		jsonPath = filepath.Join(util.DataDir, "templates", packageDirName, "template.json")
+		useFilelock = true
+		ret = &Template{}
+	case PackageTypeIcon:
+		jsonPath = filepath.Join(util.IconsPath, packageDirName, "icon.json")
+		useFilelock = false
+		ret = &Icon{}
+	case PackageTypeTheme:
+		jsonPath = filepath.Join(util.ThemesPath, packageDirName, "theme.json")
+		useFilelock = false
+		ret = &Theme{}
+	default:
+		err = fmt.Errorf("unknown package type: %d", packageType)
 		return
 	}
 
-	ret.URL = strings.TrimSuffix(ret.URL, "/")
-	return
-}
-
-func IconJSON(iconDirName string) (ret *Icon, err error) {
-	p := filepath.Join(util.IconsPath, iconDirName, "icon.json")
-	if !gulu.File.IsExist(p) {
-		err = os.ErrNotExist
-		return
-	}
-	data, err := os.ReadFile(p)
-	if err != nil {
-		logging.LogErrorf("read icon.json [%s] failed: %s", p, err)
-		return
-	}
-	if err = gulu.JSON.UnmarshalJSON(data, &ret); err != nil {
-		logging.LogErrorf("parse icon.json [%s] failed: %s", p, err)
-		return
+	if err = readPackageJSON(jsonPath, useFilelock, ret); err != nil {
+		return nil, err
 	}
 
-	ret.URL = strings.TrimSuffix(ret.URL, "/")
-	return
-}
-
-func TemplateJSON(templateDirName string) (ret *Template, err error) {
-	p := filepath.Join(util.DataDir, "templates", templateDirName, "template.json")
-	if !filelock.IsExist(p) {
-		err = os.ErrNotExist
-		return
-	}
-	data, err := filelock.ReadFile(p)
-	if err != nil {
-		logging.LogErrorf("read template.json [%s] failed: %s", p, err)
-		return
-	}
-	if err = gulu.JSON.UnmarshalJSON(data, &ret); err != nil {
-		logging.LogErrorf("parse template.json [%s] failed: %s", p, err)
+	// 提取 Package（所有类型都包含 *Package 字段）
+	switch v := ret.(type) {
+	case *Plugin:
+		pkg = v.Package
+	case *Widget:
+		pkg = v.Package
+	case *Template:
+		pkg = v.Package
+	case *Icon:
+		pkg = v.Package
+	case *Theme:
+		pkg = v.Package
+	default:
+		err = fmt.Errorf("unsupported package type: %T", ret)
 		return
 	}
 
-	ret.URL = strings.TrimSuffix(ret.URL, "/")
-	return
-}
-
-func ThemeJSON(themeDirName string) (ret *Theme, err error) {
-	p := filepath.Join(util.ThemesPath, themeDirName, "theme.json")
-	if !gulu.File.IsExist(p) {
-		err = os.ErrNotExist
-		return
-	}
-	data, err := os.ReadFile(p)
-	if err != nil {
-		logging.LogErrorf("read theme.json [%s] failed: %s", p, err)
+	if pkg == nil {
+		err = fmt.Errorf("package is nil for type: %T", ret)
 		return
 	}
 
-	ret = &Theme{}
-	if err = gulu.JSON.UnmarshalJSON(data, &ret); err != nil {
-		logging.LogErrorf("parse theme.json [%s] failed: %s", p, err)
-		return
-	}
+	// 统一处理 URL
+	pkg.URL = strings.TrimSuffix(pkg.URL, "/")
 
-	ret.URL = strings.TrimSuffix(ret.URL, "/")
 	return
 }
 
@@ -608,7 +639,7 @@ func isOutdatedTheme(theme *Theme, bazaarThemes []*Theme) bool {
 	}
 
 	for _, pkg := range bazaarThemes {
-		if theme.URL == pkg.URL && theme.Name == pkg.Name && 0 > semver.Compare("v"+theme.Version, "v"+pkg.Version) {
+		if theme.URL == pkg.URL && theme.Name == pkg.Name && 0 > CompareVersion(theme.Version, pkg.Version) {
 			theme.RepoHash = pkg.RepoHash
 			return true
 		}
@@ -628,7 +659,7 @@ func isOutdatedIcon(icon *Icon, bazaarIcons []*Icon) bool {
 	}
 
 	for _, pkg := range bazaarIcons {
-		if icon.URL == pkg.URL && icon.Name == pkg.Name && 0 > semver.Compare("v"+icon.Version, "v"+pkg.Version) {
+		if icon.URL == pkg.URL && icon.Name == pkg.Name && 0 > CompareVersion(icon.Version, pkg.Version) {
 			icon.RepoHash = pkg.RepoHash
 			return true
 		}
@@ -648,7 +679,7 @@ func isOutdatedPlugin(plugin *Plugin, bazaarPlugins []*Plugin) bool {
 	}
 
 	for _, pkg := range bazaarPlugins {
-		if plugin.URL == pkg.URL && plugin.Name == pkg.Name && 0 > semver.Compare("v"+plugin.Version, "v"+pkg.Version) {
+		if plugin.URL == pkg.URL && plugin.Name == pkg.Name && 0 > CompareVersion(plugin.Version, pkg.Version) {
 			plugin.RepoHash = pkg.RepoHash
 			return true
 		}
@@ -668,7 +699,7 @@ func isOutdatedWidget(widget *Widget, bazaarWidgets []*Widget) bool {
 	}
 
 	for _, pkg := range bazaarWidgets {
-		if widget.URL == pkg.URL && widget.Name == pkg.Name && 0 > semver.Compare("v"+widget.Version, "v"+pkg.Version) {
+		if widget.URL == pkg.URL && widget.Name == pkg.Name && 0 > CompareVersion(widget.Version, pkg.Version) {
 			widget.RepoHash = pkg.RepoHash
 			return true
 		}
@@ -688,7 +719,7 @@ func isOutdatedTemplate(template *Template, bazaarTemplates []*Template) bool {
 	}
 
 	for _, pkg := range bazaarTemplates {
-		if template.URL == pkg.URL && template.Name == pkg.Name && 0 > semver.Compare("v"+template.Version, "v"+pkg.Version) {
+		if template.URL == pkg.URL && template.Name == pkg.Name && 0 > CompareVersion(template.Version, pkg.Version) {
 			template.RepoHash = pkg.RepoHash
 			return true
 		}
@@ -892,6 +923,14 @@ func uninstallPackage(installPath string) (err error) {
 		logging.LogErrorf("remove [%s] failed: %s", installPath, err)
 		return fmt.Errorf("remove community package [%s] failed", filepath.Base(installPath))
 	}
+	// 验证目录是否已完全删除，如果仍然存在则尝试再次删除
+	if filelock.IsExist(installPath) {
+		logging.LogWarnf("package directory [%s] still exists after removal, attempting to remove again", installPath)
+		if err = os.RemoveAll(installPath); err != nil {
+			logging.LogErrorf("remove [%s] failed again: %s", installPath, err)
+			return fmt.Errorf("remove community package [%s] failed", filepath.Base(installPath))
+		}
+	}
 	packageCache.Flush()
 	return
 }
@@ -995,7 +1034,7 @@ func disallowDisplayBazaarPackage(pkg *Package) bool {
 		pkg.MinAppVersion = defaultMinAppVersion
 	}
 
-	if 0 < semver.Compare("v"+pkg.MinAppVersion, "v"+util.Ver) {
+	if 0 < CompareVersion(pkg.MinAppVersion, util.Ver) {
 		return true
 	}
 	return false
