@@ -1240,7 +1240,7 @@ export const dropEvent = (protyle: IProtyle, editorElement: HTMLElement) => {
         }
         const gutterTypes = gutterType ? gutterType.replace(Constants.SIYUAN_DROP_GUTTER, "").split(Constants.ZWSP) : [];
         const fileTreeIds = (event.dataTransfer.types.includes(Constants.SIYUAN_DROP_FILE) && window.siyuan.dragElement) ? window.siyuan.dragElement.innerText : "";
-        // 按住 Alt 拖拽块标时需继续执行后续逻辑以显示光标；按住 Shift 拖拽块标时需继续执行以显示相邻块位置指示
+        // 按住 Alt 拖拽块标时需继续执行后续逻辑以显示光标；按住 Shift 拖拽块标时需继续执行以显示指示器
         if ((event.shiftKey || (event.altKey && fileTreeIds.indexOf("-") === -1)) && !(gutterType && (event.altKey || event.shiftKey))) {
             const targetAssetElement = hasClosestBlock(event.target);
             if (targetAssetElement) {
