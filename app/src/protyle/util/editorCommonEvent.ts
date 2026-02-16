@@ -1388,7 +1388,7 @@ export const dropEvent = (protyle: IProtyle, editorElement: HTMLElement) => {
 
         if (!targetElement) {
             editorElement.querySelectorAll(".dragover__bottom, .dragover__top, .dragover, .dragover__left, .dragover__right").forEach((item: HTMLElement) => {
-                item.classList.remove("dragover__top", "dragover__bottom", "dragover", "dragover__left", "dragover__right");
+                clearDragoverElement(item);
             });
             return;
         }
@@ -1409,7 +1409,7 @@ export const dropEvent = (protyle: IProtyle, editorElement: HTMLElement) => {
                     });
                 }
                 editorElement.querySelectorAll(".dragover__left, .dragover__right, .dragover__bottom, .dragover__top, .dragover").forEach((item: HTMLElement) => {
-                    item.classList.remove("dragover__top", "dragover__bottom", "dragover__left", "dragover__right", "dragover");
+                    clearDragoverElement(item);
                 });
                 dragoverElement = undefined;
                 return;
@@ -1422,7 +1422,7 @@ export const dropEvent = (protyle: IProtyle, editorElement: HTMLElement) => {
             // 性能优化，目标为同一个元素不再进行校验
             const nodeRect = targetElement.getBoundingClientRect();
             editorElement.querySelectorAll(".dragover__left, .dragover__right, .dragover__bottom, .dragover__top, .dragover").forEach((item: HTMLElement) => {
-                item.classList.remove("dragover__top", "dragover__bottom", "dragover__left", "dragover__right", "dragover");
+                clearDragoverElement(item);
                 item.removeAttribute("select-start");
                 item.removeAttribute("select-end");
             });
@@ -1525,7 +1525,7 @@ export const dropEvent = (protyle: IProtyle, editorElement: HTMLElement) => {
             if (fileTreeIds.split(",").includes(protyle.block.rootID) && isNotAvItem && event.altKey) {
                 dragoverElement = undefined;
                 editorElement.querySelectorAll(".dragover__left, .dragover__right, .dragover__bottom, .dragover__top, .dragover").forEach((item: HTMLElement) => {
-                    item.classList.remove("dragover__top", "dragover__bottom", "dragover__left", "dragover__right", "dragover");
+                    clearDragoverElement(item);
                     item.removeAttribute("select-start");
                     item.removeAttribute("select-end");
                 });
@@ -1611,7 +1611,7 @@ export const dropEvent = (protyle: IProtyle, editorElement: HTMLElement) => {
         counter--;
         if (counter === 0) {
             editorElement.querySelectorAll(".dragover__left, .dragover__right, .dragover__bottom, .dragover__top, .dragover").forEach((item: HTMLElement) => {
-                item.classList.remove("dragover__top", "dragover__bottom", "dragover__left", "dragover__right", "dragover");
+                clearDragoverElement(item);
             });
             dragoverElement = undefined;
             if (cursorUpdateRafId) {
