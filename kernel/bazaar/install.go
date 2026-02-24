@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/88250/gulu"
 	"github.com/imroc/req/v3"
@@ -81,7 +82,7 @@ func incPackageDownloads(repoURL, systemID string) {
 }
 
 // InstallPackage 安装集市包
-func InstallPackage(repoURL, repoHash, installPath, systemID string) error {
+func InstallPackage(repoURL, repoHash, installPath, systemID, pkgType, packageName string) error {
 	repoURLHash := repoURL + "@" + repoHash
 	data, err := downloadBazaarFile(repoURLHash, true)
 	if err != nil {
@@ -90,6 +91,16 @@ func InstallPackage(repoURL, repoHash, installPath, systemID string) error {
 	if err = installPackage(data, installPath); err != nil {
 		return err
 	}
+
+	// 记录安装时间
+	now := time.Now()
+	setPackageInstallTime(pkgType, packageName, now)
+
+	// 文件夹的修改时间设置为当前安装时间
+	if err = os.Chtimes(installPath, now, now); err != nil {
+		logging.LogWarnf("set package [%s] folder mtime failed: %s", packageName, err)
+	}
+
 	go incPackageDownloads(repoURL, systemID)
 	return nil
 }

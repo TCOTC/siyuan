@@ -265,6 +265,9 @@ func getPetals() (ret []*Petal) {
 		pluginPath := filepath.Join(pluginsDir, petal.Name)
 		if hasPluginFiles(pluginPath) {
 			tmp = append(tmp, petal)
+		} else {
+			// 插件不存在时，清理对应的持久化信息
+			bazaar.RemovePackageInfo("plugins", petal.Name)
 		}
 	}
 	if len(tmp) != len(ret) {
@@ -277,7 +280,7 @@ func getPetals() (ret []*Petal) {
 	return
 }
 
-// hasPluginFiles 检查插件安装目录是否存在且包含文件
+// hasPluginFiles 检查插件安装目录是否存在且根目录下存在文件
 func hasPluginFiles(pluginPath string) bool {
 	if !filelock.IsExist(pluginPath) {
 		return false
@@ -287,6 +290,7 @@ func hasPluginFiles(pluginPath string) bool {
 		return false
 	}
 	for _, entry := range entries {
+		// 如果根目录只有文件夹则不视为插件
 		if !entry.IsDir() {
 			return true
 		}

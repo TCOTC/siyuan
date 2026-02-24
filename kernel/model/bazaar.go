@@ -66,7 +66,7 @@ func updatePackages(packages []*bazaar.Package, pkgType string, count *int, tota
 		if err != nil {
 			return false
 		}
-		err = bazaar.InstallPackage(pkg.RepoURL, pkg.RepoHash, installPath, Conf.System.ID)
+		err = bazaar.InstallPackage(pkg.RepoURL, pkg.RepoHash, installPath, Conf.System.ID, pkgType, pkg.Name)
 		if err != nil {
 			logging.LogErrorf("update %s [%s] failed: %s", pkgType, pkg.Name, err)
 			util.PushErrMsg(fmt.Sprintf(Conf.language(238), pkg.Name), 5000)
@@ -156,7 +156,8 @@ func getUpdatedPackages(pkgType, frontend, keyword string) (updatedPackages []*b
 }
 
 // GetInstalledPackageInfos 获取本地集市包信息，并返回路径相关字段供调用方复用
-func GetInstalledPackageInfos(pkgType string) (installedPackageInfos []installedPackageInfo, basePath, jsonFileName, baseURLPathPrefix string, err error) {
+func GetInstalledPackageInfos(pkgType string) (installedPackageInfos []installedPackageInfo, basePath, baseURLPathPrefix string, err error) {
+	var jsonFileName string
 	switch pkgType {
 	case "plugins":
 		basePath, jsonFileName, baseURLPathPrefix = filepath.Join(util.DataDir, "plugins"), "plugin.json", "/plugins/"
@@ -233,7 +234,7 @@ func GetInstalledPackages(pkgType, frontend, keyword string) (installedPackages 
 func getInstalledPackages0(pkgType, frontend, keyword string) (installedPackages []*bazaar.Package) {
 	installedPackages = []*bazaar.Package{}
 
-	installedInfos, basePath, jsonFileName, baseURLPathPrefix, err := GetInstalledPackageInfos(pkgType)
+	installedInfos, basePath, baseURLPathPrefix, err := GetInstalledPackageInfos(pkgType)
 	if err != nil {
 		return
 	}
@@ -255,7 +256,7 @@ func getInstalledPackages0(pkgType, frontend, keyword string) (installedPackages
 		installPath := filepath.Join(basePath, info.DirName)
 		baseURLPath := baseURLPathPrefix + info.DirName + "/"
 		// 设置本地集市包的通用元数据
-		if !bazaar.SetInstalledPackageMetadata(pkg, installPath, jsonFileName, baseURLPath, bazaarPackagesMap) {
+		if !bazaar.SetInstalledPackageMetadata(pkg, installPath, baseURLPath, pkgType, bazaarPackagesMap) {
 			continue
 		}
 		installedPackages = append(installedPackages, pkg)
@@ -291,7 +292,7 @@ func getInstalledPackages0(pkgType, frontend, keyword string) (installedPackages
 func GetBazaarPackages(pkgType, frontend, keyword string) (bazaarPackages []*bazaar.Package) {
 	bazaarPackages = bazaar.GetBazaarPackages(pkgType, frontend)
 	bazaarPackages = bazaar.FilterPackages(bazaarPackages, keyword)
-	installedInfos, _, _, _, err := GetInstalledPackageInfos(pkgType)
+	installedInfos, _, _, err := GetInstalledPackageInfos(pkgType)
 	if err != nil {
 		return
 	}
@@ -328,7 +329,7 @@ func InstallBazaarPackage(pkgType, repoURL, repoHash, packageName string, update
 		return err
 	}
 
-	err = bazaar.InstallPackage(repoURL, repoHash, installPath, Conf.System.ID)
+	err = bazaar.InstallPackage(repoURL, repoHash, installPath, Conf.System.ID, pkgType, packageName)
 	if err != nil {
 		return fmt.Errorf(Conf.Language(46), packageName, err)
 	}
@@ -371,6 +372,9 @@ func UninstallPackage(pkgType, packageName string) error {
 	if err != nil {
 		return fmt.Errorf(Conf.Language(47), err.Error())
 	}
+
+	// 删除集市包的持久化信息
+	bazaar.RemovePackageInfo(pkgType, packageName)
 
 	switch pkgType {
 	case "plugins":
