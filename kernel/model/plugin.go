@@ -262,8 +262,8 @@ func getPetals() (ret []*Petal) {
 	var tmp []*Petal
 	pluginsDir := filepath.Join(util.DataDir, "plugins")
 	for _, petal := range ret {
-		pluginPath := filepath.Join(pluginsDir, petal.Name)
-		if hasPluginFiles(pluginPath) {
+		pluginJSONPath := filepath.Join(pluginsDir, petal.Name, "plugin.json")
+		if filelock.IsExist(pluginJSONPath) {
 			tmp = append(tmp, petal)
 		} else {
 			// 插件不存在时，清理对应的持久化信息
@@ -278,22 +278,4 @@ func getPetals() (ret []*Petal) {
 		ret = []*Petal{}
 	}
 	return
-}
-
-// hasPluginFiles 检查插件安装目录是否存在且根目录下存在文件
-func hasPluginFiles(pluginPath string) bool {
-	if !filelock.IsExist(pluginPath) {
-		return false
-	}
-	entries, err := os.ReadDir(pluginPath)
-	if err != nil {
-		return false
-	}
-	for _, entry := range entries {
-		// 如果根目录只有文件夹则不视为插件
-		if !entry.IsDir() {
-			return true
-		}
-	}
-	return false
 }
