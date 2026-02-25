@@ -25,6 +25,8 @@ import (
 
 	"github.com/88250/gulu"
 	"github.com/88250/lute"
+	"github.com/88250/lute/ast"
+	"github.com/88250/lute/parse"
 	"github.com/siyuan-note/logging"
 	"github.com/siyuan-note/siyuan/kernel/util"
 	textUnicode "golang.org/x/text/encoding/unicode"
@@ -80,18 +82,19 @@ func GetBazaarPackageREADME(ctx context.Context, repoURL, repoHash, pkgType stri
 		}
 	}
 
-	ret = renderBazaarPackageREADME(repoURL, data)
+	linkBase := "https://cdn.jsdelivr.net/gh/" + strings.TrimPrefix(repoURL, "https://github.com/")
+	ret = renderPackageREADME(linkBase, data)
 	return
 }
 
 // getInstalledPackageREADME 获取集市包的本地 README
-func getInstalledPackageREADME(installPath, basePath string, readme LocaleStrings) (ret string) {
+func getInstalledPackageREADME(installPath, linkBase string, readme LocaleStrings) (ret string) {
 	candidates := getReadmeFileCandidates(readme)
 	var errMsgs []string
 	for _, name := range candidates {
 		readmeData, readErr := os.ReadFile(filepath.Join(installPath, name))
 		if readErr == nil {
-			ret = renderInstalledPackageREADME(basePath, readmeData)
+			ret = renderPackageREADME(linkBase, readmeData)
 			return
 		}
 		logging.LogWarnf("read installed %s failed: %s", name, readErr)
@@ -101,26 +104,49 @@ func getInstalledPackageREADME(installPath, basePath string, readme LocaleString
 	return
 }
 
-// renderBazaarPackageREADME 渲染在线 README Markdown 为 HTML
-func renderBazaarPackageREADME(repoURL string, mdData []byte) (ret string) {
+// renderPackageREADME 渲染 README Markdown 为 HTML
+func renderPackageREADME(linkBase string, mdData []byte) (ret string) {
 	luteEngine := lute.New()
 	luteEngine.SetSoftBreak2HardBreak(false)
 	luteEngine.SetCodeSyntaxHighlight(false)
-	linkBase := "https://cdn.jsdelivr.net/gh/" + strings.TrimPrefix(repoURL, "https://github.com/")
 	luteEngine.SetLinkBase(linkBase)
-	ret = luteEngine.Md2HTML(string(mdData))
+	tree := parse.Parse("", mdData, luteEngine.ParseOptions)
+	normalizeNodesIAL(tree)
+	ret = luteEngine.Tree2HTML(tree, luteEngine.RenderOptions, luteEngine.ParseOptions)
 	ret = util.LinkTarget(ret, linkBase)
 	return
 }
 
-// renderInstalledPackageREADME 渲染本地 README Markdown 为 HTML
-func renderInstalledPackageREADME(basePath string, mdData []byte) (ret string) {
-	luteEngine := lute.New()
-	luteEngine.SetSoftBreak2HardBreak(false)
-	luteEngine.SetCodeSyntaxHighlight(false)
-	linkBase := basePath
-	luteEngine.SetLinkBase(linkBase)
-	ret = luteEngine.Md2HTML(string(mdData))
-	ret = util.LinkTarget(ret, linkBase)
-	return
+func normalizeNodesIAL(tree *parse.Tree) {
+	if tree == nil || tree.Root == nil {
+		return
+	}
+
+	ast.Walk(tree.Root, func(n *ast.Node, entering bool) ast.WalkStatus {
+		if !entering {
+			return ast.WalkContinue
+		}
+		if n.Type == ast.NodeCodeBlock {
+			// 代码块添加 code-block 类名以修正样式
+			n.KramdownIAL = addClassToKramdownIAL(n.KramdownIAL, "code-block")
+		}
+		return ast.WalkContinue
+	})
+}
+
+func addClassToKramdownIAL(ial [][]string, class string) [][]string {
+	for i, attr := range ial {
+		if len(attr) < 2 || attr[0] != "class" {
+			continue
+		}
+		for item := range strings.FieldsSeq(attr[1]) {
+			if item == class {
+				return ial
+			}
+		}
+		attr[1] = strings.TrimSpace(attr[1] + " " + class)
+		ial[i] = attr
+		return ial
+	}
+	return append(ial, []string{"class", class})
 }
