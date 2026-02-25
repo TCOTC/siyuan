@@ -25,6 +25,14 @@ import (
 	"github.com/siyuan-note/siyuan/kernel/util"
 )
 
+var validPackageTypes = map[string]bool{
+	"plugins":   true,
+	"themes":    true,
+	"icons":     true,
+	"templates": true,
+	"widgets":   true,
+}
+
 func batchUpdatePackage(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
@@ -81,6 +89,13 @@ func getBazaarPackageREADME(c *gin.Context) {
 	) {
 		return
 	}
+
+	if !validPackageTypes[pkgType] {
+		ret.Code = -1
+		ret.Msg = "Invalid package type"
+		return
+	}
+
 	ret.Data = map[string]interface{}{
 		"html": model.GetBazaarPackageREADME(c.Request.Context(), repoURL, repoHash, pkgType),
 	}
