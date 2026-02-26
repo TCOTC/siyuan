@@ -756,7 +756,6 @@ type="checkbox">
                                 packageName: dataObj.name,
                                 repoHash: dataObj.repoHash,
                                 mode: dataObj.themeMode === "dark" ? 1 : 0,
-                                update: true,
                                 frontend: getFrontend()
                             }, async response => {
                                 this._genMyHTML(bazaarType, app);

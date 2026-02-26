@@ -41,28 +41,28 @@ type installedPackageInfo struct {
 	DirName string
 }
 
-func getPackageInstallPath(pkgType, packageName string) (string, error) {
+func getPackageInstallPath(pkgType, packageName string) (string, string, error) {
 	switch pkgType {
 	case "plugins":
-		return filepath.Join(util.DataDir, "plugins", packageName), nil
+		return filepath.Join(util.DataDir, "plugins", packageName), "plugin.json", nil
 	case "themes":
-		return filepath.Join(util.ThemesPath, packageName), nil
+		return filepath.Join(util.ThemesPath, packageName), "theme.json", nil
 	case "icons":
-		return filepath.Join(util.IconsPath, packageName), nil
+		return filepath.Join(util.IconsPath, packageName), "icon.json", nil
 	case "templates":
-		return filepath.Join(util.DataDir, "templates", packageName), nil
+		return filepath.Join(util.DataDir, "templates", packageName), "template.json", nil
 	case "widgets":
-		return filepath.Join(util.DataDir, "widgets", packageName), nil
+		return filepath.Join(util.DataDir, "widgets", packageName), "widget.json", nil
 	default:
 		logging.LogErrorf("invalid package type: %s", pkgType)
-		return "", errors.New("invalid package type")
+		return "", "", errors.New("invalid package type")
 	}
 }
 
 // updatePackages 更新一组集市包
 func updatePackages(packages []*bazaar.Package, pkgType string, count *int, total int) bool {
 	for _, pkg := range packages {
-		installPath, err := getPackageInstallPath(pkgType, pkg.Name)
+		installPath, _, err := getPackageInstallPath(pkgType, pkg.Name)
 		if err != nil {
 			return false
 		}
@@ -322,12 +322,15 @@ func GetBazaarPackageREADME(ctx context.Context, repoURL, repoHash, pkgType stri
 	return
 }
 
-// InstallBazaarPackage 安装集市包。update 为 true 表示更新已有包、themeMode 仅在 pkgType 为 "themes" 时生效
-func InstallBazaarPackage(pkgType, repoURL, repoHash, packageName string, update bool, themeMode int) error {
-	installPath, err := getPackageInstallPath(pkgType, packageName)
+// InstallBazaarPackage 安装集市包，themeMode 仅在 pkgType 为 "themes" 时生效
+func InstallBazaarPackage(pkgType, repoURL, repoHash, packageName string, themeMode int) error {
+	installPath, jsonFileName, err := getPackageInstallPath(pkgType, packageName)
 	if err != nil {
 		return err
 	}
+
+	installedPkg, parseErr := bazaar.ParsePackageJSON(filepath.Join(installPath, jsonFileName))
+	update := parseErr == nil && installedPkg != nil && installedPkg.Name == packageName
 
 	err = bazaar.InstallPackage(repoURL, repoHash, installPath, Conf.System.ID, pkgType, packageName)
 	if err != nil {
@@ -373,7 +376,7 @@ func InstallBazaarPackage(pkgType, repoURL, repoHash, packageName string, update
 }
 
 func UninstallPackage(pkgType, packageName string) error {
-	installPath, err := getPackageInstallPath(pkgType, packageName)
+	installPath, _, err := getPackageInstallPath(pkgType, packageName)
 	if err != nil {
 		return err
 	}

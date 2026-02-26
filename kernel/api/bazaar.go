@@ -155,18 +155,16 @@ func installBazaarPlugin(c *gin.Context) {
 	}
 
 	var frontend, keyword, repoURL, repoHash, packageName string
-	var update bool
 	if !util.ParseJsonArgs(arg, ret,
 		util.BindJsonArg("frontend", true, &frontend),
 		util.BindJsonArg("keyword", false, &keyword),
 		util.BindJsonArg("repoURL", true, &repoURL),
 		util.BindJsonArg("repoHash", true, &repoHash),
 		util.BindJsonArg("packageName", true, &packageName),
-		util.BindJsonArg("update", false, &update),
 	) {
 		return
 	}
-	err := model.InstallBazaarPackage("plugins", repoURL, repoHash, packageName, update, 0)
+	err := model.InstallBazaarPackage("plugins", repoURL, repoHash, packageName, 0)
 	if err != nil {
 		ret.Code = 1
 		ret.Msg = err.Error()
@@ -256,17 +254,15 @@ func installBazaarWidget(c *gin.Context) {
 	}
 
 	var keyword, repoURL, repoHash, packageName string
-	var update bool
 	if !util.ParseJsonArgs(arg, ret,
 		util.BindJsonArg("keyword", false, &keyword),
 		util.BindJsonArg("repoURL", true, &repoURL),
 		util.BindJsonArg("repoHash", true, &repoHash),
 		util.BindJsonArg("packageName", true, &packageName),
-		util.BindJsonArg("update", false, &update),
 	) {
 		return
 	}
-	err := model.InstallBazaarPackage("widgets", repoURL, repoHash, packageName, update, 0)
+	err := model.InstallBazaarPackage("widgets", repoURL, repoHash, packageName, 0)
 	if err != nil {
 		ret.Code = 1
 		ret.Msg = err.Error()
@@ -355,17 +351,15 @@ func installBazaarIcon(c *gin.Context) {
 	}
 
 	var keyword, repoURL, repoHash, packageName string
-	var update bool
 	if !util.ParseJsonArgs(arg, ret,
 		util.BindJsonArg("keyword", false, &keyword),
 		util.BindJsonArg("repoURL", true, &repoURL),
 		util.BindJsonArg("repoHash", true, &repoHash),
 		util.BindJsonArg("packageName", true, &packageName),
-		util.BindJsonArg("update", false, &update),
 	) {
 		return
 	}
-	err := model.InstallBazaarPackage("icons", repoURL, repoHash, packageName, update, 0)
+	err := model.InstallBazaarPackage("icons", repoURL, repoHash, packageName, 0)
 	if err != nil {
 		ret.Code = 1
 		ret.Msg = err.Error()
@@ -456,17 +450,15 @@ func installBazaarTemplate(c *gin.Context) {
 	}
 
 	var keyword, repoURL, repoHash, packageName string
-	var update bool
 	if !util.ParseJsonArgs(arg, ret,
 		util.BindJsonArg("keyword", false, &keyword),
 		util.BindJsonArg("repoURL", true, &repoURL),
 		util.BindJsonArg("repoHash", true, &repoHash),
 		util.BindJsonArg("packageName", true, &packageName),
-		util.BindJsonArg("update", false, &update),
 	) {
 		return
 	}
-	err := model.InstallBazaarPackage("templates", repoURL, repoHash, packageName, update, 0)
+	err := model.InstallBazaarPackage("templates", repoURL, repoHash, packageName, 0)
 	if err != nil {
 		ret.Code = 1
 		ret.Msg = err.Error()
@@ -556,7 +548,6 @@ func installBazaarTheme(c *gin.Context) {
 	}
 
 	var keyword, repoURL, repoHash, packageName string
-	var update bool
 	var mode float64
 	if !util.ParseJsonArgs(arg, ret,
 		util.BindJsonArg("keyword", false, &keyword),
@@ -564,11 +555,10 @@ func installBazaarTheme(c *gin.Context) {
 		util.BindJsonArg("repoHash", true, &repoHash),
 		util.BindJsonArg("packageName", true, &packageName),
 		util.BindJsonArg("mode", true, &mode),
-		util.BindJsonArg("update", false, &update),
 	) {
 		return
 	}
-	err := model.InstallBazaarPackage("themes", repoURL, repoHash, packageName, update, int(mode))
+	err := model.InstallBazaarPackage("themes", repoURL, repoHash, packageName, int(mode))
 	if err != nil {
 		ret.Code = 1
 		ret.Msg = err.Error()
