@@ -335,6 +335,16 @@ func InstallBazaarPackage(pkgType, repoURL, repoHash, packageName string, update
 	}
 
 	switch pkgType {
+	case "plugins":
+		if update {
+			// 已启用的插件更新之后需要重载
+			petals := getPetals()
+			petal := getPetalByName(packageName, petals)
+			if nil != petal && petal.Enabled {
+				reloadPluginSet := hashset.New(packageName)
+				PushReloadPlugin(nil, nil, reloadPluginSet, nil, "")
+			}
+		}
 	case "themes":
 		if !update {
 			// 更新主题后不需要切换到该主题 https://github.com/siyuan-note/siyuan/issues/4966

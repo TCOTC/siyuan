@@ -761,22 +761,13 @@ type="checkbox">
                             }, async response => {
                                 this._genMyHTML(bazaarType, app);
                                 bazaar._onBazaar(response, bazaarType);
+                                // TODO 集市包的相关逻辑应完全由内核处理并推送到所有前端实例，下面的代码需要确认
                                 // https://github.com/siyuan-note/siyuan/issues/15177
                                 if (bazaarType === "themes" && response.data.appearance?.themeVer) {
                                     window.siyuan.config.appearance.themeVer = response.data.appearance.themeVer;
                                 }
                                 // 更新主题后不需要对该主题进行切换 https://github.com/siyuan-note/siyuan/issues/4966
                                 // https://github.com/siyuan-note/siyuan/issues/5411
-                                if (bazaarType === "plugins") {
-                                    app.plugins.find((item: Plugin) => {
-                                        if (item.name === dataObj.name) {
-                                            reloadPlugin(app, {
-                                                reloadPlugins: [dataObj.name],
-                                            });
-                                            return true;
-                                        }
-                                    });
-                                }
                             });
                         });
                     }
