@@ -32,6 +32,10 @@ import (
 var emojisWatcher *watcher.Watcher
 
 func WatchEmojis() {
+	if !isFileWatcherAvailable() {
+		return
+	}
+
 	go watchEmojis()
 }
 

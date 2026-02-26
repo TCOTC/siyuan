@@ -21,7 +21,6 @@ package model
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/88250/gulu"
@@ -34,6 +33,10 @@ import (
 var assetsWatcher *watcher.Watcher
 
 func WatchAssets() {
+	if !isFileWatcherAvailable() {
+		return
+	}
+
 	go watchAssets()
 }
 
