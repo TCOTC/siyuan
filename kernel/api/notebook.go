@@ -90,17 +90,17 @@ func renameNotebook(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req RenameNotebookRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	notebook := arg["notebook"].(string)
+	notebook := req.Notebook
 	if util.InvalidIDPattern(notebook, ret) {
 		return
 	}
 
-	name := arg["name"].(string)
+	name := req.Name
 	err := model.RenameBox(notebook, name)
 	if err != nil {
 		ret.Code = -1
@@ -114,6 +114,7 @@ func renameNotebook(c *gin.Context) {
 		"box":  notebook,
 		"name": name,
 	}
+	evt.Callback = req.Callback
 	util.PushEvent(evt)
 }
 
@@ -121,12 +122,12 @@ func removeNotebook(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req RemoveNotebookRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	notebook := arg["notebook"].(string)
+	notebook := req.Notebook
 	if util.InvalidIDPattern(notebook, ret) {
 		return
 	}
@@ -149,7 +150,7 @@ func removeNotebook(c *gin.Context) {
 	evt.Data = map[string]interface{}{
 		"box": notebook,
 	}
-	evt.Callback = arg["callback"]
+	evt.Callback = req.Callback
 	util.PushEvent(evt)
 }
 
@@ -157,13 +158,12 @@ func createNotebook(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req CreateNotebookRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	name := arg["name"].(string)
-	id, err := model.CreateBox(name)
+	id, err := model.CreateBox(req.Name)
 	if err != nil {
 		ret.Code = -1
 		ret.Msg = err.Error()
@@ -200,12 +200,12 @@ func openNotebook(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req OpenNotebookRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	notebook := arg["notebook"].(string)
+	notebook := req.Notebook
 	if util.InvalidIDPattern(notebook, ret) {
 		return
 	}
@@ -249,15 +249,11 @@ func openNotebook(c *gin.Context) {
 		"box":     box,
 		"existed": existed,
 	}
-	evt.Callback = arg["callback"]
+	evt.Callback = req.Callback
 	util.PushEvent(evt)
 
 	if isUserGuide {
-		appArg := arg["app"]
-		app := ""
-		if nil != appArg {
-			app = appArg.(string)
-		}
+		app := req.App
 
 		go func() {
 			var startID string
@@ -286,12 +282,12 @@ func closeNotebook(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req CloseNotebookRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	notebook := arg["notebook"].(string)
+	notebook := req.Notebook
 	if util.InvalidIDPattern(notebook, ret) {
 		return
 	}
@@ -400,18 +396,12 @@ func lsNotebooks(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	flashcard := false
-
-	// 兼容旧版接口，不能直接使用 util.JsonArg()
-	arg := map[string]interface{}{}
-	if err := c.ShouldBindJSON(&arg); err == nil {
-		if arg["flashcard"] != nil {
-			flashcard = arg["flashcard"].(bool)
-		}
-	}
+	// 兼容旧版接口：请求体可能为空，忽略绑定错误
+	var req LsNotebooksRequest
+	_ = c.ShouldBindJSON(&req)
 
 	var notebooks []*model.Box
-	if flashcard {
+	if req.Flashcard {
 		notebooks = model.GetFlashcardNotebooks()
 	} else {
 		var err error

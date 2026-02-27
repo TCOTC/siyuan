@@ -50,7 +50,9 @@ type ResNotebook struct {
 
 // OpenNotebookRequest is the request body for POST /api/notebook/openNotebook.
 type OpenNotebookRequest struct {
-	Notebook string `json:"notebook"` // Notebook ID
+	Notebook string      `json:"notebook"`          // Notebook ID
+	Callback interface{} `json:"callback,omitempty"` // Internal: WebSocket event callback
+	App      string      `json:"app,omitempty"`      // Internal: target app for user-guide navigation
 }
 
 // CloseNotebookRequest is the request body for POST /api/notebook/closeNotebook.
@@ -60,8 +62,9 @@ type CloseNotebookRequest struct {
 
 // RenameNotebookRequest is the request body for POST /api/notebook/renameNotebook.
 type RenameNotebookRequest struct {
-	Notebook string `json:"notebook"` // Notebook ID
-	Name     string `json:"name"`     // New notebook name
+	Notebook string      `json:"notebook"`          // Notebook ID
+	Name     string      `json:"name"`              // New notebook name
+	Callback interface{} `json:"callback,omitempty"` // Internal: WebSocket event callback
 }
 
 // CreateNotebookRequest is the request body for POST /api/notebook/createNotebook.
@@ -76,7 +79,8 @@ type CreateNotebookResponse struct {
 
 // RemoveNotebookRequest is the request body for POST /api/notebook/removeNotebook.
 type RemoveNotebookRequest struct {
-	Notebook string `json:"notebook"` // Notebook ID
+	Notebook string      `json:"notebook"`          // Notebook ID
+	Callback interface{} `json:"callback,omitempty"` // Internal: WebSocket event callback
 }
 
 // GetNotebookConfRequest is the request body for POST /api/notebook/getNotebookConf.
@@ -216,7 +220,8 @@ type UnfoldBlockRequest struct {
 
 // GetBlockKramdownRequest is the request body for POST /api/block/getBlockKramdown.
 type GetBlockKramdownRequest struct {
-	ID string `json:"id"` // Block ID
+	ID   string `json:"id"`             // Block ID
+	Mode string `json:"mode,omitempty"` // Export mode: "md" (default) or "textmark"
 }
 
 // GetBlockKramdownResponse is the data field in the response from /api/block/getBlockKramdown.
@@ -232,8 +237,10 @@ type GetChildBlocksRequest struct {
 
 // TransferBlockRefRequest is the request body for POST /api/block/transferBlockRef.
 type TransferBlockRefRequest struct {
-	FromID string `json:"fromID"` // Source block ID
-	ToID   string `json:"toID"`   // Target block ID
+	FromID   string   `json:"fromID"`              // Source block ID
+	ToID     string   `json:"toID"`                // Target block ID
+	RefIDs   []string `json:"refIDs,omitempty"`    // IDs of specific refs to transfer (default: all)
+	ReloadUI *bool    `json:"reloadUI,omitempty"`  // Whether to reload UI after transfer (default true)
 }
 
 // GetBlockRequest is the request body for POST /api/block/getBlock.
@@ -302,8 +309,8 @@ type GetBlockAttrsRequest struct {
 
 // SetBlockAttrsRequest is the request body for POST /api/attr/setBlockAttrs.
 type SetBlockAttrsRequest struct {
-	ID    string            `json:"id"`    // Block ID
-	Attrs map[string]string `json:"attrs"` // Attribute key-value pairs to set (set value to empty string to remove)
+	ID    string             `json:"id"`    // Block ID
+	Attrs map[string]*string `json:"attrs"` // Attribute key-value pairs; null value removes the attribute
 }
 
 // ---- SQL API (/api/sql/) ----
@@ -384,7 +391,7 @@ type ExportMdContentResponse struct {
 // PushMessageRequest is the request body for POST /api/notification/pushMsg.
 type PushMessageRequest struct {
 	Msg     string `json:"msg"`               // Message content
-	Timeout int    `json:"timeout,omitempty"` // Display duration in milliseconds (default 7000)
+	Timeout *int   `json:"timeout,omitempty"` // Display duration in milliseconds (default 7000)
 }
 
 // PushMessageResponse is the data field in the response from /api/notification/pushMsg.
@@ -395,7 +402,7 @@ type PushMessageResponse struct {
 // PushErrMsgRequest is the request body for POST /api/notification/pushErrMsg.
 type PushErrMsgRequest struct {
 	Msg     string `json:"msg"`               // Error message content
-	Timeout int    `json:"timeout,omitempty"` // Display duration in milliseconds (default 7000)
+	Timeout *int   `json:"timeout,omitempty"` // Display duration in milliseconds (default 7000)
 }
 
 // PushErrMsgResponse is the data field in the response from /api/notification/pushErrMsg.

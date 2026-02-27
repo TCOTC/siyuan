@@ -29,12 +29,12 @@ func pushMsg(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req PushMessageRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	msg := strings.TrimSpace(arg["msg"].(string))
+	msg := strings.TrimSpace(req.Msg)
 	if "" == msg {
 		ret.Code = -1
 		ret.Msg = "msg can't be empty"
@@ -42,8 +42,8 @@ func pushMsg(c *gin.Context) {
 	}
 
 	timeout := 7000
-	if nil != arg["timeout"] {
-		timeout = int(arg["timeout"].(float64))
+	if req.Timeout != nil {
+		timeout = *req.Timeout
 	}
 	msgId := util.PushMsg(msg, timeout)
 
@@ -56,17 +56,16 @@ func pushErrMsg(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req PushErrMsgRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	msg := arg["msg"].(string)
 	timeout := 7000
-	if nil != arg["timeout"] {
-		timeout = int(arg["timeout"].(float64))
+	if req.Timeout != nil {
+		timeout = *req.Timeout
 	}
-	msgId := util.PushErrMsg(msg, timeout)
+	msgId := util.PushErrMsg(req.Msg, timeout)
 
 	ret.Data = map[string]interface{}{
 		"id": msgId,

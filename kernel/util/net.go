@@ -213,6 +213,19 @@ func JsonArg(c *gin.Context, result *gulu.Result) (arg map[string]interface{}, o
 	return
 }
 
+// BindArg parses the JSON request body into a typed struct.
+// It is the typed equivalent of JsonArg and should be used for handlers
+// that have a corresponding typed request struct in api/types.go.
+func BindArg(c *gin.Context, result *gulu.Result, req interface{}) (ok bool) {
+	if err := c.ShouldBindJSON(req); err != nil {
+		result.Code = -1
+		result.Msg = "parses request failed"
+		return
+	}
+	ok = true
+	return
+}
+
 func InvalidIDPattern(idArg string, result *gulu.Result) bool {
 	if ast.IsNodeIDPattern(idArg) {
 		return false

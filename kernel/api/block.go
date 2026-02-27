@@ -116,33 +116,26 @@ func transferBlockRef(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req TransferBlockRefRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	fromID := arg["fromID"].(string)
+	fromID := req.FromID
 	if util.InvalidIDPattern(fromID, ret) {
 		return
 	}
-	toID := arg["toID"].(string)
+	toID := req.ToID
 	if util.InvalidIDPattern(toID, ret) {
 		return
 	}
 
 	reloadUI := true
-	if nil != arg["reloadUI"] {
-		reloadUI = arg["reloadUI"].(bool)
+	if req.ReloadUI != nil {
+		reloadUI = *req.ReloadUI
 	}
 
-	var refIDs []string
-	if nil != arg["refIDs"] {
-		for _, refID := range arg["refIDs"].([]interface{}) {
-			refIDs = append(refIDs, refID.(string))
-		}
-	}
-
-	err := model.TransferBlockRef(fromID, toID, refIDs)
+	err := model.TransferBlockRef(fromID, toID, req.RefIDs)
 	if err != nil {
 		ret.Code = -1
 		ret.Msg = err.Error()
@@ -787,12 +780,12 @@ func getBlockKramdown(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req GetBlockKramdownRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	id := arg["id"].(string)
+	id := req.ID
 	if util.InvalidIDPattern(id, ret) {
 		return
 	}
@@ -800,14 +793,13 @@ func getBlockKramdown(c *gin.Context) {
 	// md：Markdown 标记符模式，使用标记符导出
 	// textmark：文本标记模式，使用 span 标签导出
 	// https://github.com/siyuan-note/siyuan/issues/13183
-	mode := "md"
-	if modeArg := arg["mode"]; nil != modeArg {
-		mode = modeArg.(string)
-		if "md" != mode && "textmark" != mode {
-			ret.Code = -1
-			ret.Msg = "Invalid mode"
-			return
-		}
+	mode := req.Mode
+	if "" == mode {
+		mode = "md"
+	} else if "md" != mode && "textmark" != mode {
+		ret.Code = -1
+		ret.Msg = "Invalid mode"
+		return
 	}
 
 	kramdown := model.GetBlockKramdown(id, mode)
@@ -857,12 +849,12 @@ func getChildBlocks(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req GetChildBlocksRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	id := arg["id"].(string)
+	id := req.ID
 	if util.InvalidIDPattern(id, ret) {
 		return
 	}

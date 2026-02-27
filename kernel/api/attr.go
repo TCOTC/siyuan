@@ -57,12 +57,12 @@ func getBlockAttrs(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req GetBlockAttrsRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	id := arg["id"].(string)
+	id := req.ID
 	if util.InvalidIDPattern(id, ret) {
 		return
 	}
@@ -74,38 +74,33 @@ func setBlockAttrs(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req SetBlockAttrsRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	id := arg["id"].(string)
+	id := req.ID
 	if util.InvalidIDPattern(id, ret) {
 		return
 	}
 
-	attrs := arg["attrs"].(map[string]interface{})
-	if 1 == len(attrs) && "" != attrs["scroll"] {
-		// 不记录用户指南滚动位置
-		if b := treenode.GetBlockTree(id); nil != b && (model.IsUserGuide(b.BoxID)) {
-			attrs["scroll"] = ""
+	// Build string map: nil pointer means remove attribute (empty string), pointer-to-string is the value
+	nameValues := map[string]string{}
+	for name, value := range req.Attrs {
+		if value == nil { // null JSON value removes the attribute (empty string signals removal) https://github.com/siyuan-note/siyuan/issues/5577
+			nameValues[name] = ""
+		} else {
+			nameValues[name] = *value
 		}
 	}
 
-	nameValues := map[string]string{}
-	for name, value := range attrs {
-		if nil == value { // API `setBlockAttrs` 中如果存在属性值设置为 `null` 时移除该属性 https://github.com/siyuan-note/siyuan/issues/5577
-			nameValues[name] = ""
-		} else {
-			strValue, ok := value.(string)
-			if !ok {
-				ret.Code = -1
-				ret.Msg = fmt.Sprintf("the value of attr [%s] must be a string", name)
-				return
-			}
-			nameValues[name] = strValue
+	if 1 == len(nameValues) && "" != nameValues["scroll"] {
+		// 不记录用户指南滚动位置
+		if b := treenode.GetBlockTree(id); nil != b && (model.IsUserGuide(b.BoxID)) {
+			nameValues["scroll"] = ""
 		}
 	}
+
 	err := model.SetBlockAttrs(id, nameValues)
 	if err != nil {
 		ret.Code = -1

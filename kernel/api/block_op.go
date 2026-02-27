@@ -190,12 +190,12 @@ func unfoldBlock(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req UnfoldBlockRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	id := arg["id"].(string)
+	id := req.ID
 	if util.InvalidIDPattern(id, ret) {
 		return
 	}
@@ -250,12 +250,12 @@ func foldBlock(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req FoldBlockRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	id := arg["id"].(string)
+	id := req.ID
 	if util.InvalidIDPattern(id, ret) {
 		return
 	}
@@ -310,12 +310,12 @@ func moveBlock(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req MoveBlockRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	id := arg["id"].(string)
+	id := req.ID
 	if util.InvalidIDPattern(id, ret) {
 		return
 	}
@@ -327,16 +327,13 @@ func moveBlock(c *gin.Context) {
 		return
 	}
 
-	var parentID, previousID string
-	if nil != arg["parentID"] {
-		parentID = arg["parentID"].(string)
-		if "" != parentID && util.InvalidIDPattern(parentID, ret) {
-			return
-		}
+	parentID := req.ParentID
+	previousID := req.PreviousID
+	if "" != parentID && util.InvalidIDPattern(parentID, ret) {
+		return
 	}
-	if nil != arg["previousID"] {
-		previousID = arg["previousID"].(string)
-		if "" != previousID && util.InvalidIDPattern(previousID, ret) {
+	if "" != previousID {
+		if util.InvalidIDPattern(previousID, ret) {
 			return
 		}
 
@@ -387,14 +384,14 @@ func appendBlock(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req AppendBlockRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	data := arg["data"].(string)
-	dataType := arg["dataType"].(string)
-	parentID := arg["parentID"].(string)
+	data := req.Data
+	dataType := req.DataType
+	parentID := req.ParentID
 	if util.InvalidIDPattern(parentID, ret) {
 		return
 	}
@@ -480,14 +477,14 @@ func prependBlock(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req PrependBlockRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	data := arg["data"].(string)
-	dataType := arg["dataType"].(string)
-	parentID := arg["parentID"].(string)
+	data := req.Data
+	dataType := req.DataType
+	parentID := req.ParentID
 	if util.InvalidIDPattern(parentID, ret) {
 		return
 	}
@@ -573,31 +570,25 @@ func insertBlock(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req InsertBlockRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	data := arg["data"].(string)
-	dataType := arg["dataType"].(string)
-	var parentID, previousID, nextID string
-	if nil != arg["parentID"] {
-		parentID = arg["parentID"].(string)
-		if "" != parentID && util.InvalidIDPattern(parentID, ret) {
-			return
-		}
+	data := req.Data
+	dataType := req.DataType
+	parentID := req.ParentID
+	previousID := req.PreviousID
+	nextID := req.NextID
+
+	if "" != parentID && util.InvalidIDPattern(parentID, ret) {
+		return
 	}
-	if nil != arg["previousID"] {
-		previousID = arg["previousID"].(string)
-		if "" != previousID && util.InvalidIDPattern(previousID, ret) {
-			return
-		}
+	if "" != previousID && util.InvalidIDPattern(previousID, ret) {
+		return
 	}
-	if nil != arg["nextID"] {
-		nextID = arg["nextID"].(string)
-		if "" != nextID && util.InvalidIDPattern(nextID, ret) {
-			return
-		}
+	if "" != nextID && util.InvalidIDPattern(nextID, ret) {
+		return
 	}
 
 	if "markdown" == dataType {
@@ -636,14 +627,14 @@ func updateBlock(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req UpdateBlockRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	data := arg["data"].(string)
-	dataType := arg["dataType"].(string)
-	id := arg["id"].(string)
+	data := req.Data
+	dataType := req.DataType
+	id := req.ID
 	if util.InvalidIDPattern(id, ret) {
 		return
 	}
@@ -916,12 +907,12 @@ func deleteBlock(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req DeleteBlockRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	id := arg["id"].(string)
+	id := req.ID
 	if util.InvalidIDPattern(id, ret) {
 		return
 	}

@@ -39,13 +39,12 @@ func SQL(c *gin.Context) {
 	ret := gulu.Ret.NewResult()
 	defer c.JSON(http.StatusOK, ret)
 
-	arg, ok := util.JsonArg(c, ret)
-	if !ok {
+	var req SQLRequest
+	if ok := util.BindArg(c, ret, &req); !ok {
 		return
 	}
 
-	stmt := arg["stmt"].(string)
-	result, err := sql.Query(stmt, model.Conf.Search.Limit)
+	result, err := sql.Query(req.Stmt, model.Conf.Search.Limit)
 	if err != nil {
 		ret.Code = 1
 		ret.Msg = err.Error()

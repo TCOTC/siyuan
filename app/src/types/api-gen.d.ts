@@ -50,6 +50,8 @@ export interface ResNotebook {
  */
 export interface OpenNotebookRequest {
   notebook: string; // Notebook ID
+  callback?: any; // Internal: WebSocket event callback
+  app?: string; // Internal: target app for user-guide navigation
 }
 /**
  * CloseNotebookRequest is the request body for POST /api/notebook/closeNotebook.
@@ -63,6 +65,7 @@ export interface CloseNotebookRequest {
 export interface RenameNotebookRequest {
   notebook: string; // Notebook ID
   name: string; // New notebook name
+  callback?: any; // Internal: WebSocket event callback
 }
 /**
  * CreateNotebookRequest is the request body for POST /api/notebook/createNotebook.
@@ -81,6 +84,7 @@ export interface CreateNotebookResponse {
  */
 export interface RemoveNotebookRequest {
   notebook: string; // Notebook ID
+  callback?: any; // Internal: WebSocket event callback
 }
 /**
  * GetNotebookConfRequest is the request body for POST /api/notebook/getNotebookConf.
@@ -238,6 +242,7 @@ export interface UnfoldBlockRequest {
  */
 export interface GetBlockKramdownRequest {
   id: string; // Block ID
+  mode?: string; // Export mode: "md" (default) or "textmark"
 }
 /**
  * GetBlockKramdownResponse is the data field in the response from /api/block/getBlockKramdown.
@@ -258,6 +263,8 @@ export interface GetChildBlocksRequest {
 export interface TransferBlockRefRequest {
   fromID: string; // Source block ID
   toID: string; // Target block ID
+  refIDs?: string[]; // IDs of specific refs to transfer (default: all)
+  reloadUI?: boolean; // Whether to reload UI after transfer (default true)
 }
 /**
  * GetBlockRequest is the request body for POST /api/block/getBlock.
@@ -332,7 +339,7 @@ export interface GetBlockAttrsRequest {
  */
 export interface SetBlockAttrsRequest {
   id: string; // Block ID
-  attrs: { [key: string]: string}; // Attribute key-value pairs to set (set value to empty string to remove)
+  attrs: { [key: string]: string | undefined}; // Attribute key-value pairs; null value removes the attribute
 }
 /**
  * SQLRequest is the request body for POST /api/sql/sql.
