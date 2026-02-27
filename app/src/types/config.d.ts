@@ -15,6 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * NOTE: An auto-generated version of the backend types is available in `config-gen.d.ts`.
+ * Run `pnpm gen:conf` (requires `tygo` installed via `go install github.com/gzuidhof/tygo@latest`)
+ * to regenerate it after modifying Go struct types in `kernel/conf/` or `kernel/model/conf.go`.
+ * Use the generated file as a reference when updating the interfaces below.
+ */
+
 declare namespace Config {
 
     /**

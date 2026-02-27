@@ -1,0 +1,44 @@
+packages:
+  # Generate TypeScript types from the kernel/util package (StatusBar type)
+  - path: "github.com/siyuan-note/siyuan/kernel/util"
+    output_path: "../app/src/types/.config-gen-util.ts"
+    include_files:
+      - "statusbar.go"
+
+  # Generate TypeScript types from the kernel/conf package (configuration types)
+  - path: "github.com/siyuan-note/siyuan/kernel/conf"
+    output_path: "../app/src/types/.config-gen-conf.ts"
+    type_mappings:
+      util.StatusBar: "StatusBar"
+      util.Markdown: "any"
+    exclude_files:
+      - "box.go"
+
+  # Generate TypeScript types from the kernel/model package (root AppConf type)
+  - path: "github.com/siyuan-note/siyuan/kernel/model"
+    output_path: "../app/src/types/.config-gen-model.ts"
+    include_files:
+      - "conf.go"
+    type_mappings:
+      conf.Appearance: "Appearance"
+      conf.Lang: "Lang"
+      conf.FileTree: "FileTree"
+      conf.Tag: "Tag"
+      conf.Editor: "Editor"
+      conf.Export: "Export"
+      conf.Graph: "Graph"
+      conf.UILayout: "UILayout"
+      conf.User: "User"
+      conf.Account: "Account"
+      conf.System: "System"
+      conf.Keymap: "Keymap"
+      conf.Sync: "Sync"
+      conf.Search: "Search"
+      conf.Flashcard: "Flashcard"
+      conf.AI: "AI"
+      conf.Bazaar: "Bazaar"
+      conf.Stat: "Stat"
+      conf.API: "API"
+      conf.Repo: "Repo"
+      conf.Publish: "Publish"
+      conf.Snpt: "Snpt"
