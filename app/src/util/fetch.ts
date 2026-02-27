@@ -5,12 +5,12 @@ import {ipcRenderer} from "electron";
 import {processMessage} from "./processMessage";
 import {kernelError} from "../dialog/processSystem";
 
-export const fetchPost = (
+export const fetchPost = <TRequest = any, TResponse = any>(
     url: string,
-    data?: any,
-    cb?: (response: IWebSocketData) => void,
+    data?: TRequest,
+    cb?: (response: IWebSocketData<TResponse>) => void,
     headers?: IObject,
-    failCallback?: (response: IWebSocketData) => void) => {
+    failCallback?: (response: IWebSocketData<TResponse>) => void) => {
     const init: RequestInit = {
         method: "POST",
     };
@@ -18,15 +18,15 @@ export const fetchPost = (
         if (["/api/search/searchRefBlock", "/api/graph/getGraph", "/api/graph/getLocalGraph",
             "/api/block/getRecentUpdatedBlocks", "/api/search/fullTextSearchBlock"].includes(url)) {
             window.siyuan.reqIds[url] = new Date().getTime();
-            if (data.type === "local" && url === "/api/graph/getLocalGraph") {
+            if ((data as any).type === "local" && url === "/api/graph/getLocalGraph") {
                 // 当打开文档A的关系图、关系图、文档A后刷新，由于防止请求重复处理，文档A关系图无法渲染。
             } else {
-                data.reqId = window.siyuan.reqIds[url];
+                (data as any).reqId = window.siyuan.reqIds[url];
             }
         }
         // 并发导出后端接受顺序不一致
         if (url === "/api/transactions") {
-            data.reqId = new Date().getTime();
+            (data as any).reqId = new Date().getTime();
         }
         if (data instanceof FormData) {
             init.body = data;
@@ -68,20 +68,20 @@ export const fetchPost = (
                     return response.text();
                 }
         }
-    }).then((response: IWebSocketData) => {
+    }).then((response: IWebSocketData<TResponse>) => {
         if (failCallback && url === "/api/file/getFile" && isGetFile202) {
             failCallback(response);
             return;
         }
         if (typeof response === "string") {
             if (cb) {
-                cb(response);
+                cb(response as any);
             }
             return;
         }
         if (["/api/search/searchRefBlock", "/api/graph/getGraph", "/api/graph/getLocalGraph",
             "/api/block/getRecentUpdatedBlocks", "/api/search/fullTextSearchBlock"].includes(url)) {
-            if (response.data.reqId && window.siyuan.reqIds[url] && window.siyuan.reqIds[url] > response.data.reqId) {
+            if ((response.data as any)?.reqId && window.siyuan.reqIds[url] && window.siyuan.reqIds[url] > (response.data as any).reqId) {
                 return;
             }
         }
@@ -116,7 +116,7 @@ export const fetchPost = (
     });
 };
 
-export const fetchSyncPost = async (url: string, data?: any) => {
+export const fetchSyncPost = async <TRequest = any, TResponse = any>(url: string, data?: TRequest): Promise<IWebSocketData<TResponse>> => {
     const init: RequestInit = {
         method: "POST",
     };
@@ -128,7 +128,7 @@ export const fetchSyncPost = async (url: string, data?: any) => {
         }
     }
     const res = await fetch(url, init);
-    const res2 = await res.json() as IWebSocketData;
+    const res2 = await res.json() as IWebSocketData<TResponse>;
     processMessage(res2);
     return res2;
 };

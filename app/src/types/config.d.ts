@@ -16,10 +16,13 @@
  */
 
 /**
- * NOTE: An auto-generated version of the backend types is available in `config-gen.d.ts`.
- * Run `pnpm gen:conf` (requires `tygo` installed via `go install github.com/gzuidhof/tygo@latest`)
- * to regenerate it after modifying Go struct types in `kernel/conf/` or `kernel/model/conf.go`.
- * Use the generated file as a reference when updating the interfaces below.
+ * NOTE: Auto-generated versions of the backend types are available in:
+ *   - `api-gen.d.ts`    — API endpoint request/response types (from kernel/api/types.go)
+ *   - `config-gen.d.ts` — Application configuration types (from kernel/conf/ and kernel/model/conf.go)
+ *
+ * Run `pnpm gen:api-types` (requires `tygo` installed via `go install github.com/gzuidhof/tygo@latest`)
+ * to regenerate after modifying Go struct types. Use the generated files as a reference when
+ * updating the interfaces below.
  */
 
 declare namespace Config {

@@ -722,10 +722,10 @@ interface ITab {
     callback?: (tab: import("../layout/Tab").Tab) => void;
 }
 
-interface IWebSocketData {
+interface IWebSocketData<T = any> {
     cmd?: string;
     callback?: string;
-    data?: any;
+    data?: T;
     msg: string;
     code: number;
     sid?: string;

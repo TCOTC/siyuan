@@ -1,13 +1,27 @@
 packages:
+  # ------------------------------------------------------------------ #
+  # API parameter types (request/response structs for public endpoints) #
+  # ------------------------------------------------------------------ #
+
+  # Generate TypeScript types from the kernel/api package (API request/response types)
+  - path: "github.com/siyuan-note/siyuan/kernel/api"
+    output_path: "../app/src/types/.gen-api.ts"
+    include_files:
+      - "types.go"
+
+  # ------------------------------------------------------------------ #
+  # Configuration types (conf package + AppConf root struct)           #
+  # ------------------------------------------------------------------ #
+
   # Generate TypeScript types from the kernel/util package (StatusBar type)
   - path: "github.com/siyuan-note/siyuan/kernel/util"
-    output_path: "../app/src/types/.config-gen-util.ts"
+    output_path: "../app/src/types/.gen-conf-util.ts"
     include_files:
       - "statusbar.go"
 
   # Generate TypeScript types from the kernel/conf package (configuration types)
   - path: "github.com/siyuan-note/siyuan/kernel/conf"
-    output_path: "../app/src/types/.config-gen-conf.ts"
+    output_path: "../app/src/types/.gen-conf-conf.ts"
     type_mappings:
       util.StatusBar: "StatusBar"
       util.Markdown: "any"
@@ -16,7 +30,7 @@ packages:
 
   # Generate TypeScript types from the kernel/model package (root AppConf type)
   - path: "github.com/siyuan-note/siyuan/kernel/model"
-    output_path: "../app/src/types/.config-gen-model.ts"
+    output_path: "../app/src/types/.gen-conf-model.ts"
     include_files:
       - "conf.go"
     type_mappings:

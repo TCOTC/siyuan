@@ -17,7 +17,7 @@
     "build:desktop": "webpack --mode production --config webpack.desktop.js",
     "build:export": "webpack --mode production --config webpack.export.js",
     "gen:types": "tsc -d",
-    "gen:conf": "cd ../kernel && tygo --config ../tygo.yaml generate && node ../scripts/gen-conf.js",
+    "gen:api-types": "cd ../kernel && tygo --config ../tygo.yaml generate && node ../scripts/gen-conf.js",
     "start": "NODE_ENV=development electron ./electron/main.js",
     "dist": "ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ electron-builder --config electron-builder.yml --publish=never",
     "dist-arm64": "ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ electron-builder --arm64 --config electron-builder-arm64.yml --publish=never",
