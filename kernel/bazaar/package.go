@@ -17,6 +17,7 @@
 package bazaar
 
 import (
+	"html"
 	"os"
 	"path"
 	"strings"
@@ -122,8 +123,23 @@ func ParsePackageJSON(filePath string) (ret *Package, err error) {
 		return
 	}
 
+	// 仅对本地集市包做 HTML 转义，在线 stage 由 bazaar 工作流处理
+	sanitizePackageDisplayStrings(ret)
 	ret.URL = strings.TrimSuffix(ret.URL, "/")
 	return
+}
+
+// sanitizePackageDisplayStrings 对集市包直接显示的信息做 HTML 转义，避免 XSS。
+func sanitizePackageDisplayStrings(pkg *Package) {
+	if pkg == nil {
+		return
+	}
+	for k, v := range pkg.DisplayName {
+		pkg.DisplayName[k] = html.EscapeString(v)
+	}
+	for k, v := range pkg.Description {
+		pkg.Description[k] = html.EscapeString(v)
+	}
 }
 
 // GetPreferredLocaleString 从 LocaleStrings 中按当前语种取值，无则回退 default、en_US，再回退 fallback。
