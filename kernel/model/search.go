@@ -1617,6 +1617,23 @@ func fullTextSearchCountByRegexp(exp, boxFilter, pathFilter, typeFilter, ignoreF
 	return
 }
 
+// ftsOrderByColRe 将 ORDER BY 子句中的 FTS 列名限定到 JOIN 子查询别名，避免外层列名歧义。
+var ftsOrderByColRe = regexp.MustCompile(`\b(rank|sort|updated|created|name|alias)\b`)
+
+// ftsProjJoinColRe 仅匹配 SELECT 列表里的「行首或逗号后的」物理列名，避免在已写成 `表`.id 的片段上再次匹配 id。
+var ftsProjJoinColRe = regexp.MustCompile(`(^|,\s*)(id|parent_id|root_id|hash|box|path|fcontent|markdown|length|type|subtype|ial|sort|created|updated)\b`)
+
+func qualifyFtsMatchOrderBy(orderBy, alias string) string {
+	orderBy = strings.TrimSpace(orderBy)
+	const prefix = "ORDER BY "
+	if len(orderBy) < len(prefix) || !strings.EqualFold(orderBy[:len(prefix)], prefix) {
+		return orderBy
+	}
+	body := orderBy[len(prefix):]
+	body = ftsOrderByColRe.ReplaceAllString(body, alias+".$1")
+	return prefix + body
+}
+
 func fullTextSearchByFTS(query, boxFilter, pathFilter, typeFilter, ignoreFilter, orderBy string, beforeLen, page, pageSize int) (ret []*Block, matchedBlockCount, matchedRootCount int) {
 	table := "blocks_fts" // 大小写敏感
 	if !Conf.Search.CaseSensitive {
@@ -1631,35 +1648,49 @@ func fullTextSearchByFTS(query, boxFilter, pathFilter, typeFilter, ignoreFilter,
 		"snippet(" + table + ", 10, '" + search.SearchMarkLeft + "', '" + search.SearchMarkRight + "', '...', 64) AS tag, " +
 		"snippet(" + table + ", 11, '" + search.SearchMarkLeft + "', '" + search.SearchMarkRight + "', '...', 512) AS content, " +
 		"fcontent, markdown, length, type, subtype, ial, sort, created, updated"
-	stmt := "SELECT " + projections + " FROM " + table + " WHERE (`" + table + "` MATCH '" + columnFilter() + ":(" + query + ")'"
-	stmt += ") AND type IN " + typeFilter
-	stmt += boxFilter + pathFilter + ignoreFilter + " " + orderBy
-	stmt += " LIMIT " + strconv.Itoa(pageSize) + " OFFSET " + strconv.Itoa((page-1)*pageSize)
-	blocks := sql.SelectBlocksRawStmt(stmt, page, pageSize)
+	qt := "`" + table + "`"
+	projF2 := strings.ReplaceAll(projections, "snippet("+table+",", "snippet("+qt+",")
+	projF2 = ftsProjJoinColRe.ReplaceAllStringFunc(projF2, func(m string) string {
+		subs := ftsProjJoinColRe.FindStringSubmatch(m)
+		if len(subs) < 3 {
+			return m
+		}
+		return subs[1] + qt + "." + subs[2]
+	})
+	matchPat := columnFilter() + ":(" + query + ")"
+	// MATCH 左侧须为虚拟表实名并加反引号；FTS5 在 CTE 内对别名作 MATCH 会报 no such column。
+	whereClause := " WHERE (" + "`" + table + "` MATCH '" + matchPat + "') AND type IN " + typeFilter + boxFilter + pathFilter + ignoreFilter
+	limit := strconv.Itoa(pageSize)
+	offset := strconv.Itoa((page - 1) * pageSize)
+	orderOuter := qualifyFtsMatchOrderBy(orderBy, "fjoin")
+	orderOuterBody := strings.TrimSpace(strings.TrimPrefix(orderOuter, "ORDER BY"))
+	stmt := "WITH hits AS MATERIALIZED (\n" +
+		"  SELECT rowid, id, root_id, rank, name, alias, sort, updated, created\n" +
+		"  FROM `" + table + "`\n" +
+		whereClause + "\n" +
+		"),\n" +
+		"cnt AS (\n" +
+		"  SELECT COUNT(*) AS fts_match_count, COUNT(DISTINCT root_id) AS fts_doc_count FROM hits\n" +
+		")\n" +
+		"SELECT cnt.fts_match_count, cnt.fts_doc_count, fjoin.*\n" +
+		"FROM cnt\n" +
+		"LEFT JOIN (\n" +
+		"  SELECT " + projF2 + "\n" +
+		"  FROM (\n" +
+		"    SELECT rowid FROM hits\n" +
+		"    " + strings.TrimSpace(orderBy) + "\n" +
+		"    LIMIT " + limit + " OFFSET " + offset + "\n" +
+		"  ) p\n" +
+		"  INNER JOIN " + qt + " ON " + qt + ".rowid = p.rowid\n" +
+		") fjoin ON TRUE\n" +
+		"ORDER BY CASE WHEN fjoin.id IS NULL THEN 1 ELSE 0 END ASC, " + orderOuterBody
+
+	var blocks []*sql.Block
+	blocks, matchedBlockCount, matchedRootCount = sql.SelectBlocksFTSWithTotalCounts(stmt)
 	ret = fromSQLBlocks(&blocks, "", beforeLen)
 	if 1 > len(ret) {
 		ret = []*Block{}
 	}
-
-	matchedBlockCount, matchedRootCount = fullTextSearchCountByFTS(query, boxFilter, pathFilter, typeFilter, ignoreFilter)
-	return
-}
-
-func fullTextSearchCountByFTS(query, boxFilter, pathFilter, typeFilter, ignoreFilter string) (matchedBlockCount, matchedRootCount int) {
-	table := "blocks_fts" // 大小写敏感
-	if !Conf.Search.CaseSensitive {
-		table = "blocks_fts_case_insensitive"
-	}
-
-	stmt := "SELECT COUNT(id) AS `matches`, COUNT(DISTINCT(root_id)) AS `docs` FROM `" + table + "` WHERE (`" + table + "` MATCH '" + columnFilter() + ":(" + query + ")'"
-	stmt += ") AND type IN " + typeFilter
-	stmt += boxFilter + pathFilter + ignoreFilter
-	result, _ := sql.QueryNoLimit(stmt)
-	if 1 > len(result) {
-		return
-	}
-	matchedBlockCount = int(result[0]["matches"].(int64))
-	matchedRootCount = int(result[0]["docs"].(int64))
 	return
 }
 

@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
+	"fmt"
 	"math"
 	"regexp"
 	"sort"
@@ -444,6 +445,120 @@ func Query(stmt string, limit int) (ret []map[string]any, err error) {
 		ret = append(ret, m)
 	}
 	return
+}
+
+// SelectBlocksFTSWithTotalCounts 单次执行 FTS 列表与聚合统计，语义等价于原先对 blocks_fts 的 MATCH 查询与 COUNT 查询各执行一次。
+func SelectBlocksFTSWithTotalCounts(stmt string) (ret []*Block, matchedBlockCount, matchedRootCount int) {
+	rows, err := query(stmt)
+	if err != nil {
+		logging.LogWarnf("sql query [%s] failed: %s", stmt, err)
+		return
+	}
+	defer rows.Close()
+
+	cols, err := rows.Columns()
+	if err != nil || nil == cols {
+		return
+	}
+
+	var firstRow bool
+	var blockRows []map[string]any
+	for rows.Next() {
+		columns := make([]any, len(cols))
+		columnPointers := make([]any, len(cols))
+		for i := range columns {
+			columnPointers[i] = &columns[i]
+		}
+
+		if err = rows.Scan(columnPointers...); err != nil {
+			logging.LogErrorf("query scan field failed: %s", err)
+			return
+		}
+
+		m := make(map[string]any)
+		for i, colName := range cols {
+			val := columnPointers[i].(*any)
+			m[colName] = *val
+		}
+
+		if !firstRow {
+			matchedBlockCount = anyToInt(m["fts_match_count"])
+			matchedRootCount = anyToInt(m["fts_doc_count"])
+			firstRow = true
+		}
+
+		if idStr := cellToString(m["id"]); idStr != "" {
+			normalizeFTSRowMapForToBlocks(m)
+			blockRows = append(blockRows, m)
+		}
+	}
+
+	ret = ToBlocks(blockRows)
+	if 1 > len(ret) {
+		ret = []*Block{}
+	}
+	return
+}
+
+func cellToString(v any) string {
+	if v == nil {
+		return ""
+	}
+	switch x := v.(type) {
+	case string:
+		return x
+	case []byte:
+		return string(x)
+	default:
+		return fmt.Sprint(x)
+	}
+}
+
+// normalizeFTSRowMapForToBlocks 将 map 扫描结果整理为 ToBlocks 期望的类型（database/sql 常把 TEXT 扫成 []byte）。
+func normalizeFTSRowMapForToBlocks(m map[string]any) {
+	stringKeys := []string{
+		"id", "parent_id", "root_id", "hash", "box", "path", "hpath", "name", "alias", "memo", "tag",
+		"content", "fcontent", "markdown", "type", "subtype", "ial", "created", "updated",
+	}
+	for _, k := range stringKeys {
+		m[k] = cellToString(m[k])
+	}
+	if v := m["length"]; v != nil {
+		m["length"] = anyToInt64(v)
+	} else {
+		m["length"] = int64(0)
+	}
+	if v := m["sort"]; v != nil {
+		m["sort"] = anyToInt64(v)
+	} else {
+		m["sort"] = int64(0)
+	}
+}
+
+func anyToInt64(v any) int64 {
+	switch x := v.(type) {
+	case int64:
+		return x
+	case int:
+		return int64(x)
+	case float64:
+		return int64(x)
+	default:
+		return 0
+	}
+}
+
+func anyToInt(v any) int {
+	switch x := v.(type) {
+	case int64:
+		return int(x)
+	case int:
+		return x
+	case float64:
+		return int(x)
+	default:
+		return 0
+	}
 }
 
 func ToBlocks(result []map[string]any) (ret []*Block) {
