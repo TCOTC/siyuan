@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
-	"fmt"
 	"math"
 	"regexp"
 	"sort"
@@ -448,6 +447,7 @@ func Query(stmt string, limit int) (ret []map[string]any, err error) {
 }
 
 // SelectBlocksFTSWithTotalCounts 单次执行 FTS 列表与聚合统计，语义等价于原先对 blocks_fts 的 MATCH 查询与 COUNT 查询各执行一次。
+// 结果列须为 fts_match_count、fts_doc_count 后接与 scanBlockRows 相同顺序的块列（与 fullTextSearchByFTS 中 fjoin 子查询一致）。
 func SelectBlocksFTSWithTotalCounts(stmt string) (ret []*Block, matchedBlockCount, matchedRootCount int) {
 	rows, err := query(stmt)
 	if err != nil {
@@ -456,109 +456,25 @@ func SelectBlocksFTSWithTotalCounts(stmt string) (ret []*Block, matchedBlockCoun
 	}
 	defer rows.Close()
 
-	cols, err := rows.Columns()
-	if err != nil || nil == cols {
-		return
-	}
-
-	var firstRow bool
-	var blockRows []map[string]any
+	var gotCounts bool
 	for rows.Next() {
-		columns := make([]any, len(cols))
-		columnPointers := make([]any, len(cols))
-		for i := range columns {
-			columnPointers[i] = &columns[i]
-		}
-
-		if err = rows.Scan(columnPointers...); err != nil {
-			logging.LogErrorf("query scan field failed: %s", err)
+		mc, dc, block, ok := scanFTSCountsAndBlockRow(rows)
+		if !ok {
 			return
 		}
-
-		m := make(map[string]any)
-		for i, colName := range cols {
-			val := columnPointers[i].(*any)
-			m[colName] = *val
+		if !gotCounts {
+			matchedBlockCount = int(mc)
+			matchedRootCount = int(dc)
+			gotCounts = true
 		}
-
-		if !firstRow {
-			matchedBlockCount = anyToInt(m["fts_match_count"])
-			matchedRootCount = anyToInt(m["fts_doc_count"])
-			firstRow = true
-		}
-
-		if idStr := cellToString(m["id"]); idStr != "" {
-			normalizeFTSRowMapForToBlocks(m)
-			blockRows = append(blockRows, m)
+		if nil != block {
+			ret = append(ret, block)
 		}
 	}
-
-	ret = ToBlocks(blockRows)
 	if 1 > len(ret) {
 		ret = []*Block{}
 	}
 	return
-}
-
-func cellToString(v any) string {
-	if v == nil {
-		return ""
-	}
-	switch x := v.(type) {
-	case string:
-		return x
-	case []byte:
-		return string(x)
-	default:
-		return fmt.Sprint(x)
-	}
-}
-
-// normalizeFTSRowMapForToBlocks 将 map 扫描结果整理为 ToBlocks 期望的类型（database/sql 常把 TEXT 扫成 []byte）。
-func normalizeFTSRowMapForToBlocks(m map[string]any) {
-	stringKeys := []string{
-		"id", "parent_id", "root_id", "hash", "box", "path", "hpath", "name", "alias", "memo", "tag",
-		"content", "fcontent", "markdown", "type", "subtype", "ial", "created", "updated",
-	}
-	for _, k := range stringKeys {
-		m[k] = cellToString(m[k])
-	}
-	if v := m["length"]; v != nil {
-		m["length"] = anyToInt64(v)
-	} else {
-		m["length"] = int64(0)
-	}
-	if v := m["sort"]; v != nil {
-		m["sort"] = anyToInt64(v)
-	} else {
-		m["sort"] = int64(0)
-	}
-}
-
-func anyToInt64(v any) int64 {
-	switch x := v.(type) {
-	case int64:
-		return x
-	case int:
-		return int64(x)
-	case float64:
-		return int64(x)
-	default:
-		return 0
-	}
-}
-
-func anyToInt(v any) int {
-	switch x := v.(type) {
-	case int64:
-		return int(x)
-	case int:
-		return x
-	case float64:
-		return int(x)
-	default:
-		return 0
-	}
 }
 
 func ToBlocks(result []map[string]any) (ret []*Block) {
@@ -847,6 +763,21 @@ func scanBlockRows(rows *sql.Rows) (ret *Block) {
 	ret = &block
 	putBlockCache(ret)
 	return
+}
+
+// scanFTSCountsAndBlockRow 扫描一行：前两列为 fts_match_count、fts_doc_count，其余与 scanBlockRows 一致。
+// 无命中时 LEFT JOIN 可能产生 id 为空的占位行，此时返回 block 为 nil，mc、dc 仍为有效统计。
+func scanFTSCountsAndBlockRow(rows *sql.Rows) (mc, dc int64, block *Block, ok bool) {
+	var b Block
+	if err := rows.Scan(&mc, &dc, &b.ID, &b.ParentID, &b.RootID, &b.Hash, &b.Box, &b.Path, &b.HPath, &b.Name, &b.Alias, &b.Memo, &b.Tag, &b.Content, &b.FContent, &b.Markdown, &b.Length, &b.Type, &b.SubType, &b.IAL, &b.Sort, &b.Created, &b.Updated); err != nil {
+		logging.LogErrorf("query scan field failed: %s\n%s", err, logging.ShortStack())
+		return 0, 0, nil, false
+	}
+	if "" == b.ID {
+		return mc, dc, nil, true
+	}
+	putBlockCache(&b)
+	return mc, dc, &b, true
 }
 
 func scanBlockRow(row *sql.Row) (ret *Block) {
