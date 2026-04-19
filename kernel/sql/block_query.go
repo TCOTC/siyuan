@@ -447,7 +447,7 @@ func Query(stmt string, limit int) (ret []map[string]any, err error) {
 }
 
 // SelectBlocksFTSWithTotalCounts 单次执行 FTS 列表与聚合统计，语义等价于原先对 blocks_fts 的 MATCH 查询与 COUNT 查询各执行一次。
-// 结果列须为 fts_match_count、fts_doc_count 后接与 scanBlockRows 相同顺序的块列（与 fullTextSearchByFTS 中 fjoin 子查询一致）。
+// 结果列须为 fts_match_count、fts_doc_count 后接与 scanBlockRows 相同顺序的块列（与 model.search 中 fullTextSearchByFTS 拼接的 fjoin 子查询一致）。
 func SelectBlocksFTSWithTotalCounts(stmt string) (ret []*Block, matchedBlockCount, matchedRootCount int) {
 	rows, err := query(stmt)
 	if err != nil {
