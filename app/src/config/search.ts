@@ -1,4 +1,5 @@
 import {Constants} from "../constants";
+import type {TConfigTab} from "./types";
 import {genItemPanel} from "./index";
 import {keymap} from "./keymap";
 import {App} from "../index";
@@ -13,6 +14,7 @@ const getLang = (keys: string[]) => {
 };
 
 export const initConfigSearch = (element: HTMLElement, app: App) => {
+    // TODO 设置项移动了位置，需要更新
     const configIndex = [
         // 编辑器
         getLang(["config", "fullWidth", "md7", "md8", "md37", "md38",
@@ -48,9 +50,9 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
             "flashcardFSRSParamWeightsTip", "reviewMode", "reviewModeTip"]),
 
         // AI
-        ["AI"].concat(getLang(["ai", "apiTimeout", "apiTimeoutTip", "apiMaxTokens", "apiMaxTokensTip", "apiKey",
+        getLang(["ai", "apiTimeout", "apiTimeoutTip", "apiMaxTokens", "apiMaxTokensTip", "apiKey",
             "apiKeyTip", "apiProxy", "apiProxyTip", "apiBaseURL", "apiBaseURLTip", "apiUserAgentTip", "apiVersion", "apiVersionTip",
-            "apiProvider", "apiProviderTip", "apiTemperature", "apiTemperatureTip", "apiMaxContexts", "apiMaxContextsTip"])),
+            "apiProvider", "apiProviderTip", "apiTemperature", "apiTemperatureTip", "apiMaxContexts", "apiMaxContextsTip"]),
 
         // 资源
         getLang(["assets", "unreferencedAssets", "missingAssets"]),
@@ -119,30 +121,38 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
     const updateTab = () => {
         const indexList: number[] = [];
         const inputValue = inputElement.value;
+        const inputLower = inputValue.toLowerCase();
         configIndex.map((item, index) => {
             item.map((subItem) => {
                 if (!subItem) {
                     console.warn("Search config miss language: ", item, index);
                 }
-                if (subItem && (inputValue.toLowerCase().indexOf(subItem.toLowerCase()) > -1 || subItem.toLowerCase().indexOf(inputValue.toLowerCase()) > -1)) {
+                const subLower = subItem ? subItem.toLowerCase() : "";
+                if (subLower && (inputLower.indexOf(subLower) > -1 || subLower.indexOf(inputLower) > -1)) {
                     indexList.push(index);
                 }
             });
         });
 
         let currentTabElement: HTMLElement;
-        element.querySelectorAll(".config__side li").forEach((item: HTMLElement, index) => {
+        element.querySelectorAll(".config__tab-scroll li").forEach((item: HTMLElement, index) => {
             if (indexList.includes(index)) {
                 if (!currentTabElement) {
                     currentTabElement = item;
                 }
-                const type = item.getAttribute("data-name");
+                const type = item.getAttribute("data-name") as TConfigTab | null;
+                if (!type) {
+                    return;
+                }
                 item.style.display = "";
-                if (["image", "bazaar", "account"].includes(type)) {
+                if (["image", "assets", "bazaar", "sync"].includes(type)) {
                     return;
                 }
                 // 右侧面板过滤
                 const panelElement = element.querySelector(`.config__tab-container[data-name="${type}"]`);
+                if (!panelElement) {
+                    return;
+                }
                 if (panelElement.innerHTML === "") {
                     genItemPanel(type, panelElement, app);
                 }
@@ -157,13 +167,13 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
                         let showItemElement = false;
                         let showItemParent = false;
                         const itemText = itemElement.firstElementChild.textContent.toLowerCase();
-                        if (itemText.indexOf(inputValue.toLowerCase()) > -1 || inputValue.toLowerCase().indexOf(itemText) > -1) {
+                        if (itemText.indexOf(inputLower) > -1 || inputLower.indexOf(itemText) > -1) {
                             showItemParent = true;
                         }
                         itemElement.querySelectorAll(".fn__flex-1").forEach(labelItem => {
                             if (!labelItem.parentElement.classList.contains("fn__none")) {
                                 const text = labelItem.textContent.toLowerCase();
-                                if (text.indexOf(inputValue.toLowerCase()) > -1 || inputValue.toLowerCase().indexOf(text) > -1 || showItemParent) {
+                                if (text.indexOf(inputLower) > -1 || inputLower.indexOf(text) > -1 || showItemParent) {
                                     labelItem.parentElement.style.display = "";
                                     showItemElement = true;
                                 } else {
@@ -183,7 +193,7 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
                     panelElement.querySelectorAll(`.config__tab-container[data-name="${type}"] .b3-label`).forEach((itemElement: HTMLElement) => {
                         if (!itemElement.classList.contains("fn__none")) {
                             const text = itemElement.textContent.toLowerCase();
-                            if (text.indexOf(inputValue.toLowerCase()) > -1 || inputValue.toLowerCase().indexOf(text) > -1) {
+                            if (text.indexOf(inputLower) > -1 || inputLower.indexOf(text) > -1) {
                                 itemElement.style.display = "";
                             } else {
                                 itemElement.style.display = "none";

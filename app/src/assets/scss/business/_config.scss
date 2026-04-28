@@ -46,7 +46,14 @@
 
       &__title {
         display: block;
-        padding: 24px 40px 0 40px;
+        padding: 16px 40px 0 40px;
+        font-size: 16px;
+      }
+
+      // 账号分组：列表内侧留白，避免滚动区域内控件 hover 外扩阴影贴边被裁切（不必再用 overflow / filter 等方式补救）
+      &--account .config-account__list {
+        padding: 8px 8px 16px;
+        box-sizing: border-box;
       }
     }
 
@@ -55,42 +62,58 @@
   &__panel {
     background-color: var(--b3-theme-background);
     border-radius: var(--b3-border-radius-b);
-  }
 
-  &__side {
-    user-select: none;
-    width: 240px;
-    padding: 8px 0;
-    box-sizing: border-box;
-    border-right: 1px solid var(--b3-border-color);
-    display: flex;
-    flex-direction: column;
-
-    .config__tab-title {
+    & > .b3-tab-bar {
+      user-select: none;
+      width: 240px;
       display: flex;
-      align-items: center;
-      height: 32px;
-      padding: 0 12px;
-      margin-bottom: 8px;
-    }
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      padding: 8px 0;
+      box-sizing: border-box;
+      border-right: 1px solid var(--b3-border-color);
+      background-color: var(--b3-theme-surface);
 
-    & > .b3-list {
-      flex: 1;
-      overflow: auto;
-    }
+      .config__tab-head {
+        flex-shrink: 0;
+      }
 
-    .b3-form__icon {
-      margin: 0 8px 8px;
-    }
+      .config__tab-scroll {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        margin: 0;
+        padding-top: 8px;
+        list-style: none;
+      }
 
-    .b3-list-item {
-      line-height: 38px;
+      .config__tab-hr {
+        background: var(--b3-border-color);
+        height: .1px;
+      }
 
-      &__graphic {
-        margin-right: 0;
-        padding: 0 8px 0 4px;
-        height: 16px;
-        width: 16px;
+      .config__tab-title {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        padding: 0 12px;
+        margin-bottom: 8px;
+      }
+
+      .b3-form__icon {
+        margin: 0 8px 8px;
+      }
+
+      .b3-list-item {
+        line-height: 38px;
+
+        &__graphic {
+          margin-right: 0;
+          padding: 0 8px 0 4px;
+          height: 16px;
+          width: 16px;
+        }
       }
     }
   }
@@ -110,6 +133,103 @@
 
   &-account {
     height: 100%;
+
+    &__list {
+      .b3-chips {
+        margin-top: 4px;
+      }
+    }
+
+    &__pay-content {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    &__pay-header {
+      align-items: center;
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+
+      .b3-chips {
+        margin-top: 0;
+      }
+    }
+
+    &__pay-label {
+      flex-shrink: 0;
+    }
+
+    &__pay-status {
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      margin-left: auto;
+    }
+
+    &__row {
+      // 仅登录态头像行垂直居中；访客行多为多行说明文案，与按钮顶对齐更易读（否则整段文字相对按钮垂直居中会显得「不居中」）
+      &--profile:not(&--guest) {
+        align-items: center;
+      }
+
+      &--guest {
+        align-items: flex-start;
+      }
+    }
+
+    &__row--pay {
+      .b3-button {
+        margin: 4px 0;
+      }
+    }
+
+    &__row--profile {
+      border-radius: var(--b3-border-radius);
+      color: var(--b3-theme-on-surface);
+      background-color: var(--b3-theme-surface);
+    }
+
+    &__row-actions {
+      align-items: center;
+    }
+
+    &__profile {
+      padding: 12px;
+    }
+
+    &__profile-avatar {
+      height: 48px;
+      width: 48px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      border: 1px solid var(--b3-border-color);
+      background-color: var(--b3-theme-surface-lighter);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &__profile-avatar--guest {
+      color: var(--b3-theme-on-surface-light);
+
+      svg {
+        height: 24px;
+        width: 24px;
+      }
+    }
+
+    &__profile-name {
+      font-weight: 600;
+    }
+
+    &__profile--guest {
+      color: var(--b3-theme-on-surface);
+    }
 
     &__center {
       flex-direction: column;
@@ -201,7 +321,6 @@
     img {
       height: 24px;
       width: 24px;
-      margin-right: 8px;
     }
   }
 

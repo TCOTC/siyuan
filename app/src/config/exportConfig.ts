@@ -1,60 +1,16 @@
 import {fetchPost} from "../util/fetch";
 /// #if !BROWSER
-import {afterExport} from "../protyle/export/util";
 import {ipcRenderer} from "electron";
-import * as path from "path";
-import {exportLayout} from "../layout/util";
 /// #endif
 import {isBrowser} from "../util/functions";
-import {showMessage} from "../dialog/message";
 import {useShell} from "../util/pathName";
 import {Constants} from "../constants";
-import {saveExportFile} from "../protyle/util/compatibility";
-import {exitSiYuan} from "../dialog/processSystem";
 
 export const exportConfig = {
     element: undefined as Element,
     genHTML: () => {
-        return `<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.paragraphBeginningSpace}
-        <div class="b3-label__text">${window.siyuan.languages.md4}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="paragraphBeginningSpace" type="checkbox"${window.siyuan.config.export.paragraphBeginningSpace ? " checked" : ""}/>
-</label>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.export17}
-        <div class="b3-label__text">${window.siyuan.languages.export18}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="addTitle" type="checkbox"${window.siyuan.config.export.addTitle ? " checked" : ""}/>
-</label>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.export23}
-        <div class="b3-label__text">${window.siyuan.languages.export24}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="markdownYFM" type="checkbox"${window.siyuan.config.export.markdownYFM ? " checked" : ""}/>
-</label>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.removeAssetsID}
-        <div class="b3-label__text">${window.siyuan.languages.removeAssetsIDTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="removeAssetsID" type="checkbox"${window.siyuan.config.export.removeAssetsID ? " checked" : ""}/>
-</label>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.export31}
-        <div class="b3-label__text">${window.siyuan.languages.export32}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="inlineMemo" type="checkbox"${window.siyuan.config.export.inlineMemo ? " checked" : ""}/>
-</label>
+        return `<b class="config-group__title">${window.siyuan.languages.configGroupReferences}</b>
+<div class="config-group">
 <label class="fn__flex b3-label">
     <div class="fn__flex-1">
         ${window.siyuan.languages.includeSubDocs}
@@ -94,6 +50,72 @@ export const exportConfig = {
         <option value="1" ${window.siyuan.config.export.blockEmbedMode === 1 ? "selected" : ""}>${window.siyuan.languages.export1}</option>
     </select>
 </div>
+</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupFormat}</b>
+<div class="config-group">
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.export23}
+        <div class="b3-label__text">${window.siyuan.languages.export24}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="markdownYFM" type="checkbox"${window.siyuan.config.export.markdownYFM ? " checked" : ""}/>
+</label>
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.export17}
+        <div class="b3-label__text">${window.siyuan.languages.export18}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="addTitle" type="checkbox"${window.siyuan.config.export.addTitle ? " checked" : ""}/>
+</label>
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.paragraphBeginningSpace}
+        <div class="b3-label__text">${window.siyuan.languages.md4}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="paragraphBeginningSpace" type="checkbox"${window.siyuan.config.export.paragraphBeginningSpace ? " checked" : ""}/>
+</label>
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.removeAssetsID}
+        <div class="b3-label__text">${window.siyuan.languages.removeAssetsIDTip}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="removeAssetsID" type="checkbox"${window.siyuan.config.export.removeAssetsID ? " checked" : ""}/>
+</label>
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.export31}
+        <div class="b3-label__text">${window.siyuan.languages.export32}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="inlineMemo" type="checkbox"${window.siyuan.config.export.inlineMemo ? " checked" : ""}/>
+</label>
+<div class="fn__flex b3-label config__item">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.export13}
+        <div class="b3-label__text">${window.siyuan.languages.export14}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size96" id="blockRefTextLeft">
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size96" id="blockRefTextRight">
+</div>
+<div class="fn__flex b3-label config__item">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.export15}
+        <div class="b3-label__text">${window.siyuan.languages.export16}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size96" id="tagOpenMarker">
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size96" id="tagCloseMarker">
+</div>
+</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupPDF}</b>
+<div class="config-group">
 <div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
         ${window.siyuan.languages.export5}
@@ -122,6 +144,9 @@ export const exportConfig = {
     <div class="fn__hr"></div>
     <textarea class="b3-text-field fn__block" id="pdfWatermarkDesc"></textarea>
 </div>
+</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupImages}</b>
+<div class="config-group">
 <div class="b3-label config__item">
     ${window.siyuan.languages.export30}
     <div class="b3-label__text">${window.siyuan.languages.export28}</div>
@@ -135,26 +160,9 @@ export const exportConfig = {
     <div class="fn__hr"></div>
     <textarea class="b3-text-field fn__block" id="imageWatermarkDesc"></textarea>
 </div>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.export13}
-        <div class="b3-label__text">${window.siyuan.languages.export14}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size96" id="blockRefTextLeft">
-    <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size96" id="blockRefTextRight">
 </div>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.export15}
-        <div class="b3-label__text">${window.siyuan.languages.export16}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size96" id="tagOpenMarker">
-    <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size96" id="tagCloseMarker">
-</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupPandoc}</b>
+<div class="config-group">
 <div class="fn__flex b3-label config__item${isBrowser() ? " fn__none" : ""}">
     <div class="fn__flex-1">
         ${window.siyuan.languages.export19}
@@ -171,47 +179,6 @@ export const exportConfig = {
     <div class="fn__hr"></div>
     <textarea class="b3-text-field fn__block" id="pandocParams"></textarea>
 </div>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1 fn__flex-center">
-        ${window.siyuan.languages.export} Data
-        <div class="b3-label__text">${window.siyuan.languages.exportDataTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <button class="b3-button b3-button--outline fn__flex-center fn__size200" id="exportData">
-        <svg><use xlink:href="#iconUpload"></use></svg>${window.siyuan.languages.export}
-    </button>
-</div>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1 fn__flex-center">
-        ${window.siyuan.languages.import} Data
-        <div class="b3-label__text">${window.siyuan.languages.importDataTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <button class="b3-button b3-button--outline fn__flex-center fn__size200" style="position: relative">
-        <input id="importData" class="b3-form__upload" type="file">
-        <svg><use xlink:href="#iconDownload"></use></svg>${window.siyuan.languages.import}
-    </button>
-</div>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1 fn__flex-center">
-        ${window.siyuan.languages.exportConf}
-        <div class="b3-label__text">${window.siyuan.languages.exportConfTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <button class="b3-button b3-button--outline fn__flex-center fn__size200" id="exportConf">
-        <svg><use xlink:href="#iconUpload"></use></svg>${window.siyuan.languages.export}
-    </button>
-</div>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1 fn__flex-center">
-        ${window.siyuan.languages.importConf}
-        <div class="b3-label__text">${window.siyuan.languages.importConfTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <button class="b3-button b3-button--outline fn__flex-center fn__size200" style="position: relative">
-        <input id="importConf" class="b3-form__upload" type="file">
-        <svg><use xlink:href="#iconDownload"></use></svg>${window.siyuan.languages.import}
-    </button>
 </div>`;
     },
     bindEvent: () => {
@@ -260,64 +227,8 @@ export const exportConfig = {
             });
         });
         exportConfig.element.querySelectorAll("input, textarea").forEach((item) => {
-            if (item.id == "importData") {
-                item.addEventListener("change", (event: InputEvent & { target: HTMLInputElement }) => {
-                    const formData = new FormData();
-                    formData.append("file", event.target.files[0]);
-                    fetchPost("/api/import/importData", formData);
-                });
-            } else if (item.id === "importConf") {
-                item.addEventListener("change", (event: InputEvent & { target: HTMLInputElement }) => {
-                    const formData = new FormData();
-                    formData.append("file", event.target.files[0]);
-                    fetchPost("/api/system/importConf", formData, response => {
-                        if (response.code !== 0) {
-                            showMessage(response.msg);
-                            return;
-                        }
-
-                        showMessage(window.siyuan.languages.imported);
-                        /// #if MOBILE
-                        exitSiYuan();
-                        /// #else
-                        exportLayout({
-                            errorExit: true,
-                            cb: exitSiYuan
-                        });
-                        /// #endif
-                    });
-                });
-            } else {
-                item.addEventListener("change", () => {
-                    setexprt();
-                });
-            }
-        });
-        exportConfig.element.querySelector("#exportData").addEventListener("click", async () => {
-            /// #if BROWSER
-            fetchPost("/api/export/exportData", {}, response => {
-                saveExportFile(response.data.zip);
-            });
-            /// #else
-            const result = await ipcRenderer.invoke(Constants.SIYUAN_GET, {
-                cmd: "showOpenDialog",
-                title: window.siyuan.languages.export + " " + "Data",
-                properties: ["createDirectory", "openDirectory"],
-            });
-            if (result.canceled || result.filePaths.length === 0) {
-                return;
-            }
-            const msgId = showMessage(window.siyuan.languages.exporting, -1);
-            fetchPost("/api/export/exportDataInFolder", {
-                folder: result.filePaths[0],
-            }, response => {
-                afterExport(path.join(result.filePaths[0], response.data.name), msgId);
-            });
-            /// #endif
-        });
-        exportConfig.element.querySelector("#exportConf").addEventListener("click", async () => {
-            fetchPost("/api/system/exportConf", {}, response => {
-                saveExportFile(response.data.zip);
+            item.addEventListener("change", () => {
+                setexprt();
             });
         });
         /// #if !BROWSER

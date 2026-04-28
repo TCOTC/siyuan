@@ -1,15 +1,15 @@
 import {openModel} from "../menu/model";
-import {image} from "../../config/image";
+import {assets} from "../../config/assets";
 import {App} from "../../index";
 
 export const initConfigAssets = (app: App) => {
     openModel({
         title: window.siyuan.languages.assets,
         icon: "iconImage",
-        html: image.genHTML(),
+        html: assets.genHTML(),
         bindEvent(modelMainElement: HTMLElement) {
-            image.element = modelMainElement.firstElementChild;
-            image.bindEvent(app);
+            assets.element = modelMainElement.firstElementChild;
+            assets.bindEvent(app);
         }
     });
 };

@@ -5,7 +5,9 @@ export const ai = {
     genHTML: () => {
         let responsiveHTML = "";
         /// #if MOBILE
-        responsiveHTML = `<div class="b3-label">
+        responsiveHTML = `<b class="config-group__title">${window.siyuan.languages.configGroupServiceConnection}</b>
+<div class="config-group">
+<div class="b3-label">
     ${window.siyuan.languages.apiProvider}
     <div class="b3-label__text">
         ${window.siyuan.languages.apiProviderTip}
@@ -16,6 +18,48 @@ export const ai = {
             <option value="Azure" ${window.siyuan.config.ai.openAI.apiProvider === "Azure" ? "selected" : ""}>Azure</option>
         </select>
     </div>
+</div>
+<div class="b3-label">
+    ${window.siyuan.languages.apiBaseURL}
+    <div class="fn__hr"></div>
+    <input class="b3-text-field fn__block" id="apiBaseURL" value="${window.siyuan.config.ai.openAI.apiBaseURL}"/>
+    <div class="b3-label__text">${window.siyuan.languages.apiBaseURLTip}</div>
+</div>
+<div class="b3-label">
+    ${window.siyuan.languages.apiKey}
+    <div class="fn__hr"></div>
+    <div class="b3-form__icona fn__block">
+        <input id="apiKey" type="password" class="b3-text-field b3-form__icona-input" value="${window.siyuan.config.ai.openAI.apiKey}">
+        <svg class="b3-form__icona-icon" data-action="togglePassword"><use xlink:href="#iconEye"></use></svg>
+    </div>
+    <div class="b3-label__text">${window.siyuan.languages.apiKeyTip}</div>
+</div>
+<div class="b3-label${window.siyuan.config.ai.openAI.apiProvider !== "Azure" ? " fn__none" : ""}" id="apiVersionContainer">
+    ${window.siyuan.languages.apiVersion}
+    <div class="fn__hr"></div>
+    <input class="b3-text-field fn__block" id="apiVersion" value="${window.siyuan.config.ai.openAI.apiVersion}"/>
+    <div class="b3-label__text">${window.siyuan.languages.apiVersionTip}</div>
+</div>
+<div class="b3-label">
+    ${window.siyuan.languages.apiProxy}
+    <div class="fn__hr"></div>
+    <input class="b3-text-field fn__block" id="apiProxy" value="${window.siyuan.config.ai.openAI.apiProxy}"/>
+    <div class="b3-label__text">${window.siyuan.languages.apiProxyTip}</div>
+</div>
+<div class="b3-label">
+    User-Agent
+    <div class="fn__hr"></div>
+    <input class="b3-text-field fn__block" id="apiUserAgent" value="${window.siyuan.config.ai.openAI.apiUserAgent}"/>
+    <div class="b3-label__text">${window.siyuan.languages.apiUserAgentTip}</div>
+</div>
+</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupModelParameters}</b>
+<div class="config-group">
+<div class="b3-label">
+    ${window.siyuan.languages.apiModel}
+    <div class="fn__hr"></div>
+    <input class="b3-text-field fn__block" id="apiModel" value="${window.siyuan.config.ai.openAI.apiModel}"/>
+    <div class="b3-label__text">${window.siyuan.languages.apiModelTip}</div>
 </div>
 <div class="b3-label">
     ${window.siyuan.languages.apiTimeout}
@@ -34,84 +78,22 @@ export const ai = {
     <div class="b3-label__text">${window.siyuan.languages.apiMaxTokensTip}</div>
 </div>
 <div class="b3-label">
-    ${window.siyuan.languages.apiTemperature}
-    <div class="fn__hr"></div>
-    <input class="b3-text-field fn__flex-center fn__block" type="number" step="0.1" min="0" max="2" id="apiTemperature" value="${window.siyuan.config.ai.openAI.apiTemperature}"/>
-    <div class="b3-label__text">${window.siyuan.languages.apiTemperatureTip}</div>
-</div>
-<div class="b3-label">
     ${window.siyuan.languages.apiMaxContexts}
     <div class="fn__hr"></div>
     <input class="b3-text-field fn__flex-center fn__block" type="number" step="1" min="1" max="64" id="apiMaxContexts" value="${window.siyuan.config.ai.openAI.apiMaxContexts}"/>
     <div class="b3-label__text">${window.siyuan.languages.apiMaxContextsTip}</div>
 </div>
 <div class="b3-label">
-    ${window.siyuan.languages.agentTimeout || "Agent Timeout"}
+    ${window.siyuan.languages.apiTemperature}
     <div class="fn__hr"></div>
-    <div class="fn__flex">
-        <input class="b3-text-field fn__flex-1" type="number" step="1" min="0" id="agentTimeout" value="${window.siyuan.config.ai.openAI.agentTimeout || 600}"/>
-        <span class="fn__space"></span>
-        <span class="ft__on-surface fn__flex-center">s</span>
-    </div>
-    <div class="b3-label__text">${window.siyuan.languages.agentTimeoutTip || "0 = no limit"}</div>
+    <input class="b3-text-field fn__flex-center fn__block" type="number" step="0.1" min="0" max="2" id="apiTemperature" value="${window.siyuan.config.ai.openAI.apiTemperature}"/>
+    <div class="b3-label__text">${window.siyuan.languages.apiTemperatureTip}</div>
 </div>
-<div class="b3-label">
-    ${window.siyuan.languages.agentConfirmTimeout || "Confirm Timeout"}
-    <div class="fn__hr"></div>
-    <div class="fn__flex">
-        <input class="b3-text-field fn__flex-1" type="number" step="1" min="10" max="600" id="agentConfirmTimeout" value="${window.siyuan.config.ai.openAI.agentConfirmTimeout || 120}"/>
-        <span class="fn__space"></span>
-        <span class="ft__on-surface fn__flex-center">s</span>
-    </div>
-    <div class="b3-label__text">${window.siyuan.languages.agentConfirmTimeoutTip || "Auto reject after timeout"}</div>
-</div>
-<div class="b3-label">
-    ${window.siyuan.languages.agentMaxRetries || "Max Retries"}
-    <div class="fn__hr"></div>
-    <input class="b3-text-field fn__flex-center fn__block" type="number" step="1" min="0" max="10" id="agentMaxRetries" value="${window.siyuan.config.ai.openAI.agentMaxRetries || 3}"/>
-    <div class="b3-label__text">${window.siyuan.languages.agentMaxRetriesTip || "Max API retry attempts on failure"}</div>
-</div>
-<div class="b3-label">
-    ${window.siyuan.languages.apiModel}
-    <div class="fn__hr"></div>
-    <input class="b3-text-field fn__block" id="apiModel" value="${window.siyuan.config.ai.openAI.apiModel}"/>
-    <div class="b3-label__text">${window.siyuan.languages.apiModelTip}</div>
-</div>
-<div class="b3-label">
-    ${window.siyuan.languages.apiKey}
-    <div class="fn__hr"></div>
-    <div class="b3-form__icona fn__block">
-        <input id="apiKey" type="password" class="b3-text-field b3-form__icona-input" value="${window.siyuan.config.ai.openAI.apiKey}">
-        <svg class="b3-form__icona-icon" data-action="togglePassword"><use xlink:href="#iconEye"></use></svg>
-    </div>
-    <div class="b3-label__text">${window.siyuan.languages.apiKeyTip}</div>
-</div>
-<div class="b3-label">
-    ${window.siyuan.languages.apiProxy}
-    <div class="fn__hr"></div>
-    <input class="b3-text-field fn__block" id="apiProxy" value="${window.siyuan.config.ai.openAI.apiProxy}"/>
-    <div class="b3-label__text">${window.siyuan.languages.apiProxyTip}</div>
-</div>
-<div class="b3-label">
-    ${window.siyuan.languages.apiBaseURL}
-    <div class="fn__hr"></div>
-    <input class="b3-text-field fn__block" id="apiBaseURL" value="${window.siyuan.config.ai.openAI.apiBaseURL}"/>
-    <div class="b3-label__text">${window.siyuan.languages.apiBaseURLTip}</div>
-</div>
-<div class="b3-label">
-    ${window.siyuan.languages.apiVersion}
-    <div class="fn__hr"></div>
-    <input class="b3-text-field fn__block" id="apiVersion" value="${window.siyuan.config.ai.openAI.apiVersion}"/>
-    <div class="b3-label__text">${window.siyuan.languages.apiVersionTip}</div>
-</div>
-<div class="b3-label">
-    User-Agent
-    <div class="fn__hr"></div>
-    <input class="b3-text-field fn__block" id="apiUserAgent" value="${window.siyuan.config.ai.openAI.apiUserAgent}"/>
-    <div class="b3-label__text">${window.siyuan.languages.apiUserAgentTip}</div>
 </div>`;
         /// #else
-        responsiveHTML = `<div class="fn__flex b3-label config__item">
+        responsiveHTML = `<b class="config-group__title">${window.siyuan.languages.configGroupServiceConnection}</b>
+<div class="config-group">
+<div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
         ${window.siyuan.languages.apiProvider}
         <div class="b3-label__text">${window.siyuan.languages.apiProviderTip}</div>
@@ -121,6 +103,60 @@ export const ai = {
         <option value="OpenAI" ${window.siyuan.config.ai.openAI.apiProvider === "OpenAI" ? "selected" : ""}>OpenAI</option>
         <option value="Azure" ${window.siyuan.config.ai.openAI.apiProvider === "Azure" ? "selected" : ""}>Azure</option>
     </select>
+</div>
+<div class="fn__flex b3-label">
+    <div class="fn__block">
+        ${window.siyuan.languages.apiBaseURL}
+        <div class="b3-label__text">${window.siyuan.languages.apiBaseURLTip}</div>
+        <span class="fn__hr"></span>
+        <input class="b3-text-field fn__block" id="apiBaseURL" value="${window.siyuan.config.ai.openAI.apiBaseURL}"/>
+    </div>
+</div>
+<div class="fn__flex b3-label">
+    <div class="fn__block">
+        ${window.siyuan.languages.apiKey}
+        <div class="b3-label__text">${window.siyuan.languages.apiKeyTip}</div>
+        <div class="fn__hr"></div>
+        <div class="b3-form__icona fn__block">
+            <input id="apiKey" type="password" class="b3-text-field b3-form__icona-input" value="${window.siyuan.config.ai.openAI.apiKey}">
+            <svg class="b3-form__icona-icon" data-action="togglePassword"><use xlink:href="#iconEye"></use></svg>
+        </div>
+    </div>
+</div>
+<div class="fn__flex b3-label${window.siyuan.config.ai.openAI.apiProvider !== "Azure" ? " fn__none" : ""}" id="apiVersionContainer">
+    <div class="fn__block">
+        ${window.siyuan.languages.apiVersion}
+        <div class="b3-label__text">${window.siyuan.languages.apiVersionTip}</div>
+        <span class="fn__hr"></span>
+        <input class="b3-text-field fn__block" id="apiVersion" value="${window.siyuan.config.ai.openAI.apiVersion}"/>
+    </div>
+</div>
+<div class="fn__flex b3-label">
+    <div class="fn__block">
+        ${window.siyuan.languages.apiProxy}
+        <div class="b3-label__text">${window.siyuan.languages.apiProxyTip}</div>
+        <span class="fn__hr"></span>
+        <input class="b3-text-field fn__block" id="apiProxy" value="${window.siyuan.config.ai.openAI.apiProxy}"/>
+    </div>
+</div>
+<div class="fn__flex b3-label">
+    <div class="fn__block">
+        User-Agent
+        <div class="b3-label__text">${window.siyuan.languages.apiUserAgentTip}</div>
+        <span class="fn__hr"></span>
+        <input class="b3-text-field fn__block" id="apiUserAgent" value="${window.siyuan.config.ai.openAI.apiUserAgent}"/>
+    </div>
+</div>
+</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupModelParameters}</b>
+<div class="config-group">
+<div class="fn__flex b3-label">
+    <div class="fn__block">
+        ${window.siyuan.languages.apiModel}
+        <div class="b3-label__text">${window.siyuan.languages.apiModelTip}</div>
+        <div class="fn__hr"></div>
+        <input class="b3-text-field fn__block" id="apiModel" value="${window.siyuan.config.ai.openAI.apiModel}"/>
+    </div>
 </div>
 <div class="fn__flex b3-label">
     <div class="fn__flex-1">
@@ -144,14 +180,6 @@ export const ai = {
 </div>
 <div class="fn__flex b3-label">
     <div class="fn__flex-1">
-        ${window.siyuan.languages.apiTemperature}
-        <div class="b3-label__text">${window.siyuan.languages.apiTemperatureTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size200" type="number" step="0.1" min="0" max="2" id="apiTemperature" value="${window.siyuan.config.ai.openAI.apiTemperature}"/>
-</div>
-<div class="fn__flex b3-label">
-    <div class="fn__flex-1">
         ${window.siyuan.languages.apiMaxContexts}
         <div class="b3-label__text">${window.siyuan.languages.apiMaxContextsTip}</div>
     </div>
@@ -160,86 +188,12 @@ export const ai = {
 </div>
 <div class="fn__flex b3-label">
     <div class="fn__flex-1">
-        ${window.siyuan.languages.agentTimeout || "Agent Timeout"}
-        <div class="b3-label__text">${window.siyuan.languages.agentTimeoutTip || "0 = no limit"}</div>
+        ${window.siyuan.languages.apiTemperature}
+        <div class="b3-label__text">${window.siyuan.languages.apiTemperatureTip}</div>
     </div>
     <span class="fn__space"></span>
-    <div class="fn__size200 fn__flex-center fn__flex">
-        <input class="b3-text-field fn__flex-1" type="number" step="1" min="0" id="agentTimeout" value="${window.siyuan.config.ai.openAI.agentTimeout || 600}"/>
-        <span class="fn__space"></span>
-        <span class="ft__on-surface fn__flex-center">s</span>
-    </div>
+    <input class="b3-text-field fn__flex-center fn__size200" type="number" step="0.1" min="0" max="2" id="apiTemperature" value="${window.siyuan.config.ai.openAI.apiTemperature}"/>
 </div>
-<div class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.agentConfirmTimeout || "Confirm Timeout"}
-        <div class="b3-label__text">${window.siyuan.languages.agentConfirmTimeoutTip || "Auto reject after timeout"}</div>
-    </div>
-    <span class="fn__space"></span>
-    <div class="fn__size200 fn__flex-center fn__flex">
-        <input class="b3-text-field fn__flex-1" type="number" step="1" min="10" max="600" id="agentConfirmTimeout" value="${window.siyuan.config.ai.openAI.agentConfirmTimeout || 120}"/>
-        <span class="fn__space"></span>
-        <span class="ft__on-surface fn__flex-center">s</span>
-    </div>
-</div>
-<div class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.agentMaxRetries || "Max Retries"}
-        <div class="b3-label__text">${window.siyuan.languages.agentMaxRetriesTip || "Max API retry attempts on failure"}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size200" type="number" step="1" min="0" max="10" id="agentMaxRetries" value="${window.siyuan.config.ai.openAI.agentMaxRetries || 3}"/>
-</div>
-<div class="fn__flex b3-label">
-    <div class="fn__block">
-        ${window.siyuan.languages.apiModel}
-        <div class="b3-label__text">${window.siyuan.languages.apiModelTip}</div>
-        <div class="fn__hr"></div>
-        <input class="b3-text-field fn__block" id="apiModel" value="${window.siyuan.config.ai.openAI.apiModel}"/>
-    </div>
-</div>
-<div class="fn__flex b3-label">
-    <div class="fn__block">
-        ${window.siyuan.languages.apiKey}
-        <div class="b3-label__text">${window.siyuan.languages.apiKeyTip}</div>
-        <div class="fn__hr"></div>
-        <div class="b3-form__icona fn__block">
-            <input id="apiKey" type="password" class="b3-text-field b3-form__icona-input" value="${window.siyuan.config.ai.openAI.apiKey}">
-            <svg class="b3-form__icona-icon" data-action="togglePassword"><use xlink:href="#iconEye"></use></svg>
-        </div>
-    </div>
-</div>
-<div class="fn__flex b3-label">
-    <div class="fn__block">
-        ${window.siyuan.languages.apiProxy}
-        <div class="b3-label__text">${window.siyuan.languages.apiProxyTip}</div>
-        <span class="fn__hr"></span>
-        <input class="b3-text-field fn__block" id="apiProxy" value="${window.siyuan.config.ai.openAI.apiProxy}"/>
-    </div>
-</div>
-<div class="fn__flex b3-label">
-    <div class="fn__block">
-        ${window.siyuan.languages.apiBaseURL}
-        <div class="b3-label__text">${window.siyuan.languages.apiBaseURLTip}</div>
-        <span class="fn__hr"></span>
-        <input class="b3-text-field fn__block" id="apiBaseURL" value="${window.siyuan.config.ai.openAI.apiBaseURL}"/>
-    </div>
-</div>
-<div class="fn__flex b3-label">
-    <div class="fn__block">
-        ${window.siyuan.languages.apiVersion}
-        <div class="b3-label__text">${window.siyuan.languages.apiVersionTip}</div>
-        <span class="fn__hr"></span>
-        <input class="b3-text-field fn__block" id="apiVersion" value="${window.siyuan.config.ai.openAI.apiVersion}"/>
-    </div>
-</div>
-<div class="fn__flex b3-label">
-    <div class="fn__block">
-        User-Agent
-        <div class="b3-label__text">${window.siyuan.languages.apiUserAgentTip}</div>
-        <span class="fn__hr"></span>
-        <input class="b3-text-field fn__block" id="apiUserAgent" value="${window.siyuan.config.ai.openAI.apiUserAgent}"/>
-    </div>
 </div>`;
         /// #endif
         return responsiveHTML;
@@ -250,6 +204,15 @@ export const ai = {
             const isEye = togglePassword.firstElementChild.getAttribute("xlink:href") === "#iconEye";
             togglePassword.firstElementChild.setAttribute("xlink:href", isEye ? "#iconEyeoff" : "#iconEye");
             togglePassword.previousElementSibling.setAttribute("type", isEye ? "text" : "password");
+        });
+        const apiProviderElement = ai.element.querySelector("#apiProvider") as HTMLSelectElement;
+        apiProviderElement.addEventListener("change", () => {
+            const apiVersionContainer = ai.element.querySelector("#apiVersionContainer");
+            if (apiProviderElement.value === "Azure") {
+                apiVersionContainer.classList.remove("fn__none");
+            } else {
+                apiVersionContainer.classList.add("fn__none");
+            }
         });
         ai.element.querySelectorAll("input, select").forEach((item) => {
             item.addEventListener("change", () => {
@@ -266,9 +229,6 @@ export const ai = {
                         apiProxy: (ai.element.querySelector("#apiProxy") as HTMLInputElement).value,
                         apiTimeout: parseInt((ai.element.querySelector("#apiTimeout") as HTMLInputElement).value),
                         apiProvider: (ai.element.querySelector("#apiProvider") as HTMLSelectElement).value,
-                        agentTimeout: parseInt((ai.element.querySelector("#agentTimeout") as HTMLInputElement).value),
-                        agentConfirmTimeout: parseInt((ai.element.querySelector("#agentConfirmTimeout") as HTMLInputElement).value),
-                        agentMaxRetries: parseInt((ai.element.querySelector("#agentMaxRetries") as HTMLInputElement).value),
                     }
                 }, response => {
                     window.siyuan.config.ai = response.data;

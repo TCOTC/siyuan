@@ -10,8 +10,6 @@ import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Constants} from "../constants";
 import {resize} from "../protyle/util/resize";
 import {setReadOnly} from "./util/setReadOnly";
-import {Menu} from "../plugin/Menu";
-
 export const editor = {
     element: undefined as Element,
     genHTML: () => {
@@ -21,30 +19,8 @@ export const editor = {
         /// #else
         spellcheckTip = window.siyuan.languages.spellcheckTip;
         /// #endif
-        return `<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.fullWidth}
-        <div class="b3-label__text">${window.siyuan.languages.fullWidthTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="fullWidth" type="checkbox"${window.siyuan.config.editor.fullWidth ? " checked" : ""}/>
-</label>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.justify}
-        <div class="b3-label__text">${window.siyuan.languages.justifyTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="justify" type="checkbox"${window.siyuan.config.editor.justify ? " checked" : ""}/>
-</label>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.rtl}
-        <div class="b3-label__text">${window.siyuan.languages.rtlTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="rtl" type="checkbox"${window.siyuan.config.editor.rtl ? " checked" : ""}/>
-</label>
+        return `<b class="config-group__title">${window.siyuan.languages.configGroupBehavior}</b>
+<div class="config-group">
 <label class="fn__flex b3-label">
     <div class="fn__flex-1">
         ${window.siyuan.languages.editReadonly} 
@@ -54,14 +30,62 @@ export const editor = {
     <span class="fn__space"></span>
     <input class="b3-switch fn__flex-center" id="readOnly" type="checkbox"${window.siyuan.config.editor.readOnly ? " checked" : ""}/>
 </label>
-<label class="fn__flex b3-label">
+<div class="b3-label">
+    <label class="fn__flex">
+        <div class="fn__flex-1">
+            ${window.siyuan.languages.spellcheck}
+            <div class="b3-label__text">${spellcheckTip}</div>
+        </div>
+        <span class="fn__space"></span>
+        <input class="b3-switch fn__flex-center" id="spellcheck" type="checkbox"${window.siyuan.config.editor.spellcheck ? " checked" : ""}/>
+    </label>
+    <div class="b3-chips fn__none" id="spellcheckLanguages"></div>
+</div>
+<div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
-        ${window.siyuan.languages.md12}
-        <div class="b3-label__text">${window.siyuan.languages.md16}</div>
+        ${window.siyuan.languages.md29}
+        <div class="b3-label__text">${window.siyuan.languages.md30}</div>
     </div>
     <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="displayBookmarkIcon" type="checkbox"${window.siyuan.config.editor.displayBookmarkIcon ? " checked" : ""}/>
+    <div class="b3-tooltips b3-tooltips__n fn__flex-center" aria-label="${window.siyuan.config.editor.codeTabSpaces}">   
+        <input class="b3-slider fn__size200" id="codeTabSpaces" max="8" min="0" step="2" type="range" value="${window.siyuan.config.editor.codeTabSpaces}">
+    </div>
+</div>
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.outlineOutdent}
+        <div class="b3-label__text">${window.siyuan.languages.outlineOutdentTip}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="listLogicalOutdent" type="checkbox"${window.siyuan.config.editor.listLogicalOutdent ? " checked" : ""}/>
 </label>
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.listItemDotNumberClickFocus}
+        <div class="b3-label__text">${window.siyuan.languages.listItemDotNumberClickFocusTip}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="listItemDotNumberClickFocus" type="checkbox"${window.siyuan.config.editor.listItemDotNumberClickFocus ? " checked" : ""}/>
+</label>
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.pasteURLAutoConvert}
+        <div class="b3-label__text">${window.siyuan.languages.pasteURLAutoConvertTip}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="pasteURLAutoConvert" type="checkbox"${window.siyuan.config.editor.pasteURLAutoConvert ? " checked" : ""}/>
+</label>
+<div class="fn__flex b3-label config__item">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.dynamicLoadBlocks}
+        <div class="b3-label__text">${window.siyuan.languages.dynamicLoadBlocksTip}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size200" id="dynamicLoadBlocks" type="number" min="48" value="${window.siyuan.config.editor.dynamicLoadBlocks}"/>
+</div>
+</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupBlockFeatures}</b>
+<div class="config-group">
 <label class="fn__flex b3-label">
     <div class="fn__flex-1">
         ${window.siyuan.languages.md7}
@@ -69,6 +93,14 @@ export const editor = {
     </div>
     <span class="fn__space"></span>
     <input class="b3-switch fn__flex-center" id="displayNetImgMark" type="checkbox"${window.siyuan.config.editor.displayNetImgMark ? " checked" : ""}/>
+</label>
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.md12}
+        <div class="b3-label__text">${window.siyuan.languages.md16}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="displayBookmarkIcon" type="checkbox"${window.siyuan.config.editor.displayBookmarkIcon ? " checked" : ""}/>
 </label>
 <label class="fn__flex b3-label">
     <div class="fn__flex-1">
@@ -90,49 +122,6 @@ export const editor = {
       <option value="2" ${window.siyuan.config.editor.headingEmbedMode === 2 ? "selected" : ""}>${window.siyuan.languages.showHeadingOnlyBlocks}</option>
     </select>
 </div>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.outlineOutdent}
-        <div class="b3-label__text">${window.siyuan.languages.outlineOutdentTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="listLogicalOutdent" type="checkbox"${window.siyuan.config.editor.listLogicalOutdent ? " checked" : ""}/>
-</label>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.listItemDotNumberClickFocus}
-        <div class="b3-label__text">${window.siyuan.languages.listItemDotNumberClickFocusTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="listItemDotNumberClickFocus" type="checkbox"${window.siyuan.config.editor.listItemDotNumberClickFocus ? " checked" : ""}/>
-</label>
-<div class="b3-label">
-    <label class="fn__flex">
-        <div class="fn__flex-1">
-            ${window.siyuan.languages.spellcheck}
-            <div class="b3-label__text">${spellcheckTip}</div>
-        </div>
-        <span class="fn__space"></span>
-        <input class="b3-switch fn__flex-center" id="spellcheck" type="checkbox"${window.siyuan.config.editor.spellcheck ? " checked" : ""}/>
-    </label>
-    <div class="b3-chips fn__none" id="spellcheckLanguages"></div>
-</div>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.onlySearchForDoc}
-        <div class="b3-label__text">${window.siyuan.languages.onlySearchForDocTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="onlySearchForDoc" type="checkbox"${window.siyuan.config.editor.onlySearchForDoc ? " checked" : ""}/>
-</label>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.pasteURLAutoConvert}
-        <div class="b3-label__text">${window.siyuan.languages.pasteURLAutoConvertTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="pasteURLAutoConvert" type="checkbox"${window.siyuan.config.editor.pasteURLAutoConvert ? " checked" : ""}/>
-</label>
 <label class="fn__flex b3-label">
     <div class="fn__flex-1">
         ${window.siyuan.languages.md31}
@@ -157,6 +146,25 @@ export const editor = {
     <span class="fn__space"></span>
     <input class="b3-switch fn__flex-center" id="codeSyntaxHighlightLineNum" type="checkbox"${window.siyuan.config.editor.codeSyntaxHighlightLineNum ? " checked" : ""}/>
 </label>
+</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupBidirectionalLinks}</b>
+<div class="config-group">
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.onlySearchForDoc}
+        <div class="b3-label__text">${window.siyuan.languages.onlySearchForDocTip}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="onlySearchForDoc" type="checkbox"${window.siyuan.config.editor.onlySearchForDoc ? " checked" : ""}/>
+</label>
+<div class="fn__flex b3-label config__item">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.md37}
+        <div class="b3-label__text">${window.siyuan.languages.md38}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size200" id="blockRefDynamicAnchorTextMaxLen" type="number" min="1" max="5120" value="${window.siyuan.config.editor.blockRefDynamicAnchorTextMaxLen}"/>
+</div>
 <label class="fn__flex b3-label">
     <div class="fn__flex-1">
         ${window.siyuan.languages.md33}
@@ -182,30 +190,14 @@ export const editor = {
         <textarea class="b3-text-field fn__block" id="virtualBlockRefExclude">${window.siyuan.config.editor.virtualBlockRefExclude}</textarea>
     </div>
 </div>
-<div class="fn__flex b3-label config__item">
+<label class="fn__flex b3-label">
     <div class="fn__flex-1">
-        ${window.siyuan.languages.md39}
-        <div class="b3-label__text">${window.siyuan.languages.md40}</div>
+        ${window.siyuan.languages.backlinkContainChildren}
+        <div class="b3-label__text">${window.siyuan.languages.backlinkContainChildrenTip}</div>
     </div>
     <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size200" id="plantUMLServePath" value="${window.siyuan.config.editor.plantUMLServePath}"/>
-</div>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.dynamicLoadBlocks}
-        <div class="b3-label__text">${window.siyuan.languages.dynamicLoadBlocksTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size200" id="dynamicLoadBlocks" type="number" min="48" value="${window.siyuan.config.editor.dynamicLoadBlocks}"/>
-</div>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.md37}
-        <div class="b3-label__text">${window.siyuan.languages.md38}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size200" id="blockRefDynamicAnchorTextMaxLen" type="number" min="1" max="5120" value="${window.siyuan.config.editor.blockRefDynamicAnchorTextMaxLen}"/>
-</div>
+    <input class="b3-switch fn__flex-center" id="backlinkContainChildren" type="checkbox"${window.siyuan.config.editor.backlinkContainChildren ? " checked" : ""}/>
+</label>
 <div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
         ${window.siyuan.languages.backlinkExpand}
@@ -222,126 +214,8 @@ export const editor = {
     <span class="fn__space"></span>
     <input class="b3-text-field fn__flex-center fn__size200" id="backmentionExpandCount" type="number" min="-1" max="512" value="${window.siyuan.config.editor.backmentionExpandCount}"/>
 </div>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.backlinkContainChildren}
-        <div class="b3-label__text">${window.siyuan.languages.backlinkContainChildrenTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="backlinkContainChildren" type="checkbox"${window.siyuan.config.editor.backlinkContainChildren ? " checked" : ""}/>
-</label>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.generateHistory}
-        <div class="b3-label__text">${window.siyuan.languages.generateHistoryInterval}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size200" id="generateHistoryInterval" type="number" min="0" max="120" value="${window.siyuan.config.editor.generateHistoryInterval}"/>
 </div>
-<div class="b3-label">
-    <div>
-        ${window.siyuan.languages.historyRetentionDaysTip}
-    </div>
-    <div class="fn__hr"></div>
-    <div class="fn__flex config__item">
-        <div class="fn__flex-center fn__flex-1 ft__on-surface">${window.siyuan.languages.clearHistory}</div>
-        <span class="fn__space"></span>
-        <button id="clearHistory" class="b3-button b3-button--outline fn__size200 fn__flex-center">
-            <svg><use xlink:href="#iconTrashcan"></use></svg>${window.siyuan.languages.purge}
-        </button>
-    </div>
-    <div class="fn__hr"></div>
-    <div class="fn__flex config__item">
-        <div class="fn__flex-center fn__flex-1 ft__on-surface">${window.siyuan.languages.historyRetentionDays}</div>
-        <span class="fn__space"></span>
-        <input class="b3-text-field fn__flex-center fn__size200" id="historyRetentionDays" type="number" min="1" max="3650" value="${window.siyuan.config.editor.historyRetentionDays}"/>
-    </div>
-</div>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.floatWindowMode}
-        <div class="b3-label__text">${window.siyuan.languages.floatWindowModeTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <select class="b3-select fn__flex-center fn__size200" id="floatWindowMode">
-      <option value="0" ${window.siyuan.config.editor.floatWindowMode === 0 ? "selected" : ""}>${window.siyuan.languages.floatWindowMode0}</option>
-      <option value="1" ${window.siyuan.config.editor.floatWindowMode === 1 ? "selected" : ""}>${window.siyuan.languages.floatWindowMode1.replace("${hotkey}", updateHotkeyTip("⌘"))}</option>
-      <option value="2" ${window.siyuan.config.editor.floatWindowMode === 2 ? "selected" : ""}>${window.siyuan.languages.floatWindowMode2}</option>
-    </select>
-</div>
-<div class="fn__flex b3-label config__item${window.siyuan.config.editor.floatWindowMode !== 0 ? " fn__none" : ""}" id="floatWindowDelayWrap">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.floatWindowDelay}
-        <div class="b3-label__text">${window.siyuan.languages.floatWindowDelayTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <div class="fn__size200 fn__flex-center fn__flex">
-        <input class="b3-text-field fn__flex-1" id="floatWindowDelay" type="number" min="0" max="2000" value="${window.siyuan.config.editor.floatWindowDelay}"/>
-        <span class="fn__space"></span>
-        <span class="ft__on-surface fn__flex-center">ms</span>
-    </div>
-</div>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.font}
-        <div class="b3-label__text">${window.siyuan.languages.font1}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input readonly="readonly" placeholder="${window.siyuan.languages.default}" id="fontFamily" class="b3-text-field fn__flex-center fn__size200" style="font-family:'${window.siyuan.config.editor.fontFamily}',var(--b3-font-family);" value="${window.siyuan.config.editor.fontFamily}"/>
-</div>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.fontSizeScrollZoom}
-        <div class="b3-label__text">${window.siyuan.languages.fontSizeScrollZoomTip.replace("Ctrl", updateHotkeyTip("⌘"))}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="fontSizeScrollZoom" type="checkbox"${window.siyuan.config.editor.fontSizeScrollZoom ? " checked" : ""}/>
-</label>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.fontSize}
-        <div class="b3-label__text">${window.siyuan.languages.fontSizeTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <div class="b3-tooltips b3-tooltips__n fn__flex-center" aria-label="${window.siyuan.config.editor.fontSize}">   
-        <input class="b3-slider fn__size200" id="fontSize" max="72" min="9" step="1" type="range" value="${window.siyuan.config.editor.fontSize}">
-    </div>
-</div>
-<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.md29}
-        <div class="b3-label__text">${window.siyuan.languages.md30}</div>
-    </div>
-    <span class="fn__space"></span>
-    <div class="b3-tooltips b3-tooltips__n fn__flex-center" aria-label="${window.siyuan.config.editor.codeTabSpaces}">   
-        <input class="b3-slider fn__size200" id="codeTabSpaces" max="8" min="0" step="2" type="range" value="${window.siyuan.config.editor.codeTabSpaces}">
-    </div>
-</div>
-<div class="b3-label">
-    <div class="fn__block">
-        ${window.siyuan.languages.katexMacros}
-        <div class="b3-label__text">${window.siyuan.languages.katexMacrosTip}</div>
-        <div class="fn__hr"></div>
-        <textarea class="b3-text-field fn__block" id="katexMacros" spellcheck="false">${window.siyuan.config.editor.katexMacros}</textarea>
-    </div>
-</div>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.allowSVGScript}
-        <div class="b3-label__text">${window.siyuan.languages.allowSVGScriptTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="allowSVGScript" type="checkbox"${window.siyuan.config.editor.allowSVGScript ? " checked" : ""}/>
-</label>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.allowHTMLBLockScript}
-        <div class="b3-label__text">${window.siyuan.languages.allowHTMLBLockScriptTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="allowHTMLBLockScript" type="checkbox"${window.siyuan.config.editor.allowHTMLBLockScript ? " checked" : ""}/>
-</label>
-<b class="config-group__title">${window.siyuan.languages.config}</b>
+<b class="config-group__title">${window.siyuan.languages.configGroupMarkdownInlineSyntax}</b>
 <div class="config-group">
     <label class="fn__flex b3-label">
         <div class="fn__flex-1">
@@ -407,6 +281,41 @@ export const editor = {
         <span class="fn__space"></span>
         <input class="b3-switch fn__flex-center" id="editorMarkdownInlineMark" type="checkbox"${window.siyuan.config.editor.markdown.inlineMark ? " checked" : ""}/>
     </label>
+</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupAdvanced}</b>
+<div class="config-group">
+<div class="fn__flex b3-label config__item">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.md39}
+        <div class="b3-label__text">${window.siyuan.languages.md40}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size200" id="plantUMLServePath" value="${window.siyuan.config.editor.plantUMLServePath}"/>
+</div>
+<div class="b3-label">
+    <div class="fn__block">
+        ${window.siyuan.languages.katexMacros}
+        <div class="b3-label__text">${window.siyuan.languages.katexMacrosTip}</div>
+        <div class="fn__hr"></div>
+        <textarea class="b3-text-field fn__block" id="katexMacros" spellcheck="false">${window.siyuan.config.editor.katexMacros}</textarea>
+    </div>
+</div>
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.allowSVGScript}
+        <div class="b3-label__text">${window.siyuan.languages.allowSVGScriptTip}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="allowSVGScript" type="checkbox"${window.siyuan.config.editor.allowSVGScript ? " checked" : ""}/>
+</label>
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.allowHTMLBLockScript}
+        <div class="b3-label__text">${window.siyuan.languages.allowHTMLBLockScriptTip}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="allowHTMLBLockScript" type="checkbox"${window.siyuan.config.editor.allowHTMLBLockScript ? " checked" : ""}/>
+</label>
 </div>`;
     },
     bindEvent: async () => {
@@ -436,55 +345,6 @@ export const editor = {
         }
         /// #endif
 
-        const fontFamilyElement = editor.element.querySelector("#fontFamily") as HTMLSelectElement;
-        fontFamilyElement.dataset.weight = String(window.siyuan.config.editor.fontWeight || 0);
-        fontFamilyElement.addEventListener("click", () => {
-            fetchPost("/api/system/getSysFonts", {}, (response) => {
-                const fontMenu = new Menu();
-                fontMenu.addItem({
-                    iconHTML: "",
-                    checked: window.siyuan.config.editor.fontFamily === "",
-                    label: `<div style='var(--b3-font-family);'>${window.siyuan.languages.default}</div>`,
-                    click: () => {
-                        if ("" === window.siyuan.config.editor.fontFamily) {
-                            return;
-                        }
-                        fontFamilyElement.value = "";
-                        fontFamilyElement.style.fontFamily = "";
-                        fontFamilyElement.dataset.weight = "0";
-                        setEditor();
-                    }
-                });
-                response.data.forEach((item: {family: string; weight: number; displayName: string}) => {
-                    fontMenu.addItem({
-                        iconHTML: "",
-                        checked: window.siyuan.config.editor.fontFamily === item.family && window.siyuan.config.editor.fontWeight === item.weight,
-                        label: `<div style='font-family:"${item.family}",var(--b3-font-family);'>${item.displayName}</div>`,
-                        click: () => {
-                            if (item.family === window.siyuan.config.editor.fontFamily && item.weight === window.siyuan.config.editor.fontWeight) {
-                                return;
-                            }
-                            fontFamilyElement.value = item.family;
-                            fontFamilyElement.style.fontFamily = item.family + ",var(--b3-font-family)";
-                            fontFamilyElement.dataset.weight = String(item.weight);
-                            setEditor();
-                        }
-                    });
-                });
-                const rect = fontFamilyElement.getBoundingClientRect();
-                fontMenu.open({
-                    x: rect.left,
-                    y: rect.bottom
-                });
-            });
-        });
-
-        editor.element.querySelector("#clearHistory").addEventListener("click", () => {
-            confirmDialog(window.siyuan.languages.clearHistory, window.siyuan.languages.confirmClearHistory, () => {
-                fetchPost("/api/history/clearWorkspaceHistory", {});
-            });
-        });
-
         const setEditor = () => {
             let dynamicLoadBlocks = parseInt((editor.element.querySelector("#dynamicLoadBlocks") as HTMLInputElement).value);
             if (48 > dynamicLoadBlocks) {
@@ -492,23 +352,8 @@ export const editor = {
                 (editor.element.querySelector("#dynamicLoadBlocks") as HTMLInputElement).value = "48";
             }
 
-            const floatWindowDelayElement = editor.element.querySelector("#floatWindowDelay") as HTMLInputElement;
-            const floatWindowMode = parseInt((editor.element.querySelector("#floatWindowMode") as HTMLSelectElement).value);
-            editor.element.querySelector("#floatWindowDelayWrap").classList.toggle("fn__none", floatWindowMode !== 0);
-
-            let floatWindowDelay = parseInt(floatWindowDelayElement.value);
-            if (isNaN(floatWindowDelay)) {
-                floatWindowDelay = 620;
-            } else if (floatWindowDelay < 0) {
-                floatWindowDelay = 0;
-            } else if (floatWindowDelay > 2000) {
-                floatWindowDelay = 2000;
-            }
-            floatWindowDelayElement.value = floatWindowDelay.toString();
-
             fetchPost("/api/setting/setEditor", {
-                fullWidth: (editor.element.querySelector("#fullWidth") as HTMLInputElement).checked,
-                markdown: {
+                                markdown: {
                     inlineAsterisk: (editor.element.querySelector("#editorMarkdownInlineAsterisk") as HTMLInputElement).checked,
                     inlineUnderscore: (editor.element.querySelector("#editorMarkdownInlineUnderscore") as HTMLInputElement).checked,
                     inlineSup: (editor.element.querySelector("#editorMarkdownInlineSup") as HTMLInputElement).checked,
@@ -520,9 +365,7 @@ export const editor = {
                 },
                 allowSVGScript: (editor.element.querySelector("#allowSVGScript") as HTMLInputElement).checked,
                 allowHTMLBLockScript: (editor.element.querySelector("#allowHTMLBLockScript") as HTMLInputElement).checked,
-                justify: (editor.element.querySelector("#justify") as HTMLInputElement).checked,
-                rtl: (editor.element.querySelector("#rtl") as HTMLInputElement).checked,
-                readOnly: (editor.element.querySelector("#readOnly") as HTMLInputElement).checked,
+                                                readOnly: (editor.element.querySelector("#readOnly") as HTMLInputElement).checked,
                 displayBookmarkIcon: (editor.element.querySelector("#displayBookmarkIcon") as HTMLInputElement).checked,
                 displayNetImgMark: (editor.element.querySelector("#displayNetImgMark") as HTMLInputElement).checked,
                 codeSyntaxHighlightLineNum: (editor.element.querySelector("#codeSyntaxHighlightLineNum") as HTMLInputElement).checked,
@@ -539,9 +382,7 @@ export const editor = {
                 /// #endif
                 onlySearchForDoc: (editor.element.querySelector("#onlySearchForDoc") as HTMLInputElement).checked,
                 pasteURLAutoConvert: (editor.element.querySelector("#pasteURLAutoConvert") as HTMLInputElement).checked,
-                floatWindowMode,
-                floatWindowDelay,
-                plantUMLServePath: (editor.element.querySelector("#plantUMLServePath") as HTMLInputElement).value,
+                                                plantUMLServePath: (editor.element.querySelector("#plantUMLServePath") as HTMLInputElement).value,
                 katexMacros: (editor.element.querySelector("#katexMacros") as HTMLTextAreaElement).value,
                 codeLineWrap: (editor.element.querySelector("#codeLineWrap") as HTMLInputElement).checked,
                 virtualBlockRef: (editor.element.querySelector("#virtualBlockRef") as HTMLInputElement).checked,
@@ -554,12 +395,6 @@ export const editor = {
                 dynamicLoadBlocks: dynamicLoadBlocks,
                 codeLigatures: (editor.element.querySelector("#codeLigatures") as HTMLInputElement).checked,
                 codeTabSpaces: parseInt((editor.element.querySelector("#codeTabSpaces") as HTMLInputElement).value),
-                fontSize: parseInt((editor.element.querySelector("#fontSize") as HTMLInputElement).value),
-                fontSizeScrollZoom: (editor.element.querySelector("#fontSizeScrollZoom") as HTMLInputElement).checked,
-                generateHistoryInterval: parseInt((editor.element.querySelector("#generateHistoryInterval") as HTMLInputElement).value),
-                historyRetentionDays: parseInt((editor.element.querySelector("#historyRetentionDays") as HTMLInputElement).value),
-                fontFamily: fontFamilyElement.value,
-                fontWeight: parseInt(fontFamilyElement.dataset.weight || "0"),
                 emoji: window.siyuan.config.editor.emoji
             }, response => {
                 editor._onSetEditor(response.data);

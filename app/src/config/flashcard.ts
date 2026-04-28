@@ -3,7 +3,9 @@ import {fetchPost} from "../util/fetch";
 export const flashcard = {
     element: undefined as Element,
     genHTML: () => {
-        let responsiveHTML = `<label class="fn__flex b3-label">
+        let responsiveHTML = `<b class="config-group__title">${window.siyuan.languages.configGroupCardCreation}</b>
+<div class="config-group">
+<label class="fn__flex b3-label">
     <div class="fn__flex-1">
         ${window.siyuan.languages.flashcardMark}
         <div class="b3-label__text">${window.siyuan.languages.flashcardMarkTip}</div>
@@ -35,14 +37,9 @@ export const flashcard = {
     <span class="fn__space"></span>
     <input class="b3-switch fn__flex-center" id="superBlock" type="checkbox"${window.siyuan.config.flashcard.superBlock ? " checked" : ""}/>
 </label>
-<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.flashcardDeck}
-        <div class="b3-label__text">${window.siyuan.languages.flashcardDeckTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="deck" type="checkbox"${window.siyuan.config.flashcard.deck ? " checked" : ""}/>
-</label>
+</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupReview}</b>
+<div class="config-group">
 <div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
         ${window.siyuan.languages.reviewMode}
@@ -128,6 +125,18 @@ export const flashcard = {
     </div>
 </div>`;
         /// #endif
+        responsiveHTML = `${responsiveHTML}</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupOthers}</b>
+<div class="config-group">
+<label class="fn__flex b3-label">
+    <div class="fn__flex-1">
+        ${window.siyuan.languages.flashcardDeck}
+        <div class="b3-label__text">${window.siyuan.languages.flashcardDeckTip}</div>
+    </div>
+    <span class="fn__space"></span>
+    <input class="b3-switch fn__flex-center" id="deck" type="checkbox"${window.siyuan.config.flashcard.deck ? " checked" : ""}/>
+</label>
+</div>`;
         return responsiveHTML;
     },
     bindEvent: () => {

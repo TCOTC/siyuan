@@ -21,54 +21,11 @@ export const bazaar = {
     element: undefined as Element,
     genHTML() {
         if (!window.siyuan.config.bazaar.trust) {
-            return `<div class="fn__flex-column">
-<div class="fn__flex-1"></div>
-<div class="b3-label">
-    <div>${window.siyuan.languages.bazaarTrust}</div>
-    <div class="fn__hr--b"></div>
-    <div>${window.siyuan.languages.bazaarTrust3}</div>
-</div>
-<div class="fn__flex b3-label">
-    <svg class="b3-label__icon"><use xlink:href="#iconEye"></use></svg>
-    <div>
-        ${window.siyuan.languages.bazaarTrustCodeReview}
-        <div class="b3-label__text">${window.siyuan.languages.bazaarTrustCodeReviewTip}</div>
-    </div>
-</div>
-<div class="fn__flex b3-label">
-    <svg class="b3-label__icon"><use xlink:href="#iconGithub"></use></svg>
-    <div>
-        ${window.siyuan.languages.bazaarTrustOpenSource}
-        <div class="b3-label__text">${window.siyuan.languages.bazaarTrustOpenSourceTip}</div>
-    </div>
-</div>
-<div class="fn__flex b3-label">
-    <svg class="b3-label__icon"><use xlink:href="#iconUsers"></use></svg>
-    <div>
-        ${window.siyuan.languages.bazaarCommunityReview}
-        <div class="b3-label__text">${window.siyuan.languages.bazaarPeerReviewTip}</div>
-    </div>
-</div>
-<div class="fn__flex b3-label">
-    <svg class="b3-label__icon"><use xlink:href="#iconInfo"></use></svg>
-    <div>
-        ${window.siyuan.languages.bazaarUserReport}
-        <div class="b3-label__text">${window.siyuan.languages.bazaarUserReportTip}</div>
-    </div>
-</div>
-<div class="b3-label b3-label--noborder">
-    <div>${window.siyuan.languages.bazaarTrust1}</div>
-    <div class="fn__hr--b"></div>
-    <diiv>${window.siyuan.languages.bazaarTrust2}</diiv>
-</div>
-<div class="ft__center b3-label b3-label--noborder">
-    <button class="b3-button fn__size200">${window.siyuan.languages.trust}</button>
-</div>
-<div class="fn__flex-1"></div>
-</div>`;
+            return this.genTrustHTML();
         }
         const localSort = window.siyuan.storage[Constants.LOCAL_BAZAAR];
-        const loadingHTML = `<div style="height: ${bazaar.element.clientHeight - 80}px;display: flex;align-items: center;justify-content: center;"><img src="/stage/loading-pure.svg"></div>`;
+        console.log("bazaar.element", bazaar.element, bazaar.element.clientHeight);
+        const loadingHTML = `<div style="height: ${bazaar.element.clientHeight - 160}px;display: flex;align-items: center;justify-content: center;"><img src="/stage/loading-pure.svg"></div>`;
         return `<div class="fn__flex-column" style="height: 100%">
 <div class="layout-tab-bar fn__flex">
     <div data-type="downloaded" class="item item--full item--focus"><span class="fn__flex-1"></span><span class="item__text">${window.siyuan.languages.downloaded}</span><span class="fn__flex-1"></span></div>
@@ -228,6 +185,53 @@ export const bazaar = {
     </div>
 </div>
 <div id="configBazaarReadme" class="config-bazaar__readme"></div>
+</div>`;
+    },
+    _genTrustHTML() {
+        return `<div class="fn__flex-column">
+<div class="fn__flex-1"></div>
+<div class="b3-label">
+    <div>${window.siyuan.languages.bazaarTrust}</div>
+    <div class="fn__hr--b"></div>
+    <div>${window.siyuan.languages.bazaarTrust3}</div>
+</div>
+<div class="fn__flex b3-label">
+    <svg class="b3-label__icon"><use xlink:href="#iconEye"></use></svg>
+    <div>
+        ${window.siyuan.languages.bazaarTrustCodeReview}
+        <div class="b3-label__text">${window.siyuan.languages.bazaarTrustCodeReviewTip}</div>
+    </div>
+</div>
+<div class="fn__flex b3-label">
+    <svg class="b3-label__icon"><use xlink:href="#iconGithub"></use></svg>
+    <div>
+        ${window.siyuan.languages.bazaarTrustOpenSource}
+        <div class="b3-label__text">${window.siyuan.languages.bazaarTrustOpenSourceTip}</div>
+    </div>
+</div>
+<div class="fn__flex b3-label">
+    <svg class="b3-label__icon"><use xlink:href="#iconUsers"></use></svg>
+    <div>
+        ${window.siyuan.languages.bazaarCommunityReview}
+        <div class="b3-label__text">${window.siyuan.languages.bazaarPeerReviewTip}</div>
+    </div>
+</div>
+<div class="fn__flex b3-label">
+    <svg class="b3-label__icon"><use xlink:href="#iconInfo"></use></svg>
+    <div>
+        ${window.siyuan.languages.bazaarUserReport}
+        <div class="b3-label__text">${window.siyuan.languages.bazaarUserReportTip}</div>
+    </div>
+</div>
+<div class="b3-label b3-label--noborder">
+    <div>${window.siyuan.languages.bazaarTrust1}</div>
+    <div class="fn__hr--b"></div>
+    <diiv>${window.siyuan.languages.bazaarTrust2}</diiv>
+</div>
+<div class="ft__center b3-label b3-label--noborder">
+    <button class="b3-button fn__size200">${window.siyuan.languages.trust}</button>
+</div>
+<div class="fn__flex-1"></div>
 </div>`;
     },
     _genFundingHTML(funding: string): string {
