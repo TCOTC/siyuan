@@ -1,30 +1,24 @@
 import {popSearch} from "./search";
-import {initAppearance} from "../settings/appearance";
-import {initConfigAssets} from "../settings/assets";
 import {closePanel} from "../util/closePanel";
 import {mountHelp, newDailyNote, newNotebook} from "../../util/mount";
-import {repos} from "../../config/repos";
 import {publish} from "../../config/publish";
 import {exitSiYuan, lockScreen, processSync} from "../../dialog/processSystem";
 import {openHistory} from "../../history/history";
 import {syncGuide} from "../../sync/syncGuide";
 import {openCard} from "../../card/openCard";
 import {activeBlur} from "../util/keyboardToolbar";
-import {initAI} from "../settings/ai";
-import {initRiffCard} from "../settings/riffCard";
-import {login, showAccountInfo} from "../settings/account";
+import {login, showAccountInfo} from "../../config/mobileCloudAuth";
 import {openModel} from "./model";
-import {initAbout} from "../settings/about";
 import {getRecentDocs} from "./getRecentDocs";
-import {initEditor} from "../settings/editor";
 import {App} from "../../index";
-import {isDisabledFeature, isHuawei, isInMobileApp, isIPhone} from "../../protyle/util/compatibility";
+import {isInMobileApp, isIPhone} from "../../protyle/util/compatibility";
 import {newFile} from "../../util/newFile";
 import {afterLoadPlugin} from "../../plugin/loader";
 import {commandPanel} from "../../boot/globalEvent/command/panel";
 import {openTopBarMenu} from "../../plugin/openTopBarMenu";
-import {initFileTree} from "../settings/fileTree";
-import {initExport} from "../settings/export";
+import {CONFIG_TAB_DEFS, getConfigTabTitle, isConfigTabMenuHidden} from "../../config/tabs";
+import type {TConfigTab} from "../../config/types";
+import {openMobileConfigTab} from "./openConfigTab";
 import {getCurrentEditor} from "../editor";
 
 export const popMenu = () => {
@@ -49,14 +43,11 @@ export const initRightMenu = (app: App) => {
 </div>`;
     }
 
-    let aiHTML = `<div class="b3-menu__item${window.siyuan.config.readonly ? " fn__none" : ""}" id="menuAI">
-        <svg class="b3-menu__icon"><use xlink:href="#iconSparkles"></use></svg><span class="b3-menu__label">AI</span>
-    </div>`;
-    if (isHuawei() || isDisabledFeature("ai")) {
-        // Access to the OpenAI API is no longer supported on Huawei devices https://github.com/siyuan-note/siyuan/issues/8192
-        // Apps in Chinese mainland app stores no longer provide AI access settings https://github.com/siyuan-note/siyuan/issues/13051
-        aiHTML = "";
-    }
+    const configSettingsMenuHTML = CONFIG_TAB_DEFS.filter(def => !isConfigTabMenuHidden(def.id)).map(def =>
+        `<div class="b3-menu__item" data-menu-config-tab="${def.id}"${def.id === "about" ? " id=\"menuAbout\"" : ""}>
+        <svg class="b3-menu__icon"><use xlink:href="#${def.icon}"></use></svg>
+        <span class="b3-menu__label">${getConfigTabTitle(def.id)}</span>
+    </div>`).join("");
 
     menuElement.innerHTML = `<div class="b3-menu__title">
     <svg class="b3-menu__icon"><use xlink:href="#iconLeft"></use></svg>
@@ -100,33 +91,9 @@ export const initRightMenu = (app: App) => {
         <svg class="b3-menu__icon"><use xlink:href="#iconQuit"></use></svg><span class="b3-menu__label">${window.siyuan.languages.safeQuit}</span>
     </div>
     <div class="b3-menu__separator"></div>
-    <div class="b3-menu__item${window.siyuan.config.readonly ? " fn__none" : ""}" id="menuEditor">
-        <svg class="b3-menu__icon"><use xlink:href="#iconEdit"></use></svg><span class="b3-menu__label">${window.siyuan.languages.editor}</span>
-    </div>
-    <div class="b3-menu__item${window.siyuan.config.readonly ? " fn__none" : ""}" id="menuFileTree">
-        <svg class="b3-menu__icon"><use xlink:href="#iconFiles"></use></svg><span class="b3-menu__label">${window.siyuan.languages.fileTree}</span>
-    </div>
-    <div class="b3-menu__item${window.siyuan.config.readonly ? " fn__none" : ""}" id="menuRiffCard">
-        <svg class="b3-menu__icon"><use xlink:href="#iconRiffCard"></use></svg><span class="b3-menu__label">${window.siyuan.languages.riffCard}</span>
-    </div>
-    ${aiHTML}
-    <div class="b3-menu__item${window.siyuan.config.readonly ? " fn__none" : ""}" id="menuAssets">
-        <svg class="b3-menu__icon"><use xlink:href="#iconImage"></use></svg><span class="b3-menu__label">${window.siyuan.languages.assets}</span>
-    </div>
-    <div class="b3-menu__item${window.siyuan.config.readonly ? " fn__none" : ""}" id="menuExport">
-        <svg class="b3-menu__icon"><use xlink:href="#iconUpload"></use></svg><span class="b3-menu__label">${window.siyuan.languages.export}</span>
-    </div>
-    <div class="b3-menu__item${window.siyuan.config.readonly ? " fn__none" : ""}" id="menuAppearance">
-        <svg class="b3-menu__icon"><use xlink:href="#iconTheme"></use></svg><span class="b3-menu__label">${window.siyuan.languages.appearance}</span>
-    </div>
-    <div id="menuSync" class="b3-menu__item${window.siyuan.config.readonly ? " fn__none" : ""}">
-        <svg class="b3-menu__icon"><use xlink:href="#iconCloud"></use></svg><span class="b3-menu__label">${window.siyuan.languages.cloud}</span>
-    </div>
+    ${configSettingsMenuHTML}
     <div class="b3-menu__item${window.siyuan.config.readonly ? " fn__none" : ""}" id="menuPublish">
         <svg class="b3-menu__icon"><use xlink:href="#iconPublish"></use></svg><span class="b3-menu__label">${window.siyuan.languages.publish}</span>
-    </div>
-    <div class="b3-menu__item${window.siyuan.config.readonly ? " fn__none" : ""}" id="menuAbout">
-        <svg class="b3-menu__icon"><use xlink:href="#iconInfo"></use></svg><span class="b3-menu__label">${window.siyuan.languages.about}</span>
     </div>
     <div class="b3-menu__item" id="menuPlugin">
         <svg class="b3-menu__icon"><use xlink:href="#iconPlugin"></use></svg><span class="b3-menu__label">${window.siyuan.languages.plugin}</span>
@@ -153,9 +120,17 @@ export const initRightMenu = (app: App) => {
                 event.preventDefault();
                 event.stopPropagation();
                 break;
-            } else if (target.id === "menuCommand") {
-                closePanel();
-                commandPanel(app);
+            } else if (target.id === "menuAccount") {
+                event.preventDefault();
+                event.stopPropagation();
+                if (document.querySelector("#menuAccount img")) {
+                    showAccountInfo();
+                    return;
+                }
+                login();
+                break;
+            } else if (target.id === "menuRecent") {
+                getRecentDocs(app);
                 event.preventDefault();
                 event.stopPropagation();
                 break;
@@ -164,58 +139,29 @@ export const initRightMenu = (app: App) => {
                 event.preventDefault();
                 event.stopPropagation();
                 break;
-            } else if (target.id === "menuRecent") {
-                getRecentDocs(app);
+            } else if (target.id === "menuCommand") {
+                closePanel();
+                commandPanel(app);
                 event.preventDefault();
                 event.stopPropagation();
                 break;
-            } else if (target.id === "menuAppearance") {
-                initAppearance();
+            } else if (target.id === "menuSyncNow") {
+                syncGuide();
                 event.preventDefault();
                 event.stopPropagation();
                 break;
-            } else if (target.id === "menuAssets") {
-                initConfigAssets(app);
+            } else if (target.id === "menuNewDoc") {
+                newFile({
+                    app,
+                    useSavePath: true
+                });
+                closePanel();
                 event.preventDefault();
                 event.stopPropagation();
                 break;
-            } else if (target.id === "menuExport") {
-                initExport();
-                event.preventDefault();
-                event.stopPropagation();
-                break;
-            } else if (target.id === "menuAI") {
-                initAI();
-                event.preventDefault();
-                event.stopPropagation();
-                break;
-            } else if (target.id === "menuRiffCard") {
-                initRiffCard();
-                event.preventDefault();
-                event.stopPropagation();
-                break;
-            } else if (target.id === "menuEditor") {
-                initEditor();
-                event.preventDefault();
-                event.stopPropagation();
-                break;
-            } else if (target.id === "menuFileTree") {
-                initFileTree();
-                event.preventDefault();
-                event.stopPropagation();
-                break;
-            } else if (target.id === "menuSafeQuit") {
-                event.preventDefault();
-                event.stopPropagation();
-                exitSiYuan();
-                break;
-            } else if (target.id === "menuAbout") {
-                initAbout();
-                event.preventDefault();
-                event.stopPropagation();
-                break;
-            } else if (target.id === "menuPlugin") {
-                openTopBarMenu(app);
+            } else if (target.id === "menuNewNotebook") {
+                newNotebook();
+                closePanel();
                 event.preventDefault();
                 event.stopPropagation();
                 break;
@@ -231,41 +177,24 @@ export const initRightMenu = (app: App) => {
                 event.preventDefault();
                 event.stopPropagation();
                 break;
-            } else if (target.id === "menuNewNotebook") {
-                newNotebook();
-                closePanel();
-                event.preventDefault();
-                event.stopPropagation();
-                break;
-            } else if (target.id === "menuNewDoc") {
-                newFile({
-                    app,
-                    useSavePath: true
-                });
-                closePanel();
-                event.preventDefault();
-                event.stopPropagation();
-                break;
-            } else if (target.id === "menuHelp") {
-                mountHelp();
-                event.preventDefault();
-                event.stopPropagation();
-                break;
             } else if (target.id === "menuLock") {
                 lockScreen(app);
                 event.preventDefault();
                 event.stopPropagation();
                 break;
-            } else if (target.id === "menuSync") {
-                openModel({
-                    title: window.siyuan.languages.cloud,
-                    icon: "iconCloud",
-                    html: repos.genHTML(),
-                    bindEvent(modelMainElement: HTMLElement) {
-                        repos.element = modelMainElement;
-                        repos.bindEvent();
-                    }
-                });
+            } else if (target.id === "menuHistory") {
+                openHistory(app);
+                event.preventDefault();
+                event.stopPropagation();
+                break;
+            } else if (target.id === "menuSafeQuit") {
+                event.preventDefault();
+                event.stopPropagation();
+                exitSiYuan();
+                break;
+            } else if (target.closest("[data-menu-config-tab]")) {
+                const configTabEl = target.closest("[data-menu-config-tab]");
+                openMobileConfigTab(configTabEl.getAttribute("data-menu-config-tab") as TConfigTab, app);
                 event.preventDefault();
                 event.stopPropagation();
                 break;
@@ -282,24 +211,15 @@ export const initRightMenu = (app: App) => {
                 event.preventDefault();
                 event.stopPropagation();
                 break;
-            } else if (target.id === "menuSyncNow") {
-                syncGuide();
+            } else if (target.id === "menuPlugin") {
+                openTopBarMenu(app);
                 event.preventDefault();
                 event.stopPropagation();
                 break;
-            } else if (target.id === "menuHistory") {
-                openHistory(app);
+            } else if (target.id === "menuHelp") {
+                mountHelp();
                 event.preventDefault();
                 event.stopPropagation();
-                break;
-            } else if (target.id === "menuAccount") {
-                event.preventDefault();
-                event.stopPropagation();
-                if (document.querySelector("#menuAccount img")) {
-                    showAccountInfo();
-                    return;
-                }
-                login();
                 break;
             }
             target = target.parentElement;

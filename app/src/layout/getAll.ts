@@ -1,3 +1,4 @@
+import {Protyle} from "../protyle";
 /// #if !MOBILE
 import {Layout} from "./index";
 import {Tab} from "./Tab";
@@ -11,7 +12,6 @@ import {Files} from "./dock/Files";
 import {Bookmark} from "./dock/Bookmark";
 import {Tag} from "./dock/Tag";
 import {Custom} from "./dock/Custom";
-import {Protyle} from "../protyle";
 import {Wnd} from "./Wnd";
 /// #endif
 
@@ -24,7 +24,8 @@ export const getAllEditor = () => {
     if (window.siyuan.mobile.popEditor) {
         editors.push(window.siyuan.mobile.popEditor);
     }
-    /// #else
+    /// #endif
+    /// #if !MOBILE
     const models = getAllModels();
     models.editor.forEach(item => {
         editors.push(item.editor);

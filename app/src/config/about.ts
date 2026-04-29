@@ -1,16 +1,7 @@
 import {Constants} from "../constants";
 import {isBrowser} from "../util/functions";
 import {fetchPost} from "../util/fetch";
-import {setAccessAuthCode} from "./util/about";
-import {exportLayout} from "../layout/util";
-import {exitSiYuan, processSync} from "../dialog/processSystem";
-import {isInMobileApp, isIPad, isMac, openByMobile, saveExportFile, writeText} from "../protyle/util/compatibility";
-import {showMessage} from "../dialog/message";
-import {Dialog} from "../dialog";
-import {confirmDialog} from "../dialog/confirmDialog";
-import {setKey} from "../sync/syncGuide";
-import {useShell} from "../util/pathName";
-import {hasClosestByClassName} from "../protyle/util/hasClosest";
+import {saveExportFile} from "../protyle/util/compatibility";
 
 /** 仅负责「关于」 tab 的 HTML 与事件；访问授权见 access，数据仓库与同步见 sync，通用与应用见 appConfig */
 export const about = {

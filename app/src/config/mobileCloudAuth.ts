@@ -1,16 +1,16 @@
-import {openModel} from "../menu/model";
-import {isInIOS} from "../../protyle/util/compatibility";
-import {fetchPost} from "../../util/fetch";
-import {closePanel} from "../util/closePanel";
-import {processSync} from "../../dialog/processSystem";
-import {confirmDialog} from "../../dialog/confirmDialog";
-import {showMessage} from "../../dialog/message";
+import {openModel} from "../mobile/menu/model";
+import {isInIOS} from "../protyle/util/compatibility";
+import {fetchPost} from "../util/fetch";
+import {closePanel} from "../mobile/util/closePanel";
+import {processSync} from "../dialog/processSystem";
+import {confirmDialog} from "../dialog/confirmDialog";
+import {showMessage} from "../dialog/message";
 import md5 from "blueimp-md5";
-import {getCloudURL, getIndexURL} from "../../config/util/about";
-import {Dialog} from "../../dialog";
-import {hideElements} from "../../protyle/ui/hideElements";
-import {Constants} from "../../constants";
-import {iOSPurchase} from "../../util/iOSPurchase";
+import {getCloudURL, getIndexURL} from "./util/about";
+import {Dialog} from "../dialog";
+import {hideElements} from "../protyle/ui/hideElements";
+import {Constants} from "../constants";
+import {iOSPurchase} from "../util/iOSPurchase";
 
 export const showAccountInfo = () => {
     const isIOS = isInIOS();

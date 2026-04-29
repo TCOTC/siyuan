@@ -1756,7 +1756,6 @@ export const sendGlobalShortcut = (app: App) => {
     /// #endif
 };
 
-
 export const sendUnregisterGlobalShortcut = (app: App) => {
     /// #if !BROWSER
     ipcRenderer.send(Constants.SIYUAN_CMD, {

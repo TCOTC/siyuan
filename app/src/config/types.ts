@@ -1,0 +1,15 @@
+export type TConfigTab =
+    | "editor"
+    | "file"
+    | "appearance"
+    | "bazaar"
+    | "flashcard"
+    | "ai"
+    | "assets"
+    | "export"
+    | "search"
+    | "keymap"
+    | "sync"
+    | "access"
+    | "app"
+    | "about";

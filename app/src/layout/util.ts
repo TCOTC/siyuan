@@ -8,7 +8,12 @@ import {Files} from "./dock/Files";
 import {Outline} from "./dock/Outline";
 import {Bookmark} from "./dock/Bookmark";
 import {Tag} from "./dock/Tag";
+/// #if !MOBILE
 import {getAllModels, getAllTabs, getAllWnds} from "./getAll";
+/// #endif
+/// #if MOBILE
+import {getAllEditor} from "./getAll";
+/// #endif
 import {Asset} from "../asset";
 import {Search} from "../search";
 import {Dock} from "./dock";
@@ -66,15 +71,21 @@ export const setPanelFocus = (element: Element, isSaveLayout = true) => {
     }
 };
 
+/// #if !MOBILE
 export const getWndByLayout: (layout: Layout) => Wnd = (layout: Layout) => {
     const wndsTemp: Wnd[] = [];
     getAllWnds(layout, wndsTemp);
-    return wndsTemp.sort((a, b) => {
+    const sorted = wndsTemp.sort((a, b) => {
         if (a.element.querySelector(".fn__flex .item--focus")?.getAttribute("data-activetime") > b.element.querySelector(".fn__flex .item--focus")?.getAttribute("data-activetime")) {
             return -1;
         }
-    })[0];
+    });
+    return (sorted[0] ?? null) as unknown as Wnd;
 };
+/// #endif
+/// #if MOBILE
+export const getWndByLayout: (layout: Layout) => Wnd = () => null as unknown as Wnd;
+/// #endif
 
 const dockToJSON = (dock: Dock) => {
     const json = [];
@@ -175,9 +186,9 @@ export const exportLayout = async (options: {
     cb: () => void,
     errorExit: boolean
 }) => {
-    const editors = getAllModels().editor;
+    const editors = getAllEditor();
     for (let i = 0; i < editors.length; i++) {
-        await saveScroll(editors[i].editor.protyle);
+        await saveScroll(editors[i].protyle);
     }
     if (isWindow()) {
         const layoutJSON: any = {
@@ -190,6 +201,7 @@ export const exportLayout = async (options: {
     }
     const useElement = document.querySelector("#barDock use");
     if (!useElement) {
+        options.cb();
         return;
     }
     const layoutJSON: any = {

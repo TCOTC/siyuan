@@ -1,4 +1,4 @@
-import {getAllModels} from "../layout/getAll";
+import {getAllEditor} from "../layout/getAll";
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
 /// #endif
@@ -430,20 +430,21 @@ export const editor = {
             setReadOnly(editorData.readOnly);
         }
         window.siyuan.config.editor = editorData;
-        getAllModels().editor.forEach((item) => {
-            reloadProtyle(item.editor.protyle, false);
-            let isFullWidth = item.editor.protyle.wysiwyg.element.getAttribute(Constants.CUSTOM_SY_FULLWIDTH);
+        getAllEditor().forEach((editor) => {
+            const protyle = editor.protyle;
+            reloadProtyle(protyle, false);
+            let isFullWidth = protyle.wysiwyg.element.getAttribute(Constants.CUSTOM_SY_FULLWIDTH);
             if (!isFullWidth) {
                 isFullWidth = window.siyuan.config.editor.fullWidth ? "true" : "false";
             }
-            if (isFullWidth === "true" && item.editor.protyle.contentElement.getAttribute("data-fullwidth") === "true") {
+            if (isFullWidth === "true" && protyle.contentElement.getAttribute("data-fullwidth") === "true") {
                 return;
             }
-            resize(item.editor.protyle);
+            resize(protyle);
             if (isFullWidth === "true") {
-                item.editor.protyle.contentElement.setAttribute("data-fullwidth", "true");
+                protyle.contentElement.setAttribute("data-fullwidth", "true");
             } else {
-                item.editor.protyle.contentElement.removeAttribute("data-fullwidth");
+                protyle.contentElement.removeAttribute("data-fullwidth");
             }
         });
 
