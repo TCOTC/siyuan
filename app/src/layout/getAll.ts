@@ -60,7 +60,6 @@ export const getAllEditor = () => {
     return editors;
 };
 
-/// #if !MOBILE
 export const getAllModels = () => {
     const models: IModels = {
         editor: [],
@@ -75,6 +74,7 @@ export const getAllModels = () => {
         tag: [],
         custom: [],
     };
+    /// #if !MOBILE
     const getTabs = (layout: Layout) => {
         for (let i = 0; i < layout.children.length; i++) {
             const item = layout.children[i];
@@ -110,10 +110,12 @@ export const getAllModels = () => {
     if (window.siyuan.layout.layout) {
         getTabs(window.siyuan.layout.layout);
     }
+    /// #endif
     return models;
 };
 
 export const getAllWnds = (layout: Layout, wnds: Wnd[]) => {
+    /// #if !MOBILE
     for (let i = 0; i < layout.children.length; i++) {
         const item = layout.children[i];
         if (item instanceof Wnd) {
@@ -122,10 +124,12 @@ export const getAllWnds = (layout: Layout, wnds: Wnd[]) => {
             getAllWnds(item, wnds);
         }
     }
+    /// #endif
 };
 
 export const getAllTabs = (type?: TTab | string) => {
     const tabs: Tab[] = [];
+    /// #if !MOBILE
     const getTabs = (layout: Layout) => {
         for (let i = 0; i < layout.children.length; i++) {
             const item = layout.children[i];
@@ -177,11 +181,13 @@ export const getAllTabs = (type?: TTab | string) => {
     if (window.siyuan.layout.centerLayout) {
         getTabs(window.siyuan.layout.centerLayout);
     }
+    /// #endif
     return tabs;
 };
 
 export const getAllDocks = () => {
     const docks: Config.IUILayoutDockTab[] = [];
+    /// #if !MOBILE
     window.siyuan.config.uiLayout.left.data.forEach((item) => {
         item.forEach((dock) => {
             docks.push(dock);
@@ -197,6 +203,6 @@ export const getAllDocks = () => {
             docks.push(dock);
         });
     });
+    /// #endif
     return docks;
 };
-/// #endif

@@ -8,12 +8,7 @@ import {Files} from "./dock/Files";
 import {Outline} from "./dock/Outline";
 import {Bookmark} from "./dock/Bookmark";
 import {Tag} from "./dock/Tag";
-/// #if !MOBILE
-import {getAllModels, getAllTabs, getAllWnds} from "./getAll";
-/// #endif
-/// #if MOBILE
-import {getAllEditor} from "./getAll";
-/// #endif
+import {getAllEditor, getAllModels, getAllTabs, getAllWnds} from "./getAll";
 import {Asset} from "../asset";
 import {Search} from "../search";
 import {Dock} from "./dock";
@@ -71,7 +66,6 @@ export const setPanelFocus = (element: Element, isSaveLayout = true) => {
     }
 };
 
-/// #if !MOBILE
 export const getWndByLayout: (layout: Layout) => Wnd = (layout: Layout) => {
     const wndsTemp: Wnd[] = [];
     getAllWnds(layout, wndsTemp);
@@ -82,10 +76,6 @@ export const getWndByLayout: (layout: Layout) => Wnd = (layout: Layout) => {
     });
     return (sorted[0] ?? null) as unknown as Wnd;
 };
-/// #endif
-/// #if MOBILE
-export const getWndByLayout: (layout: Layout) => Wnd = () => null as unknown as Wnd;
-/// #endif
 
 const dockToJSON = (dock: Dock) => {
     const json = [];
