@@ -14,6 +14,8 @@ import {useShell} from "../util/pathName";
 import {setStatusBar} from "./util/setStatusBar";
 import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Menu} from "../plugin/Menu";
+import {escapeAttr} from "../util/escape";
+import {editor} from "./editor";
 
 export const appearance = {
     element: undefined as Element,
@@ -26,7 +28,7 @@ export const appearance = {
             <div class="b3-label__text">${window.siyuan.languages.font1}</div>
         </div>
         <span class="fn__space"></span>
-        <input class="b3-text-field fn__flex-center fn__size200" id="fontFamily" value="${window.siyuan.config.editor.fontFamily}" placeholder="${window.siyuan.languages.default}" readonly${window.siyuan.config.editor.fontFamily ? ` style="font-family:${window.siyuan.config.editor.fontFamily},var(--b3-font-family)"` : ""}>
+        <input class="b3-text-field fn__flex-center fn__size200" id="fontFamily" data-family="${escapeAttr(window.siyuan.config.editor.fontFamily || "")}" data-weight="${window.siyuan.config.editor.fontWeight ?? 0}" data-display="${escapeAttr(window.siyuan.config.editor.fontFamilyDisplay || "")}" value="${escapeAttr(window.siyuan.config.editor.fontFamilyDisplay || window.siyuan.config.editor.fontFamily || "")}" placeholder="${window.siyuan.languages.default}" readonly${window.siyuan.config.editor.fontFamily ? ` style="font-family:${window.siyuan.config.editor.fontFamily},var(--b3-font-family)"` : ""}>
     </div>
     <div class="fn__flex b3-label config__item">
         <div class="fn__flex-1">
@@ -310,7 +312,6 @@ export const appearance = {
         });
     },
     _sendEditor: () => {
-        const fontFamilyElement = appearance.element.querySelector("#fontFamily") as HTMLInputElement;
         const floatWindowDelayElement = appearance.element.querySelector("#floatWindowDelay") as HTMLInputElement;
         const floatWindowMode = parseInt((appearance.element.querySelector("#floatWindowMode") as HTMLSelectElement).value);
         let floatWindowDelay = parseInt(floatWindowDelayElement.value);
@@ -322,8 +323,12 @@ export const appearance = {
             floatWindowDelay = 2000;
         }
         floatWindowDelayElement.value = floatWindowDelay.toString();
+        const fontFamilyElement = appearance.element.querySelector("#fontFamily") as HTMLInputElement;
         fetchPost("/api/setting/setEditor", {
-            fontFamily: fontFamilyElement.value,
+            ...window.siyuan.config.editor,
+            fontFamily: fontFamilyElement.dataset.family ?? "",
+            fontWeight: parseInt(fontFamilyElement.dataset.weight || "0", 10),
+            fontFamilyDisplay: fontFamilyElement.dataset.display ?? "",
             fontSize: parseInt((appearance.element.querySelector("#fontSize") as HTMLInputElement).value),
             fontSizeScrollZoom: (appearance.element.querySelector("#fontSizeScrollZoom") as HTMLInputElement).checked,
             fullWidth: (appearance.element.querySelector("#fullWidth") as HTMLInputElement).checked,
@@ -331,37 +336,65 @@ export const appearance = {
             rtl: (appearance.element.querySelector("#rtl") as HTMLInputElement).checked,
             floatWindowMode,
             floatWindowDelay,
-            emoji: window.siyuan.config.editor.emoji,
         }, response => {
             window.siyuan.config.editor = response.data;
+            editor._onSetEditor(response.data);
+            if (fontFamilyElement) {
+                fontFamilyElement.dataset.family = response.data.fontFamily || "";
+                fontFamilyElement.dataset.weight = String(response.data.fontWeight ?? 0);
+                fontFamilyElement.dataset.display = response.data.fontFamilyDisplay || "";
+                fontFamilyElement.value = response.data.fontFamilyDisplay || response.data.fontFamily || "";
+                if (response.data.fontFamily) {
+                    fontFamilyElement.style.fontFamily = `${response.data.fontFamily},var(--b3-font-family)`;
+                    fontFamilyElement.style.fontWeight = response.data.fontWeight ? String(response.data.fontWeight) : "";
+                } else {
+                    fontFamilyElement.style.fontFamily = "";
+                    fontFamilyElement.style.fontWeight = "";
+                }
+            }
         });
     },
     bindEvent: () => {
-        // Font family menu
         const fontFamilyElement = appearance.element.querySelector("#fontFamily") as HTMLInputElement;
+
+        // Font family menu
         fontFamilyElement.addEventListener("click", () => {
             fetchPost("/api/system/getSysFonts", {}, (response) => {
+                const curFamily = fontFamilyElement.dataset.family ?? "";
+                const curWeight = parseInt(fontFamilyElement.dataset.weight || "0", 10);
                 const fontMenu = new Menu();
                 fontMenu.addItem({
                     iconHTML: "",
-                    checked: window.siyuan.config.editor.fontFamily === "",
+                    checked: curFamily === "",
                     label: `<div style='var(--b3-font-family);'>${window.siyuan.languages.default}</div>`,
                     click: () => {
-                        if ("" === window.siyuan.config.editor.fontFamily) return;
+                        const fam = fontFamilyElement.dataset.family ?? "";
+                        const w = parseInt(fontFamilyElement.dataset.weight || "0", 10);
+                        if (fam === "" && w === 0) return;
                         fontFamilyElement.value = "";
                         fontFamilyElement.style.fontFamily = "";
+                        fontFamilyElement.style.fontWeight = "";
+                        fontFamilyElement.dataset.family = "";
+                        fontFamilyElement.dataset.weight = "0";
+                        fontFamilyElement.dataset.display = "";
                         appearance._sendEditor();
                     }
                 });
-                response.data.forEach((item: string) => {
+                response.data.forEach((item: {family: string; weight: number; displayName: string}) => {
                     fontMenu.addItem({
                         iconHTML: "",
-                        checked: window.siyuan.config.editor.fontFamily === item,
-                        label: `<div style='font-family:"${item}",var(--b3-font-family);'>${item}</div>`,
+                        checked: item.family === curFamily && item.weight === curWeight,
+                        label: `<div style='font-family:"${item.family}",var(--b3-font-family);'>${item.displayName}</div>`,
                         click: () => {
-                            if (item === window.siyuan.config.editor.fontFamily) return;
-                            fontFamilyElement.value = item;
-                            fontFamilyElement.style.fontFamily = item + ",var(--b3-font-family)";
+                            if (item.family === (fontFamilyElement.dataset.family ?? "") && item.weight === parseInt(fontFamilyElement.dataset.weight || "0", 10)) {
+                                return;
+                            }
+                            fontFamilyElement.dataset.family = item.family;
+                            fontFamilyElement.dataset.weight = String(item.weight);
+                            fontFamilyElement.dataset.display = item.displayName;
+                            fontFamilyElement.value = item.displayName;
+                            fontFamilyElement.style.fontFamily = item.family + ",var(--b3-font-family)";
+                            fontFamilyElement.style.fontWeight = item.weight ? String(item.weight) : "";
                             appearance._sendEditor();
                         }
                     });

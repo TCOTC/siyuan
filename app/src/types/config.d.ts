@@ -493,6 +493,10 @@ declare namespace Config {
          */
         fontWeight: number;
         /**
+         * Label shown in Settings for the selected editor font (e.g. PostScript name + subfamily). Optional; falls back to fontFamily.
+         */
+        fontFamilyDisplay?: string;
+        /**
          * The font size used in the editor
          */
         fontSize: number;

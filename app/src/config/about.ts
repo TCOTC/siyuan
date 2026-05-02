@@ -1,9 +1,7 @@
 import {Constants} from "../constants";
 import {isBrowser} from "../util/functions";
 import {fetchPost} from "../util/fetch";
-import {saveExportFile} from "../protyle/util/compatibility";
 
-/** 仅负责「关于」 tab 的 HTML 与事件；访问授权见 access，数据仓库与同步见 sync，通用与应用见 appConfig */
 export const about = {
     element: undefined as Element,
     genAboutHTML: () => {
@@ -58,48 +56,6 @@ ${checkUpdateHTML}
         if (window.siyuan.config.system.isInsider && isInsiderElement) {
             isInsiderElement.innerHTML = "<span class='ft__secondary'>Insider Preview</span>";
         }
-        const indexRetentionDaysElement = root.querySelector("#indexRetentionDays") as HTMLInputElement;
-        indexRetentionDaysElement?.addEventListener("change", () => {
-            fetchPost("/api/repo/setRepoIndexRetentionDays", {days: parseInt(indexRetentionDaysElement.value)}, () => {
-                window.siyuan.config.repo.indexRetentionDays = parseInt(indexRetentionDaysElement.value);
-            });
-        });
-        const retentionIndexesDailyElement = root.querySelector("#retentionIndexesDaily") as HTMLInputElement;
-        retentionIndexesDailyElement?.addEventListener("change", () => {
-            fetchPost("/api/repo/setRetentionIndexesDaily", {indexes: parseInt(retentionIndexesDailyElement.value)}, () => {
-                window.siyuan.config.repo.retentionIndexesDaily = parseInt(retentionIndexesDailyElement.value);
-            });
-        });
-        const tokenElement = root.querySelector("#token") as HTMLInputElement;
-        tokenElement?.addEventListener("click", () => {
-            tokenElement.select();
-        });
-        tokenElement?.addEventListener("change", () => {
-            fetchPost("/api/system/setAPIToken", {token: tokenElement.value}, () => {
-                window.siyuan.config.api.token = tokenElement.value;
-                const tokenTipEl = root.querySelector("#tokenTip");
-                if (tokenTipEl) {
-                    tokenTipEl.innerHTML = window.siyuan.languages.about14.replace("${token}", window.siyuan.config.api.token);
-                }
-            });
-        });
-        root.querySelector("#vacuumDataIndex")?.addEventListener("click", () => {
-            fetchPost("/api/system/vacuumDataIndex", {}, () => {
-            });
-        });
-        root.querySelector("#rebuildDataIndex")?.addEventListener("click", () => {
-            fetchPost("/api/system/rebuildDataIndex", {}, () => {
-            });
-        });
-        root.querySelector("#clearTempFiles")?.addEventListener("click", () => {
-            fetchPost("/api/system/clearTempFiles", {}, () => {
-            });
-        });
-        root.querySelector("#exportLog")?.addEventListener("click", () => {
-            fetchPost("/api/system/exportLog", {}, (response) => {
-                saveExportFile(response.data.zip);
-            });
-        });
         const updateElement = root.querySelector("#checkUpdateBtn");
         updateElement?.addEventListener("click", () => {
             if (updateElement.firstElementChild.classList.contains("fn__rotate")) {

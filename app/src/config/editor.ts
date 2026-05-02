@@ -353,7 +353,8 @@ export const editor = {
             }
 
             fetchPost("/api/setting/setEditor", {
-                                markdown: {
+                ...window.siyuan.config.editor,
+                markdown: {
                     inlineAsterisk: (editor.element.querySelector("#editorMarkdownInlineAsterisk") as HTMLInputElement).checked,
                     inlineUnderscore: (editor.element.querySelector("#editorMarkdownInlineUnderscore") as HTMLInputElement).checked,
                     inlineSup: (editor.element.querySelector("#editorMarkdownInlineSup") as HTMLInputElement).checked,
@@ -365,7 +366,7 @@ export const editor = {
                 },
                 allowSVGScript: (editor.element.querySelector("#allowSVGScript") as HTMLInputElement).checked,
                 allowHTMLBLockScript: (editor.element.querySelector("#allowHTMLBLockScript") as HTMLInputElement).checked,
-                                                readOnly: (editor.element.querySelector("#readOnly") as HTMLInputElement).checked,
+                readOnly: (editor.element.querySelector("#readOnly") as HTMLInputElement).checked,
                 displayBookmarkIcon: (editor.element.querySelector("#displayBookmarkIcon") as HTMLInputElement).checked,
                 displayNetImgMark: (editor.element.querySelector("#displayNetImgMark") as HTMLInputElement).checked,
                 codeSyntaxHighlightLineNum: (editor.element.querySelector("#codeSyntaxHighlightLineNum") as HTMLInputElement).checked,
@@ -376,13 +377,10 @@ export const editor = {
                 spellcheck: (editor.element.querySelector("#spellcheck") as HTMLInputElement).checked,
                 /// #if !BROWSER
                 spellcheckLanguages: Array.from(spellcheckLanguagesElement.querySelectorAll(".b3-chip--current")).map(item => item.textContent),
-                /// #else
-                // @ts-ignore
-                spellcheckLanguages: window.siyuan.config.editor.spellcheckLanguages,
                 /// #endif
                 onlySearchForDoc: (editor.element.querySelector("#onlySearchForDoc") as HTMLInputElement).checked,
                 pasteURLAutoConvert: (editor.element.querySelector("#pasteURLAutoConvert") as HTMLInputElement).checked,
-                                                plantUMLServePath: (editor.element.querySelector("#plantUMLServePath") as HTMLInputElement).value,
+                plantUMLServePath: (editor.element.querySelector("#plantUMLServePath") as HTMLInputElement).value,
                 katexMacros: (editor.element.querySelector("#katexMacros") as HTMLTextAreaElement).value,
                 codeLineWrap: (editor.element.querySelector("#codeLineWrap") as HTMLInputElement).checked,
                 virtualBlockRef: (editor.element.querySelector("#virtualBlockRef") as HTMLInputElement).checked,
@@ -395,7 +393,6 @@ export const editor = {
                 dynamicLoadBlocks: dynamicLoadBlocks,
                 codeLigatures: (editor.element.querySelector("#codeLigatures") as HTMLInputElement).checked,
                 codeTabSpaces: parseInt((editor.element.querySelector("#codeTabSpaces") as HTMLInputElement).value),
-                emoji: window.siyuan.config.editor.emoji
             }, response => {
                 editor._onSetEditor(response.data);
             });
