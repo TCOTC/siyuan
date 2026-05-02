@@ -145,7 +145,6 @@ ${renewHTML}<div class="fn__hr--b"></div>`;
                         fetchPost("/api/setting/logoutCloudUser", {}, () => {
                             window.siyuan.user = null;
                             closePanel();
-                            document.getElementById("menuAccount").innerHTML = `<svg class="b3-menu__icon"><use xlink:href="#iconAccount"></use></svg><span class="b3-menu__label">${window.siyuan.languages.login}</span>`;
                             processSync();
                         });
                         event.preventDefault();
@@ -183,12 +182,6 @@ ${renewHTML}<div class="fn__hr--b"></div>`;
                             window.siyuan.user = response.data;
                             showMessage(window.siyuan.languages.refreshUser, 3000);
                             showAccountInfo();
-                            const menuAccountElement = document.getElementById("menuAccount");
-                            if (window.siyuan.user) {
-                                menuAccountElement.innerHTML = `<img class="b3-menu__icon" src="${window.siyuan.user.userAvatarURL}"/><span class="b3-menu__label">${window.siyuan.user.userName}</span>`;
-                            } else {
-                                menuAccountElement.innerHTML = `<svg class="b3-menu__icon"><use xlink:href="#iconAccount"></use></svg><span class="b3-menu__label">${window.siyuan.languages.login}</span>`;
-                            }
                             processSync();
                         });
                         event.preventDefault();
@@ -271,7 +264,6 @@ const afterLogin = (response: IWebSocketData, deactive = false) => {
             fetchPost("/api/account/deactivate", {}, () => {
                 window.siyuan.user = null;
                 closePanel();
-                document.getElementById("menuAccount").innerHTML = `<svg class="b3-menu__icon"><use xlink:href="#iconAccount"></use></svg><span class="b3-menu__label">${window.siyuan.languages.login}</span>`;
                 processSync();
             });
         });
@@ -281,8 +273,6 @@ const afterLogin = (response: IWebSocketData, deactive = false) => {
         }, response => {
             window.siyuan.user = response.data;
             closePanel();
-            document.getElementById("menuAccount").innerHTML = `<img class="b3-menu__icon" src="${window.siyuan.user.userAvatarURL}"/>
-<span class="b3-menu__label">${window.siyuan.user.userName}</span>`;
             processSync();
         });
     }

@@ -7,7 +7,6 @@ import {openHistory} from "../../history/history";
 import {syncGuide} from "../../sync/syncGuide";
 import {openCard} from "../../card/openCard";
 import {activeBlur} from "../util/keyboardToolbar";
-import {login, showAccountInfo} from "../../config/mobileCloudAuth";
 import {openModel} from "./model";
 import {getRecentDocs} from "./getRecentDocs";
 import {App} from "../../index";
@@ -31,18 +30,6 @@ export const popMenu = () => {
 
 export const initRightMenu = (app: App) => {
     const menuElement = document.getElementById("menu");
-    let accountHTML = "";
-    if (window.siyuan.user && !window.siyuan.config.readonly) {
-        accountHTML = `<div class="b3-menu__item" id="menuAccount">
-    <img class="b3-menu__icon" src="${window.siyuan.user.userAvatarURL}"/>
-    <span class="b3-menu__label">${window.siyuan.user.userName}</span>
-</div>`;
-    } else if (!window.siyuan.config.readonly) {
-        accountHTML = `<div class="b3-menu__item" id="menuAccount">
-    <svg class="b3-menu__icon"><use xlink:href="#iconAccount"></use></svg><span class="b3-menu__label">${window.siyuan.languages.login}</span>
-</div>`;
-    }
-
     const configSettingsMenuHTML = CONFIG_TAB_DEFS.filter(def => !isConfigTabMenuHidden(def.id)).map(def =>
         `<div class="b3-menu__item" data-menu-config-tab="${def.id}"${def.id === "about" ? " id=\"menuAbout\"" : ""}>
         <svg class="b3-menu__icon"><use xlink:href="#${def.icon}"></use></svg>
@@ -54,7 +41,6 @@ export const initRightMenu = (app: App) => {
     <span class="b3-menu__label">${window.siyuan.languages.back}</span>
 </div>
 <div class="b3-menu__items">
-    ${accountHTML}
     <div id="menuRecent" class="b3-menu__item">
         <svg class="b3-menu__icon"><use xlink:href="#iconList"></use></svg><span class="b3-menu__label">${window.siyuan.languages.recentDocs}</span>
     </div>
@@ -119,15 +105,6 @@ export const initRightMenu = (app: App) => {
                 closePanel();
                 event.preventDefault();
                 event.stopPropagation();
-                break;
-            } else if (target.id === "menuAccount") {
-                event.preventDefault();
-                event.stopPropagation();
-                if (document.querySelector("#menuAccount img")) {
-                    showAccountInfo();
-                    return;
-                }
-                login();
                 break;
             } else if (target.id === "menuRecent") {
                 getRecentDocs(app);

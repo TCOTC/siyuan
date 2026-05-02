@@ -10,7 +10,8 @@ import {bindSyncCloudListEvent, getSyncCloudList, setKey, syncGuide} from "../sy
 import {hideElements} from "../protyle/ui/hideElements";
 import {getCloudURL, getIndexURL} from "./util/about";
 import {iOSPurchase} from "../util/iOSPurchase";
-import {openByMobile, writeText} from "../protyle/util/compatibility";
+import {isInMobileApp, openByMobile, writeText} from "../protyle/util/compatibility";
+import {login} from "./mobileCloudAuth";
 import {Dialog} from "../dialog";
 
 
@@ -643,7 +644,9 @@ ${genSVGBG()}
     <div class="fn__flex config-account__row-actions">
         <a class="b3-button b3-button--outline${window.siyuan.config.system.container === "ios" ? " fn__none" : ""}" href="${getCloudURL("register")}" target="_blank">${window.siyuan.languages.register}</a>
         <span class="fn__space${window.siyuan.config.system.container === "ios" ? " fn__none" : ""}"></span>
-        <a class="b3-button" href="${getCloudURL("login")}" target="_blank">${window.siyuan.languages.login}</a>
+        ${isInMobileApp()
+        ? `<button type="button" class="b3-button" id="mobileNativeLogin">${window.siyuan.languages.login}</button>`
+        : `<a class="b3-button" href="${getCloudURL("login")}" target="_blank">${window.siyuan.languages.login}</a>`}
     </div>
 </div>
 <div class="fn__flex b3-label config__item config-account__row config-account__row--pay">
@@ -715,6 +718,9 @@ ${genSVGBG()}
                     sync.onSetaccount();
                 });
             });
+        });
+        element.querySelector("#mobileNativeLogin")?.addEventListener("click", () => {
+            login();
         });
         if (!window.siyuan.user) {
             return;
