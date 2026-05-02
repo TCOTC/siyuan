@@ -178,7 +178,7 @@ export const file = {
         }
 
         fetchPost("/api/setting/setFiletree", {
-            sort: window.siyuan.config.fileTree.sort,
+            ...window.siyuan.config.fileTree,
             alwaysSelectOpenedFile: (file.element.querySelector("#alwaysSelectOpenedFile") as HTMLInputElement).checked,
             refCreateSavePath: (file.element.querySelector("#refCreateSavePath") as HTMLInputElement).value,
             refCreateSaveBox: (file.element.querySelector("#refCreateSaveBox") as HTMLInputElement).value,
@@ -199,11 +199,10 @@ export const file = {
             window.siyuan.config.fileTree = response.data;
         });
 
-        // TODO 改了相关的设置项才需要发送，比如增加一个 _sendEditor() 方法
         fetchPost("/api/setting/setEditor", {
+            ...window.siyuan.config.editor,
             generateHistoryInterval: parseInt((file.element.querySelector("#generateHistoryInterval") as HTMLInputElement).value),
             historyRetentionDays: parseInt((file.element.querySelector("#historyRetentionDays") as HTMLInputElement).value),
-            emoji: window.siyuan.config.editor.emoji
         }, response => {
             window.siyuan.config.editor = response.data;
         });

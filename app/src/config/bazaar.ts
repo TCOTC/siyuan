@@ -661,10 +661,10 @@ type="checkbox">
         if (!window.siyuan.config.bazaar.trust) {
             bazaar.element.querySelector("button").addEventListener("click", () => {
                 fetchPost("/api/setting/setBazaar", {
+                    ...window.siyuan.config.bazaar,
                     trust: true,
-                    petalDisabled: window.siyuan.config.bazaar.petalDisabled
-                }, () => {
-                    window.siyuan.config.bazaar.trust = true;
+                }, (response) => {
+                    window.siyuan.config.bazaar = response.data;
                     bazaar.element.innerHTML = bazaar.genHTML();
                     bazaar.bindEvent(app);
                 });
@@ -860,9 +860,10 @@ type="checkbox">
                     const packageName = dataObj.name;
                     const mode = dataObj.themeMode === "dark" ? 1 : 0;
                     if (bazaarType === "icons") {
-                        fetchPost("/api/setting/setAppearance", Object.assign({}, window.siyuan.config.appearance, {
+                        fetchPost("/api/setting/setAppearance", {
+                            ...window.siyuan.config.appearance,
                             icon: packageName,
-                        }), (appearanceResponse) => {
+                        }, (appearanceResponse) => {
                             this._genMyHTML(bazaarType, app, false);
                             fetchPost("/api/bazaar/getBazaarIcon", {}, response => {
                                 response.data.appearance = appearanceResponse.data;
@@ -871,12 +872,13 @@ type="checkbox">
                             });
                         });
                     } else if (bazaarType === "themes") {
-                        fetchPost("/api/setting/setAppearance", Object.assign({}, window.siyuan.config.appearance, {
+                        fetchPost("/api/setting/setAppearance", {
+                            ...window.siyuan.config.appearance,
                             mode,
                             modeOS: false,
                             themeDark: mode === 1 ? packageName : window.siyuan.config.appearance.themeDark,
                             themeLight: mode === 0 ? packageName : window.siyuan.config.appearance.themeLight,
-                        }), (appearanceResponse) => {
+                        }, (appearanceResponse) => {
                             this._genMyHTML("themes", app, false);
                             fetchPost("/api/bazaar/getBazaarTheme", {}, response => {
                                 response.data.appearance = appearanceResponse.data;

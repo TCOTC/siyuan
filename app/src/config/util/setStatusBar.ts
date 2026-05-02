@@ -53,9 +53,10 @@ export const setStatusBar = (element: HTMLElement) => {
                 if (objEquals(statusBar, window.siyuan.config.appearance.statusBar)) {
                     return;
                 }
-                fetchPost("/api/setting/setAppearance", Object.assign({}, window.siyuan.config.appearance, {
+                fetchPost("/api/setting/setAppearance", {
+                    ...window.siyuan.config.appearance,
                     statusBar
-                }));
+                });
             }
         });
     });

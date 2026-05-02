@@ -143,6 +143,7 @@ export const flashcard = {
         flashcard.element.querySelectorAll("input, select.b3-select").forEach((item) => {
             item.addEventListener("change", () => {
                 fetchPost("/api/setting/setFlashcard", {
+                    ...window.siyuan.config.flashcard,
                     reviewMode: parseInt((flashcard.element.querySelector("#reviewMode") as HTMLSelectElement).value),
                     newCardLimit: parseInt((flashcard.element.querySelector("#newCardLimit") as HTMLInputElement).value),
                     reviewCardLimit: parseInt((flashcard.element.querySelector("#reviewCardLimit") as HTMLInputElement).value),

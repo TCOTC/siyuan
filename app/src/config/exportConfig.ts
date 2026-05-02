@@ -195,6 +195,7 @@ export const exportConfig = {
         const pandocBinPathElement = exportConfig.element.querySelector("#pandocBinPath");
         const setexprt = (pandocBin?: string) => {
             fetchPost("/api/setting/setExport", {
+                ...window.siyuan.config.export,
                 paragraphBeginningSpace: (exportConfig.element.querySelector("#paragraphBeginningSpace") as HTMLInputElement).checked,
                 addTitle: (exportConfig.element.querySelector("#addTitle") as HTMLInputElement).checked,
                 removeAssetsID: (exportConfig.element.querySelector("#removeAssetsID") as HTMLInputElement).checked,
@@ -217,7 +218,7 @@ export const exportConfig = {
                 tagCloseMarker: (exportConfig.element.querySelector("#tagCloseMarker") as HTMLInputElement).value,
                 pandocBin: pandocBin || window.siyuan.config.export.pandocBin,
             }, (response) => {
-                exportConfig.onSetexport(response.data);
+                window.siyuan.config.export = response.data;
                 pandocBinPathElement.textContent = response.data.pandocBin;
             });
         };
@@ -252,7 +253,4 @@ export const exportConfig = {
         });
         /// #endif
     },
-    onSetexport: (data: Config.IExport) => {
-        window.siyuan.config.export = data;
-    }
 };

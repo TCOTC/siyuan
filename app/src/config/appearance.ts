@@ -287,6 +287,7 @@ export const appearance = {
         const modeElementValue = parseInt((appearance.element.querySelector("#mode") as HTMLSelectElement).value);
         const OSTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         fetchPost("/api/setting/setAppearance", {
+            ...window.siyuan.config.appearance,
             icon: (appearance.element.querySelector("#icon") as HTMLSelectElement).value,
             mode: modeElementValue === 2 ? (OSTheme === "light" ? 0 : 1) : modeElementValue,
             modeOS: modeElementValue === 2,

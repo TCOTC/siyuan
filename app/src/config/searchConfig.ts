@@ -320,6 +320,7 @@ export const searchConfig = {
         searchConfig.element.querySelectorAll("input").forEach((item) => {
             item.addEventListener("change", () => {
                 fetchPost("/api/setting/setSearch", {
+                    ...window.siyuan.config.search,
                     document: (searchConfig.element.querySelector("#document") as HTMLInputElement).checked,
                     heading: (searchConfig.element.querySelector("#heading") as HTMLInputElement).checked,
                     list: (searchConfig.element.querySelector("#list") as HTMLInputElement).checked,
