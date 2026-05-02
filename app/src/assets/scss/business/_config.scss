@@ -54,6 +54,14 @@
       &--account .config-account__list {
         padding: 8px 8px 16px;
         box-sizing: border-box;
+
+        #configAccountLoginRoot {
+          box-sizing: border-box;
+          max-width: 420px;
+          width: 100%;
+          margin-left: auto;
+          margin-right: auto;
+        }
       }
     }
 

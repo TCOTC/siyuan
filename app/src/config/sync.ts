@@ -10,8 +10,8 @@ import {bindSyncCloudListEvent, getSyncCloudList, setKey, syncGuide} from "../sy
 import {hideElements} from "../protyle/ui/hideElements";
 import {getCloudURL, getIndexURL} from "./util/about";
 import {iOSPurchase} from "../util/iOSPurchase";
-import {isInMobileApp, openByMobile, writeText} from "../protyle/util/compatibility";
-import {login} from "./mobileCloudAuth";
+import {openByMobile, writeText} from "../protyle/util/compatibility";
+import {bindLoginEvent, getLoginHTML} from "./mobileCloudAuth";
 import {Dialog} from "../dialog";
 
 
@@ -635,44 +635,10 @@ ${genSVGBG()}
 </label>
 </div>`;
         }
-        return `<div class="config-account__list">
-<div class="fn__flex b3-label config__item config-account__row config-account__row--profile config-account__row--guest">
-    <div class="fn__flex-1 config-account__profile--guest">
-        <div class="b3-label__text">${window.siyuan.languages.accountTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <div class="fn__flex config-account__row-actions">
-        <a class="b3-button b3-button--outline${window.siyuan.config.system.container === "ios" ? " fn__none" : ""}" href="${getCloudURL("register")}" target="_blank">${window.siyuan.languages.register}</a>
-        <span class="fn__space${window.siyuan.config.system.container === "ios" ? " fn__none" : ""}"></span>
-        ${isInMobileApp()
-        ? `<button type="button" class="b3-button" id="mobileNativeLogin">${window.siyuan.languages.login}</button>`
-        : `<a class="b3-button" href="${getCloudURL("login")}" target="_blank">${window.siyuan.languages.login}</a>`}
-    </div>
+        return `<div class="config-account__list" id="configAccountGuestList">
+<div class="b3-label config__item fn__flex-column">
+    <div id="configAccountLoginRoot" class="fn__flex-1">${getLoginHTML()}</div>
 </div>
-<div class="fn__flex b3-label config__item config-account__row config-account__row--pay">
-    <div class="fn__flex-1 config-account__pay-content">
-        <div class="fn__flex config-account__pay-header">
-            <span class="config-account__pay-label">${window.siyuan.languages.paymentStatus}</span>
-            <span class="fn__flex config-account__pay-status">${payHTML}</span>
-        </div>
-    </div>
-</div>
-<label class="fn__flex b3-label config__item">
-    <div class="fn__flex-1 config-account__pay-content">
-        <div class="fn__flex config-account__pay-header">
-            <span>${window.siyuan.languages.accountDisplayTitle}</span>
-            <span class="fn__space"></span>
-            <span class="fn__flex config-account__pay-status fn__none"></span>
-        </div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="displayTitle" type="checkbox"${window.siyuan.config.account.displayTitle ? " checked" : ""}/>
-</label>
-<label class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">${window.siyuan.languages.accountDisplayVIP}</div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="displayVIP" type="checkbox"${window.siyuan.config.account.displayVIP ? " checked" : ""}/>
-</label>
 </div>`;
     },
     bindAccountEvent: (element: Element) => {
@@ -719,9 +685,17 @@ ${genSVGBG()}
                 });
             });
         });
-        element.querySelector("#mobileNativeLogin")?.addEventListener("click", () => {
-            login();
-        });
+        const loginRootElement = element.querySelector("#configAccountLoginRoot") as HTMLElement | null;
+        if (loginRootElement) {
+            bindLoginEvent(loginRootElement, false, {
+                skipClosePanel: true,
+                onCloudUserLoaded: () => {
+                    setAccountGroupInnerHTML(element, sync.genAccountHTML());
+                    sync.bindAccountEvent(element);
+                    sync.onSetaccount();
+                }
+            });
+        }
         if (!window.siyuan.user) {
             return;
         }

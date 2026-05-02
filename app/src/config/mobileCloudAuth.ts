@@ -195,7 +195,7 @@ ${renewHTML}<div class="fn__hr--b"></div>`;
     });
 };
 
-const getLoginHTML = (deactivate = false) => {
+export const getLoginHTML = (deactivate = false) => {
     let confirmHTML: string;
     if (deactivate) {
         confirmHTML = `<div class="b3-form__img fn__none">
@@ -220,7 +220,6 @@ const getLoginHTML = (deactivate = false) => {
 </div>
 <div class="fn__hr--b"></div>
 <label class="ft__smaller ft__on-surface fn__flex">
-    <span class="fn__space"></span>
     <input type="checkbox" class="b3-switch fn__flex-center" id="agreeLogin">
     <span class="fn__space"></span>
     <span>${window.siyuan.languages.accountTip}</span>
@@ -234,7 +233,7 @@ const getLoginHTML = (deactivate = false) => {
     <a href="${getCloudURL("register")}" class="b3-button b3-button--cancel${window.siyuan.config.system.container === "ios" ? " fn__none" : ""}" target="_blank">${window.siyuan.languages.register}</a>
 </div>`;
     }
-    return `<div class="b3-form__space" id="form1">
+    return `<div class="b3-form__space--small" id="form1">
     <div class="b3-form__icon">
         <svg class="b3-form__icon-icon"><use xlink:href="#iconAccount"></use></svg>
         <input id="userName" class="b3-text-field fn__block b3-form__icon-input" placeholder="${window.siyuan.languages.accountName}">
@@ -247,7 +246,7 @@ const getLoginHTML = (deactivate = false) => {
     <div class="fn__hr--b"></div>
     ${confirmHTML}
 </div>
-<div class="b3-form__space fn__none" id="form2">
+<div class="b3-form__space--small fn__none" id="form2">
     <div class="b3-form__icon">
         <svg class="b3-form__icon-icon"><use xlink:href="#iconLock"></use></svg>
         <input id="twofactorAuthCode" class="b3-text-field fn__block b3-form__icon-input" placeholder="${window.siyuan.languages.twoFactorCaptcha}">
@@ -257,7 +256,13 @@ const getLoginHTML = (deactivate = false) => {
 </div>`;
 };
 
-const afterLogin = (response: IWebSocketData, deactive = false) => {
+/** 内联在设置页等处登录时传入：不关闭侧栏 / 弹层，并在拉取云端用户后刷新界面 */
+export type BindLoginOptions = {
+    skipClosePanel?: boolean;
+    onCloudUserLoaded?: () => void;
+};
+
+const afterLogin = (response: IWebSocketData, deactive = false, options?: BindLoginOptions) => {
     if (deactive) {
         hideElements(["dialog"]);
         confirmDialog("⚠️ " + window.siyuan.languages.deactivateUser, window.siyuan.languages.deactivateUserTip, () => {
@@ -272,13 +277,16 @@ const afterLogin = (response: IWebSocketData, deactive = false) => {
             token: response.data.token,
         }, response => {
             window.siyuan.user = response.data;
-            closePanel();
+            if (!options?.skipClosePanel) {
+                closePanel();
+            }
             processSync();
+            options?.onCloudUserLoaded?.();
         });
     }
 };
 
-const bindLoginEvent = (modelMainElement: HTMLElement, deactive = false) => {
+export const bindLoginEvent = (modelMainElement: HTMLElement, deactive = false, loginOptions?: BindLoginOptions) => {
     const agreeLoginElement = modelMainElement.querySelector("#agreeLogin") as HTMLInputElement;
     const userNameElement = modelMainElement.querySelector("#userName") as HTMLInputElement;
     const userPasswordElement = modelMainElement.querySelector("#userPassword") as HTMLInputElement;
@@ -340,7 +348,7 @@ const bindLoginEvent = (modelMainElement: HTMLElement, deactive = false) => {
                 token = data.data.token;
                 return;
             }
-            afterLogin(data, deactive);
+            afterLogin(data, deactive, loginOptions);
         });
     });
 
@@ -349,7 +357,7 @@ const bindLoginEvent = (modelMainElement: HTMLElement, deactive = false) => {
             code: twofactorAuthCodeElement.value,
             token,
         }, faResponse => {
-            afterLogin(faResponse, deactive);
+            afterLogin(faResponse, deactive, loginOptions);
         });
     });
 };
