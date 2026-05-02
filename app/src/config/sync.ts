@@ -768,7 +768,7 @@ ${genSVGBG()}
             if (needSubscribe("") && 0 === window.siyuan.config.sync.provider) {
                 const dialogElement = hasClosestByClassName(element, "b3-dialog--open");
                 if (dialogElement) {
-                    dialogElement.querySelector('.b3-tab-bar [data-name="repos"]').dispatchEvent(new CustomEvent("click"));
+                    dialogElement.querySelector('.config__side [data-name="repos"]').dispatchEvent(new CustomEvent("click"));
                     element.removeAttribute("data-action");
                 }
             } else {

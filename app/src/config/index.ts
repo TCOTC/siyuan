@@ -51,7 +51,7 @@ const openSettingDesktop = (app: App) => {
     }
     const dialog = new Dialog({
         content: `<div class="fn__flex-1 fn__flex config__panel" style="overflow: hidden;position: relative">
-  <div class="b3-tab-bar b3-list b3-list--background">
+  <div class="config__side b3-list b3-list--background">
     <div class="config__tab-head">
         <div class="config__tab-title resize__move">
             <svg class="b3-list-item__graphic"><use xlink:href="#iconSettings"></use></svg>
@@ -82,14 +82,14 @@ ${genDesktopConfigTabPanelsHTML()}
 
     initConfigSearch(dialog.element, app);
     (dialog.element.querySelector(".b3-dialog__container") as HTMLElement).style.maxWidth = "1280px";
-    dialog.element.querySelectorAll(".b3-tab-bar .b3-list-item").forEach(item => {
+    dialog.element.querySelectorAll(".config__side .b3-list-item").forEach(item => {
         item.addEventListener("click", () => {
             const type = item.getAttribute("data-name") as TConfigTab;
             const containerElement = dialog.element.querySelector(`.config__tab-container[data-name="${type}"]`);
             dialog.element.querySelectorAll(".config__tab-container").forEach((container) => {
                 container.classList.add("fn__none");
             });
-            dialog.element.querySelector(".b3-tab-bar .b3-list-item.b3-list-item--focus").classList.remove("b3-list-item--focus");
+            dialog.element.querySelector(".config__side .b3-list-item.b3-list-item--focus").classList.remove("b3-list-item--focus");
             item.classList.add("b3-list-item--focus");
             containerElement.classList.remove("fn__none");
             if (containerElement.innerHTML === "" || type === "sync" || type === "bazaar") {
