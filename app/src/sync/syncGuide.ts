@@ -161,19 +161,22 @@ export const syncGuide = (app?: App) => {
     if (document.querySelector("#barSync")?.classList.contains("toolbar__item--active")) {
         return;
     }
-    if (0 === window.siyuan.config.sync.provider && needSubscribe("") && app) {
-        const dialogSetting = openSetting(app);
-        if (window.siyuan.user) {
-            dialogSetting.element.querySelector('.config__side [data-name="repos"]').dispatchEvent(new CustomEvent("click"));
-        } else {
-            dialogSetting.element.querySelector('.config__side [data-name="account"]').dispatchEvent(new CustomEvent("click"));
-            dialogSetting.element.querySelector('.config__tab-container[data-name="account"]').setAttribute("data-action", "go-repos");
+    if (app && 0 === window.siyuan.config.sync.provider && needSubscribe("")) {
+        const dialogSetting = openSetting(app, "sync");
+        if (!window.siyuan.user) {
+            dialogSetting.element.querySelector('.config__tab-container[data-name="sync"]')?.setAttribute("data-action", "go-repos");
         }
         return;
     }
-    if (0 !== window.siyuan.config.sync.provider && !isPaidUser() && app) {
-        showMessage(window.siyuan.languages["_kernel"][214].replaceAll("${accountServer}", getCloudURL("")));
-        return;
+    if (app && 0 !== window.siyuan.config.sync.provider) {
+        if (!window.siyuan.user) {
+            openSetting(app, "sync");
+            return;
+        }
+        if (!isPaidUser()) {
+            showMessage(window.siyuan.languages["_kernel"][214].replaceAll("${accountServer}", getCloudURL("")));
+            return;
+        }
     }
     /// #endif
     if (!window.siyuan.config.repo.key) {

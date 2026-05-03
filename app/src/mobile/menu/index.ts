@@ -1,7 +1,7 @@
 import {popSearch} from "./search";
 import {closePanel} from "../util/closePanel";
 import {mountHelp, newDailyNote, newNotebook} from "../../util/mount";
-import {publish} from "../../config/publish";
+import {access} from "../../config/access";
 import {exitSiYuan, lockScreen, processSync} from "../../dialog/processSystem";
 import {openHistory} from "../../history/history";
 import {syncGuide} from "../../sync/syncGuide";
@@ -179,10 +179,9 @@ export const initRightMenu = (app: App) => {
                 openModel({
                     title: window.siyuan.languages.publish,
                     icon: "iconPublish",
-                    html: publish.genHTML(),
+                    html: access.genPublishHTML(),
                     bindEvent(modelMainElement: HTMLElement) {
-                        publish.element = modelMainElement;
-                        publish.bindEvent();
+                        access.bindPublishEvent(modelMainElement);
                     }
                 });
                 event.preventDefault();

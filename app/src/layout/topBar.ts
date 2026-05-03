@@ -173,8 +173,7 @@ export const initBar = (app: App) => {
                 break;
             } else if (targetId === "toolbarVIP") {
                 if (!window.siyuan.config.readonly) {
-                    const dialogSetting = openSetting(app);
-                    dialogSetting.element.querySelector('.config__side [data-name="account"]').dispatchEvent(new CustomEvent("click"));
+                    openSetting(app, "sync");
                 }
                 event.stopPropagation();
                 break;

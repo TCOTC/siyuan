@@ -2,7 +2,6 @@ import {showMessage} from "../dialog/message";
 import {Constants} from "../constants";
 import {fetchPost, fetchSyncPost} from "../util/fetch";
 import {confirmDialog} from "../dialog/confirmDialog";
-import {hasClosestByClassName} from "../protyle/util/hasClosest";
 import {getEventName, isInIOS} from "../protyle/util/compatibility";
 import {processSync} from "../dialog/processSystem";
 import {isPaidUser, needSubscribe} from "../util/needSubscribe";
@@ -13,7 +12,6 @@ import {iOSPurchase} from "../util/iOSPurchase";
 import {openByMobile, writeText} from "../protyle/util/compatibility";
 import {bindLoginEvent, getLoginHTML} from "./mobileCloudAuth";
 import {Dialog} from "../dialog";
-
 
 const genSVGBG = () => {
     let html = "";
@@ -29,14 +27,50 @@ const genSVGBG = () => {
     return `<div class="fn__flex config-account__svg">${html}</div>`;
 };
 
-/** 仅更新账号分组 DOM，避免替换整个「云端」标签页容器导致同步等区块被清空 */
-const setAccountGroupInnerHTML = (root: Element, html: string) => {
-    const group = root.querySelector("#configAccountGroup");
-    if (group) {
-        group.innerHTML = html;
-    } else {
-        root.innerHTML = html;
+/** 「同步」分组（#configSyncReposGroup）内带 data-action 的控件委托；外层 div 在刷新 innerHTML 时保留，只需绑定一次 */
+const bindSyncReposGroupDelegatedClick = (root: Element) => {
+    const group = root.querySelector("#configSyncReposGroup");
+    if (!group) {
+        return;
     }
+    group.addEventListener("click", (event) => {
+        let target = event.target as HTMLElement;
+        while (target && target !== group) {
+            const action = target.getAttribute("data-action");
+            if (action === "config") {
+                const syncConfigElement = root.querySelector("#reposCloudSyncList");
+                if (!syncConfigElement) {
+                    break;
+                }
+                if (syncConfigElement.classList.contains("fn__none")) {
+                    getSyncCloudList(syncConfigElement, true);
+                    syncConfigElement.classList.remove("fn__none");
+                } else {
+                    syncConfigElement.classList.add("fn__none");
+                }
+                break;
+            }
+            if (action === "togglePassword") {
+                const isEye = target.firstElementChild.getAttribute("xlink:href") === "#iconEye";
+                target.firstElementChild.setAttribute("xlink:href", isEye ? "#iconEyeoff" : "#iconEye");
+                target.previousElementSibling.setAttribute("type", isEye ? "text" : "password");
+                break;
+            }
+            if (action === "exportData") {
+                fetchPost(target.getAttribute("data-type") === "s3" ? "/api/sync/exportSyncProviderS3" : "/api/sync/exportSyncProviderWebDAV", {}, response => {
+                    openByMobile(response.data.zip);
+                });
+                break;
+            }
+            if (action === "purgeData") {
+                confirmDialog("♻️ " + window.siyuan.languages.cloudStoragePurge, `<div class="b3-typography">${window.siyuan.languages.cloudStoragePurgeConfirm}</div>`, () => {
+                    fetchPost("/api/repo/purgeCloudRepo");
+                });
+                break;
+            }
+            target = target.parentElement;
+        }
+    });
 };
 
 
@@ -485,12 +519,7 @@ const bindProviderEvent = () => {
     });
 };
 
-export const sync = {
-    element: undefined as Element,
-    genHTML: () => {
-        return `<b class="config-group__title">${window.siyuan.languages.configGroupAccount}</b><div id="configAccountGroup" class="config-group config-group--account">${sync.genAccountHTML()}</div><b class="config-group__title">${window.siyuan.languages.configGroupSync}</b><div class="config-group">${sync.genReposHTML()}</div><b class="config-group__title">${window.siyuan.languages.configGroupLocalDataRepo}</b><div class="config-group">${sync.genLocalDataRepoHTML()}</div>`;
-    },
-    genAccountHTML: (onlyPayHTML = false) => {
+const buildAccountSectionHTML = (onlyPayHTML = false) => {
         const isIOS = isInIOS();
         let payHTML;
         if (isIOS) {
@@ -640,6 +669,20 @@ ${genSVGBG()}
     <div id="configAccountLoginRoot" class="fn__flex-1">${getLoginHTML()}</div>
 </div>
 </div>`;
+};
+
+export const sync = {
+    element: undefined as Element,
+    genHTML: () => {
+        return `<b class="config-group__title">${window.siyuan.languages.configGroupAccount}</b>
+<div id="configAccountGroup" class="config-group config-group--account">${buildAccountSectionHTML()}</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupSync}</b>
+<div id="configSyncReposGroup" class="config-group">${sync.genReposHTML()}</div>
+<b class="config-group__title">${window.siyuan.languages.configGroupLocalDataRepo}</b>
+<div class="config-group">${sync.genLocalDataRepoHTML()}</div>`;
+    },
+    renderAccount: (root: Element, onlyPayHTML = false) => {
+        (root.querySelector("#configAccountGroup") as HTMLElement).innerHTML = buildAccountSectionHTML(onlyPayHTML);
     },
     bindAccountEvent: (element: Element) => {
         element.querySelectorAll('[data-action="iOSPay"]').forEach(item => {
@@ -666,11 +709,12 @@ ${genSVGBG()}
                 token: window.siyuan.user?.userToken || "",
             }, response => {
                 window.siyuan.user = response.data;
-                setAccountGroupInnerHTML(element, sync.genAccountHTML());
+                sync.renderAccount(element);
                 sync.bindAccountEvent(element);
                 showMessage(window.siyuan.languages.refreshUser, 3000);
                 sync.onSetaccount();
                 processSync();
+                sync.refreshSyncReposGroup(element);
             });
         });
         element.querySelectorAll("#displayTitle, #displayVIP").forEach(item => {
@@ -690,9 +734,11 @@ ${genSVGBG()}
             bindLoginEvent(loginRootElement, false, {
                 skipClosePanel: true,
                 onCloudUserLoaded: () => {
-                    setAccountGroupInnerHTML(element, sync.genAccountHTML());
+                    sync.renderAccount(element);
                     sync.bindAccountEvent(element);
                     sync.onSetaccount();
+                    sync.refreshSyncReposGroup(element);
+                    sync._tryGoRepos(element);
                 }
             });
         }
@@ -703,10 +749,11 @@ ${genSVGBG()}
             fetchPost("/api/setting/logoutCloudUser", {}, () => {
                 fetchPost("/api/setting/getCloudUser", {}, response => {
                     window.siyuan.user = response.data;
-                    setAccountGroupInnerHTML(element, sync.genAccountHTML());
+                    sync.renderAccount(element);
                     sync.bindAccountEvent(element);
                     sync.onSetaccount();
                     processSync();
+                    sync.refreshSyncReposGroup(element);
                 });
             });
         });
@@ -714,10 +761,11 @@ ${genSVGBG()}
             confirmDialog("⚠️ " + window.siyuan.languages.deactivateUser, window.siyuan.languages.deactivateUserTip, () => {
                 fetchPost("/api/account/deactivate", {}, () => {
                     window.siyuan.user = null;
-                    setAccountGroupInnerHTML(element, sync.genAccountHTML());
+                    sync.renderAccount(element);
                     sync.bindAccountEvent(element);
                     sync.onSetaccount();
                     processSync();
+                    sync.refreshSyncReposGroup(element);
                 });
             });
         });
@@ -741,20 +789,22 @@ ${genSVGBG()}
     _afterLogin(userResponse: IWebSocketData, element: Element) {
         window.siyuan.user = userResponse.data;
         processSync();
-        setAccountGroupInnerHTML(element, sync.genAccountHTML());
+        sync.renderAccount(element);
         sync.bindAccountEvent(element);
         sync.onSetaccount();
-        if (element.getAttribute("data-action") === "go-repos") {
-            if (needSubscribe("") && 0 === window.siyuan.config.sync.provider) {
-                const dialogElement = hasClosestByClassName(element, "b3-dialog--open");
-                if (dialogElement) {
-                    dialogElement.querySelector('.config__side [data-name="repos"]').dispatchEvent(new CustomEvent("click"));
-                    element.removeAttribute("data-action");
-                }
-            } else {
-                hideElements(["dialog"]);
-                syncGuide();
-            }
+        sync.refreshSyncReposGroup(element);
+        sync._tryGoRepos(element);
+    },
+    /** syncGuide 在未登录时在页面容器上添加 `data-action="go-repos"`，登录成功后由 `onCloudUserLoaded` 或 `_afterLogin` 消费 */
+    _tryGoRepos(element: Element) {
+        if (element.getAttribute("data-action") !== "go-repos") {
+            return;
+        }
+        if (needSubscribe("") && 0 === window.siyuan.config.sync.provider) {
+            element.removeAttribute("data-action");
+        } else {
+            hideElements(["dialog"]);
+            syncGuide();
         }
     },
     onSetaccount() {
@@ -875,6 +925,15 @@ ${genSVGBG()}
     <div class="b3-list-item__meta fn__flex-center">${window.siyuan.languages.cloudBackupTip}</div>
 </div></div>`;
     },
+    /** 重新生成「同步」分组：登录 / 登出后仅调用 bindProviderEvent 无法去掉此前叠加的 fn__none，也无法更新 #syncProviderPanel 文案 */
+    refreshSyncReposGroup(root: Element) {
+        const group = root.querySelector("#configSyncReposGroup");
+        if (!group) {
+            return;
+        }
+        group.innerHTML = sync.genReposHTML();
+        sync.bindReposEvent();
+    },
     bindReposEvent: () => {
         bindProviderEvent();
         const switchElement = sync.element.querySelector("#reposCloudSyncSwitch") as HTMLInputElement;
@@ -961,66 +1020,49 @@ ${genSVGBG()}
             });
         });
         bindSyncCloudListEvent(syncConfigElement);
-        sync.element.firstElementChild.addEventListener("click", (event) => {
-            let target = event.target as HTMLElement;
-            while (target && target !== sync.element) {
-                const action = target.getAttribute("data-action");
-                if (action === "config") {
-                    if (syncConfigElement.classList.contains("fn__none")) {
-                        getSyncCloudList(syncConfigElement, true);
-                        syncConfigElement.classList.remove("fn__none");
-                    } else {
-                        syncConfigElement.classList.add("fn__none");
-                    }
-                    break;
-                } else if (action === "togglePassword") {
-                    const isEye = target.firstElementChild.getAttribute("xlink:href") === "#iconEye";
-                    target.firstElementChild.setAttribute("xlink:href", isEye ? "#iconEyeoff" : "#iconEye");
-                    target.previousElementSibling.setAttribute("type", isEye ? "text" : "password");
-                    break;
-                } else if (action === "exportData") {
-                    fetchPost(target.getAttribute("data-type") === "s3" ? "/api/sync/exportSyncProviderS3" : "/api/sync/exportSyncProviderWebDAV", {}, response => {
-                        openByMobile(response.data.zip);
-                    });
-                    break;
-                } else if (action === "purgeData") {
-                    confirmDialog("♻️ " + window.siyuan.languages.cloudStoragePurge, `<div class="b3-typography">${window.siyuan.languages.cloudStoragePurgeConfirm}</div>`, () => {
-                        fetchPost("/api/repo/purgeCloudRepo");
-                    });
-                    break;
-                }
-                target = target.parentElement;
-            }
-        });
     },
-genLocalDataRepoHTML: () => {
-        return '<div class="b3-label fn__flex config__item"><div class="fn__flex-1 fn__flex-center">' +
-            window.siyuan.languages.dataRepoKey +
-            '<div class="b3-label__text">' + window.siyuan.languages.dataRepoKeyTip1 + "</div>" +
-            '<div class="b3-label__text"><span class="ft__error">' + window.siyuan.languages.dataRepoKeyTip2 + "</span></div>" +
-            '</div><div class="fn__space"></div>' +
-            '<div class="fn__size200 config__item-line fn__flex-center' + (window.siyuan.config.repo.key ? " fn__none" : "") + '">' +
-            '<button class="b3-button b3-button--outline fn__block" id="importKey"><svg><use xlink:href="#iconDownload"></use></svg>' + window.siyuan.languages.importKey + "</button>" +
-            '<div class="fn__hr"></div>' +
-            '<button class="b3-button b3-button--outline fn__block" id="initKey"><svg><use xlink:href="#iconLock"></use></svg>' + window.siyuan.languages.genKey + "</button>" +
-            '<div class="fn__hr"></div>' +
-            '<button class="b3-button b3-button--outline fn__block" id="initKeyByPW"><svg><use xlink:href="#iconHand"></use></svg>' + window.siyuan.languages.genKeyByPW + "</button>" +
-            "</div>" +
-            '<div class="fn__size200 config__item-line fn__flex-center' + (window.siyuan.config.repo.key ? "" : " fn__none") + '">' +
-            '<button class="b3-button b3-button--outline fn__block" id="copyKey"><svg><use xlink:href="#iconCopy"></use></svg>' + window.siyuan.languages.copyKey + "</button>" +
-            '<div class="fn__hr"></div>' +
-            '<button class="b3-button b3-button--outline fn__block" id="resetRepo"><svg><use xlink:href="#iconUndo"></use></svg>' + window.siyuan.languages.resetRepo + "</button>" +
-            "</div></div>" +
-            '<div class="b3-label"><div>' + window.siyuan.languages.dataRepoPurge + '</div><div class="fn__hr"></div>' +
-            '<div class="fn__flex config__item"><div class="fn__flex-center fn__flex-1 ft__on-surface">' + window.siyuan.languages.dataRepoPurgeTip + '</div><span class="fn__space"></span>' +
-            '<button id="purgeRepo" class="b3-button b3-button--outline fn__size200 fn__flex-center"><svg><use xlink:href="#iconTrashcan"></use></svg>' + window.siyuan.languages.purge + "</button></div>" +
-            '<div class="fn__hr"></div>' +
-            '<div class="fn__flex config__item"><div class="fn__flex-center fn__flex-1 ft__on-surface">' + window.siyuan.languages.dataRepoAutoPurgeIndexRetentionDays + '</div><span class="fn__space"></span>' +
-            '<input class="b3-text-field fn__flex-center fn__size200" min="1" type="number" id="indexRetentionDays" value="' + window.siyuan.config.repo.indexRetentionDays + '"></div>' +
-            '<div class="fn__hr"></div>' +
-            '<div class="fn__flex config__item"><div class="fn__flex-center fn__flex-1 ft__on-surface">' + window.siyuan.languages.dataRepoAutoPurgeRetentionIndexesDaily + '</div><span class="fn__space"></span>' +
-            '<input class="b3-text-field fn__flex-center fn__size200" min="1" type="number" id="retentionIndexesDaily" value="' + window.siyuan.config.repo.retentionIndexesDaily + '"></div>' +
-            "</div>";
+    genLocalDataRepoHTML: () => {
+        return `<div class="b3-label fn__flex config__item">
+    <div class="fn__flex-1 fn__flex-center">
+        ${window.siyuan.languages.dataRepoKey}
+        <div class="b3-label__text">${window.siyuan.languages.dataRepoKeyTip1}</div>
+        <div class="b3-label__text"><span class="ft__error">${window.siyuan.languages.dataRepoKeyTip2}</span></div>
+    </div>
+    <div class="fn__space"></div>
+    <div class="fn__size200 config__item-line fn__flex-center${window.siyuan.config.repo.key ? " fn__none" : ""}">
+        <button class="b3-button b3-button--outline fn__block" id="importKey"><svg><use xlink:href="#iconDownload"></use></svg>${window.siyuan.languages.importKey}</button>
+        <div class="fn__hr"></div>
+        <button class="b3-button b3-button--outline fn__block" id="initKey"><svg><use xlink:href="#iconLock"></use></svg>${window.siyuan.languages.genKey}</button>
+        <div class="fn__hr"></div>
+        <button class="b3-button b3-button--outline fn__block" id="initKeyByPW"><svg><use xlink:href="#iconHand"></use></svg>${window.siyuan.languages.genKeyByPW}</button>
+    </div>
+    <div class="fn__size200 config__item-line fn__flex-center${window.siyuan.config.repo.key ? "" : " fn__none"}">
+        <button class="b3-button b3-button--outline fn__block" id="copyKey"><svg><use xlink:href="#iconCopy"></use></svg>${window.siyuan.languages.copyKey}</button>
+        <div class="fn__hr"></div>
+        <button class="b3-button b3-button--outline fn__block" id="resetRepo"><svg><use xlink:href="#iconUndo"></use></svg>${window.siyuan.languages.resetRepo}</button>
+    </div>
+</div>
+<div class="b3-label">
+    <div>${window.siyuan.languages.dataRepoPurge}</div>
+    <div class="fn__hr"></div>
+    <div class="fn__flex config__item">
+        <div class="fn__flex-center fn__flex-1 ft__on-surface">${window.siyuan.languages.dataRepoPurgeTip}</div>
+        <span class="fn__space"></span>
+        <button id="purgeRepo" class="b3-button b3-button--outline fn__size200 fn__flex-center"><svg><use xlink:href="#iconTrashcan"></use></svg>${window.siyuan.languages.purge}</button>
+    </div>
+    <div class="fn__hr"></div>
+    <div class="fn__flex config__item">
+        <div class="fn__flex-center fn__flex-1 ft__on-surface">${window.siyuan.languages.dataRepoAutoPurgeIndexRetentionDays}</div>
+        <span class="fn__space"></span>
+        <input class="b3-text-field fn__flex-center fn__size200" min="1" type="number" id="indexRetentionDays" value="${window.siyuan.config.repo.indexRetentionDays}">
+    </div>
+    <div class="fn__hr"></div>
+    <div class="fn__flex config__item">
+        <div class="fn__flex-center fn__flex-1 ft__on-surface">${window.siyuan.languages.dataRepoAutoPurgeRetentionIndexesDaily}</div>
+        <span class="fn__space"></span>
+        <input class="b3-text-field fn__flex-center fn__size200" min="1" type="number" id="retentionIndexesDaily" value="${window.siyuan.config.repo.retentionIndexesDaily}">
+    </div>
+</div>`;
     },
     bindEvent: () => {
         const root = sync.element as Element;
@@ -1101,6 +1143,7 @@ genLocalDataRepoHTML: () => {
             });
         });
         sync.bindAccountEvent(root);
+        bindSyncReposGroupDelegatedClick(root);
         sync.bindReposEvent();
     },
 };

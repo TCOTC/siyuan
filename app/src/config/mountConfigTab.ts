@@ -15,7 +15,7 @@ import {appConfig} from "./appConfig";
 import {ai} from "./ai";
 import {flashcard} from "./flashcard";
 
-/** 将指定设置标签挂载到容器（与桌面端 genItemPanel 内容一致；编辑器在桌面已由模板预填故由调用方跳过） */
+/** 将指定设置页面挂载到容器 */
 export const mountConfigTab = (type: TConfigTab, containerElement: Element, app: App) => {
     switch (type) {
         case "editor":

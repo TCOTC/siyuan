@@ -24,7 +24,6 @@ export const bazaar = {
             return this.genTrustHTML();
         }
         const localSort = window.siyuan.storage[Constants.LOCAL_BAZAAR];
-        console.log("bazaar.element", bazaar.element, bazaar.element.clientHeight);
         const loadingHTML = `<div style="height: ${bazaar.element.clientHeight - 160}px;display: flex;align-items: center;justify-content: center;"><img src="/stage/loading-pure.svg"></div>`;
         return `<div class="fn__flex-column" style="height: 100%">
 <div class="layout-tab-bar fn__flex">

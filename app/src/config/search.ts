@@ -1,6 +1,6 @@
 import {Constants} from "../constants";
 import type {TConfigTab} from "./types";
-import {genItemPanel} from "./index";
+import {mountConfigTab} from "./mountConfigTab";
 import {keymap} from "./keymap";
 import {App} from "../index";
 import {isPhablet} from "../protyle/util/compatibility";
@@ -13,7 +13,11 @@ const getLang = (keys: string[]) => {
     return langArray;
 };
 
-export const initConfigSearch = (element: HTMLElement, app: App) => {
+export const initConfigSearch = (
+    element: HTMLElement,
+    app: App,
+    switchConfigTab: (dialogElement: HTMLElement, app: App, type: TConfigTab) => void // 避免循环依赖
+) => {
     // TODO 设置项移动了位置，需要更新
     const configIndex = [
         // 编辑器
@@ -154,7 +158,7 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
                     return;
                 }
                 if (panelElement.innerHTML === "") {
-                    genItemPanel(type, panelElement, app);
+                    mountConfigTab(type, panelElement, app);
                 }
                 if (type === "keymap") {
                     const searchElement = keymap.element.querySelector("#keymapInput") as HTMLInputElement;
@@ -208,7 +212,10 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
 
         const tabPanelElements = element.querySelectorAll(".config__tab-container");
         if (currentTabElement) {
-            currentTabElement.click();
+            const tabType = currentTabElement.getAttribute("data-name") as TConfigTab;
+            if (tabType) {
+                switchConfigTab(element, app, tabType);
+            }
         } else {
             tabPanelElements.forEach((item) => {
                 item.classList.add("fn__none");
