@@ -1,7 +1,7 @@
 /// #if MOBILE
 import {popMenu} from "../mobile/menu";
 /// #else
-import {initConfigSearch} from "./search";
+import {applySettingSearchToTab, initConfigSearch} from "./search";
 import {Dialog} from "../dialog";
 import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";
@@ -24,7 +24,7 @@ const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TConfigTab)
     dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus")?.classList.remove("b3-list-item--focus");
     dialogElement.querySelector(`.config__side .b3-list-item[data-name="${type}"]`)?.classList.add("b3-list-item--focus");
     containerElement.classList.remove("fn__none");
-    if (containerElement.innerHTML === "" || type === "sync" || type === "bazaar") {
+    if (containerElement.innerHTML === "") {
         mountConfigTab(type, containerElement, app);
     }
 };
@@ -96,9 +96,11 @@ const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
         item.addEventListener("click", () => {
             const type = item.getAttribute("data-name") as TConfigTab;
             switchConfigTab(dialog.element, app, type);
+            applySettingSearchToTab(dialog.element, app, type);
         });
     });
     switchConfigTab(dialog.element, app, initialTab);
+    applySettingSearchToTab(dialog.element, app, initialTab);
     return dialog;
 };
 /// #endif
