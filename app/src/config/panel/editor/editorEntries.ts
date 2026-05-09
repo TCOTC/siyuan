@@ -1,4 +1,9 @@
 import {updateHotkeyTip} from "../../../protyle/util/compatibility";
+import {Constants} from "../../../constants";
+/// #if !BROWSER
+import {ipcRenderer} from "electron";
+/// #endif
+import type {EditorBindApi} from "./editorBindApi";
 
 /**
  * 编辑器设置「行」：`id` 为表单控件 id（与 DefineSettingBase.type 同名时用 type 区分）。
@@ -17,7 +22,6 @@ export type EditorRow =
           min: number;
           max: number;
           step: number;
-          ariaField: "codeTabSpaces";
           title: string;
           desc: string;
       }
@@ -47,6 +51,8 @@ export type EditorRow =
           /** 参与检索的文案片段（源码中写 window.siyuan.languages.xxx 表达式求值结果） */
           keywords: string[];
           html: () => string;
+          /** 方案 A：非标 DOM / 桌面特例在此绑定；工厂项走通用监听与按 `id` 合并（见 editorMergePatch） */
+          bind?: (api: EditorBindApi) => void | Promise<void>;
       };
 
 /** 一组设置：标题参与检索；行均在 `items` 内 */
@@ -102,11 +108,43 @@ export const EDITOR_SECTIONS: EditorSection[] = [
     <div class="b3-chips fn__none" id="spellcheckLanguages"></div>
 </div>`;
                 },
+                bind: async (api: EditorBindApi) => {
+                    /// #if !BROWSER
+                    const {root, scheduleSave} = api;
+                    const languages: string[] = await ipcRenderer.invoke(Constants.SIYUAN_GET, {
+                        cmd: "availableSpellCheckerLanguages",
+                    });
+                    let spellcheckLanguagesHTML = "";
+                    languages.forEach((item) => {
+                        spellcheckLanguagesHTML += `<div class="fn__pointer b3-chip b3-chip--middle${window.siyuan.config.editor.spellcheckLanguages.includes(item) ? " b3-chip--current" : ""}">${item}</div>`;
+                    });
+                    const spellcheckLanguagesElement = root.querySelector<HTMLDivElement>("#spellcheckLanguages");
+                    if (!spellcheckLanguagesElement) {
+                        return;
+                    }
+                    spellcheckLanguagesElement.innerHTML = spellcheckLanguagesHTML;
+                    spellcheckLanguagesElement.addEventListener("click", (event) => {
+                        const target = event.target as Element;
+                        if (target.classList.contains("b3-chip")) {
+                            target.classList.toggle("b3-chip--current");
+                            ipcRenderer.send(Constants.SIYUAN_CMD, {
+                                cmd: "setSpellCheckerLanguages",
+                                languages: Array.from(
+                                    spellcheckLanguagesElement.querySelectorAll(".b3-chip--current")
+                                ).map((item) => item.textContent),
+                            });
+                            scheduleSave("spellcheckLanguages");
+                        }
+                    });
+                    if (window.siyuan.config.editor.spellcheck) {
+                        spellcheckLanguagesElement.classList.remove("fn__none");
+                    }
+                    /// #endif
+                },
             },
             {
                 type: "range",
                 id: "codeTabSpaces",
-                ariaField: "codeTabSpaces",
                 min: 0,
                 max: 8,
                 step: 2,
@@ -269,49 +307,49 @@ export const EDITOR_SECTIONS: EditorSection[] = [
         items: [
             {
                 type: "switch",
-                id: "editorMarkdownInlineAsterisk",
+                id: "markdown.inlineAsterisk",
                 title: window.siyuan.languages.editorMarkdownInlineAsterisk,
                 desc: window.siyuan.languages.editorMarkdownInlineAsteriskTip,
             },
             {
                 type: "switch",
-                id: "editorMarkdownInlineUnderscore",
+                id: "markdown.inlineUnderscore",
                 title: window.siyuan.languages.editorMarkdownInlineUnderscore,
                 desc: window.siyuan.languages.editorMarkdownInlineUnderscoreTip,
             },
             {
                 type: "switch",
-                id: "editorMarkdownInlineSup",
+                id: "markdown.inlineSup",
                 title: window.siyuan.languages.editorMarkdownInlineSup,
                 desc: window.siyuan.languages.editorMarkdownInlineSupTip,
             },
             {
                 type: "switch",
-                id: "editorMarkdownInlineSub",
+                id: "markdown.inlineSub",
                 title: window.siyuan.languages.editorMarkdownInlineSub,
                 desc: window.siyuan.languages.editorMarkdownInlineSubTip,
             },
             {
                 type: "switch",
-                id: "editorMarkdownInlineTag",
+                id: "markdown.inlineTag",
                 title: window.siyuan.languages.editorMarkdownInlineTag,
                 desc: window.siyuan.languages.editorMarkdownInlineTagTip,
             },
             {
                 type: "switch",
-                id: "editorMarkdownInlineMath",
+                id: "markdown.inlineMath",
                 title: window.siyuan.languages.editorMarkdownInlineMath,
                 desc: window.siyuan.languages.editorMarkdownInlineMathTip,
             },
             {
                 type: "switch",
-                id: "editorMarkdownInlineStrikethrough",
+                id: "markdown.inlineStrikethrough",
                 title: window.siyuan.languages.editorMarkdownInlineStrikethrough,
                 desc: window.siyuan.languages.editorMarkdownInlineStrikethroughTip,
             },
             {
                 type: "switch",
-                id: "editorMarkdownInlineMark",
+                id: "markdown.inlineMark",
                 title: window.siyuan.languages.editorMarkdownInlineMark,
                 desc: window.siyuan.languages.editorMarkdownInlineMarkTip,
             },
@@ -353,6 +391,21 @@ export const EDITOR_SECTIONS: EditorSection[] = [
         ],
     },
 ];
+
+/** 工厂项 `id` → 行定义（解析 `type`、保存时读 DOM） */
+const buildEditorRowById = (): Map<string, EditorRow> => {
+    const m = new Map<string, EditorRow>();
+    EDITOR_SECTIONS.forEach((sec) => {
+        sec.items.forEach((row) => {
+            if ("id" in row && row.id) {
+                m.set(row.id, row);
+            }
+        });
+    });
+    return m;
+};
+
+export const EDITOR_ROW_BY_ID: Map<string, EditorRow> = buildEditorRowById();
 
 /** 设置搜索「一级标签」索引：`getLang` 所用的 languages 键（过渡期，迁移至注册表驱动后可删） */
 export const EDITOR_TAB_SEARCH_LANG_KEYS: string[] = [

@@ -1,73 +1,17 @@
 import type {EditorRow} from "./editorEntries";
-import {EDITOR_SECTIONS} from "./editorEntries";
+import {EDITOR_ROW_BY_ID, EDITOR_SECTIONS} from "./editorEntries";
+import {getAtPath} from "./editorMergePatch";
 
-const getSwitchChecked = (id: string): boolean => {
-    const e = window.siyuan.config.editor;
-    const md = e.markdown;
-    switch (id) {
-        case "listLogicalOutdent":
-            return e.listLogicalOutdent;
-        case "listItemDotNumberClickFocus":
-            return e.listItemDotNumberClickFocus;
-        case "pasteURLAutoConvert":
-            return e.pasteURLAutoConvert;
-        case "displayNetImgMark":
-            return e.displayNetImgMark;
-        case "displayBookmarkIcon":
-            return e.displayBookmarkIcon;
-        case "embedBlockBreadcrumb":
-            return e.embedBlockBreadcrumb;
-        case "codeLineWrap":
-            return e.codeLineWrap;
-        case "codeLigatures":
-            return e.codeLigatures;
-        case "codeSyntaxHighlightLineNum":
-            return e.codeSyntaxHighlightLineNum;
-        case "onlySearchForDoc":
-            return e.onlySearchForDoc;
-        case "virtualBlockRef":
-            return e.virtualBlockRef;
-        case "backlinkContainChildren":
-            return e.backlinkContainChildren;
-        case "editorMarkdownInlineAsterisk":
-            return md.inlineAsterisk;
-        case "editorMarkdownInlineUnderscore":
-            return md.inlineUnderscore;
-        case "editorMarkdownInlineSup":
-            return md.inlineSup;
-        case "editorMarkdownInlineSub":
-            return md.inlineSub;
-        case "editorMarkdownInlineTag":
-            return md.inlineTag;
-        case "editorMarkdownInlineMath":
-            return md.inlineMath;
-        case "editorMarkdownInlineStrikethrough":
-            return md.inlineStrikethrough;
-        case "editorMarkdownInlineMark":
-            return md.inlineMark;
-        case "allowSVGScript":
-            return e.allowSVGScript;
-        case "allowHTMLBLockScript":
-            return e.allowHTMLBLockScript;
-        default:
-            return false;
-    }
-};
+const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config.editor, id));
 
 const getNumberInputAttrs = (id: string): {value: number; min?: number; max?: number} => {
-    const e = window.siyuan.config.editor;
-    switch (id) {
-        case "dynamicLoadBlocks":
-            return {value: e.dynamicLoadBlocks, min: 48};
-        case "blockRefDynamicAnchorTextMaxLen":
-            return {value: e.blockRefDynamicAnchorTextMaxLen, min: 1, max: 5120};
-        case "backlinkExpandCount":
-            return {value: e.backlinkExpandCount, min: 0, max: 512};
-        case "backmentionExpandCount":
-            return {value: e.backmentionExpandCount, min: -1, max: 512};
-        default:
-            return {value: 0};
+    const row = EDITOR_ROW_BY_ID.get(id);
+    const raw = getAtPath(window.siyuan.config.editor, id);
+    const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
+    if (row?.type === "number") {
+        return {value, min: row.min, max: row.max};
     }
+    return {value: 0};
 };
 
 const renderSwitchRow = (id: string, title: string, desc: string, checked: boolean): string =>
@@ -169,7 +113,8 @@ const renderOne = (entry: EditorRow): string => {
                 getSwitchChecked(entry.id)
             );
         case "range": {
-            const v = e[entry.ariaField] as number;
+            const v = getAtPath(e, entry.id);
+            const num = typeof v === "number" && !Number.isNaN(v) ? v : entry.min;
             return renderRangeRow(
                 entry.id,
                 entry.title,
@@ -177,16 +122,22 @@ const renderOne = (entry: EditorRow): string => {
                 entry.min,
                 entry.max,
                 entry.step,
-                v,
-                v
+                num,
+                num
             );
         }
         case "number":
             return renderNumberRow(entry.id, entry.title, entry.desc, entry.min, entry.max);
-        case "select":
-            return renderSelectRow(entry.id, entry.title, entry.desc, entry.options, e.headingEmbedMode);
-        case "text":
-            return renderTextRow(entry.id, entry.title, entry.desc, e.plantUMLServePath);
+        case "select": {
+            const cur = getAtPath(e, entry.id);
+            const num = typeof cur === "number" && !Number.isNaN(cur) ? cur : e.headingEmbedMode;
+            return renderSelectRow(entry.id, entry.title, entry.desc, entry.options, num);
+        }
+        case "text": {
+            const val = getAtPath(e, entry.id);
+            const str = typeof val === "string" ? val : e.plantUMLServePath;
+            return renderTextRow(entry.id, entry.title, entry.desc, str);
+        }
     }
 };
 
