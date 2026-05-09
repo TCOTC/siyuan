@@ -26,28 +26,34 @@ export const about = {
 </div>`;
 
         return `<div class="config-group">
-${checkUpdateHTML}
-<label class="fn__flex b3-label${isBrowser() || window.siyuan.config.system.isMicrosoftStore || window.siyuan.config.system.container !== "std" || "linux" === window.siyuan.config.system.os ? " fn__none" : ""}">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.autoDownloadUpdatePkg}
-        <div class="b3-label__text">${window.siyuan.languages.autoDownloadUpdatePkgTip}</div>
-    </div>
-    <div class="fn__space"></div>
-    <input class="b3-switch fn__flex-center" id="downloadInstallPkg" type="checkbox"${window.siyuan.config.system.downloadInstallPkg ? " checked" : ""}>
-</label>
-<div class="b3-label">
-    <div class="config-about__logo">
-        <img src="/stage/icon.png">
-        <span class="fn__space"></span>
-        <span>${window.siyuan.languages.siyuanNote}</span>
-        <span class="fn__space"></span>
-        <span class="ft__on-surface">${window.siyuan.languages.slogan}</span>
-        <span class="fn__space"></span>
-        <span style="color:var(--b3-theme-surface);font-family:cursive;">会泽百家&nbsp;至公天下</span>
-    </div>
-    <div class='fn__hr'></div>
-    ${window.siyuan.languages.about1} ${"harmony" === window.siyuan.config.system.container ? " • " + window.siyuan.languages.feedback + " 845765@qq.com" : ""}
+    ${checkUpdateHTML}
+    <label class="fn__flex b3-label${isBrowser() || window.siyuan.config.system.isMicrosoftStore || window.siyuan.config.system.container !== "std" || "linux" === window.siyuan.config.system.os ? " fn__none" : ""}">
+        <div class="fn__flex-1">
+            ${window.siyuan.languages.autoDownloadUpdatePkg}
+            <div class="b3-label__text">${window.siyuan.languages.autoDownloadUpdatePkgTip}</div>
+        </div>
+        <div class="fn__space"></div>
+        <input class="b3-switch fn__flex-center" id="downloadInstallPkg" type="checkbox"${window.siyuan.config.system.downloadInstallPkg ? " checked" : ""}>
+    </label>
 </div>
+<div class="config-group">
+    <div class="b3-label">
+        <div class="config-about__logo">
+            <img src="/stage/icon.png">
+            <span class="fn__space"></span>
+            <span>${window.siyuan.languages.siyuanNote}</span>
+            <span class="fn__space"></span>
+            <span class="ft__on-surface">${window.siyuan.languages.slogan}</span>
+            <span class="fn__space"></span>
+            <span style="color:var(--b3-theme-surface);font-family:cursive;">会泽百家&nbsp;至公天下</span>
+        </div>
+        <div class='fn__hr'></div>
+        ${window.siyuan.languages.about1} ${"harmony" === window.siyuan.config.system.container ? " • " + window.siyuan.languages.feedback + " 845765@qq.com" : ""}
+    </div>
+    <div class="b3-label">
+        <div class="b3-label__text">${window.siyuan.languages.accountSupport1}</div><br>
+        <div class="b3-label__text">${window.siyuan.languages.accountSupport2}</div>
+    </div>
 </div>`;
     },
     bindEvent: () => {

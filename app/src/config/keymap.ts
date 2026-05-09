@@ -117,94 +117,98 @@ export const keymap = {
     </div>
 </div>`;
         }
-        return `<div class="fn__flex b3-label config__item">
-    <span class="fn__flex-center">${window.siyuan.languages.keymapTip}</span>
-    <span class="fn__flex-1"></span>
-    <button id="keymapRefreshBtn" class="b3-button b3-button--outline fn__flex-center fn__size200">
-        <svg><use xlink:href="#iconRefresh"></use></svg>
-        ${window.siyuan.languages.refresh}
-    </button>
-</div>
-<div class="fn__flex b3-label config__item">
-    <span class="fn__flex-center">${window.siyuan.languages.keymapTip2}</span>
-    <span class="fn__flex-1"></span>
-    <span class="fn__space"></span>
-    <button id="keymapResetBtn" class="b3-button b3-button--outline fn__flex-center fn__size200">
-        <svg><use xlink:href="#iconUndo"></use></svg>
-        ${window.siyuan.languages.reset}
-    </button>
-</div>
-<div class="b3-label file-tree config-keymap" id="keymapList">
-    <div class="fn__flex config__item">
-        <label class="b3-form__icon fn__block">
-            <svg class="b3-form__icon-icon"><use xlink:href="#iconSearch"></use></svg>
-            <input id="keymapInput" class="b3-form__icon-input b3-text-field fn__block" placeholder="${window.siyuan.languages.search}">
-        </label>
-        <div class="fn__space"></div>
-        <label class="b3-form__icon fn__block searchByKeyLabel">
-            <svg class="b3-form__icon-icon"><use xlink:href="#iconKeymap"></use></svg>
-            <input id="searchByKey" style="font-variant-emoji: text;font-family: var(--b3-font-family-kbd);" data-keymap="" class="b3-form__icon-input b3-text-field fn__block" spellcheck="false" placeholder="${window.siyuan.languages.keymap}">
-        </label>
-        <div class="fn__space"></div>
-        <button id="clearSearchBtn" class="b3-button b3-button--outline fn__flex-center fn__size200">
-            <svg><use xlink:href="#iconClose"></use></svg>
-            ${window.siyuan.languages.clear}
+        return `<div class="config-group">
+    <div class="fn__flex b3-label config__item">
+        <span class="fn__flex-center">${window.siyuan.languages.keymapTip}</span>
+        <span class="fn__flex-1"></span>
+        <button id="keymapRefreshBtn" class="b3-button b3-button--outline fn__flex-center fn__size200">
+            <svg><use xlink:href="#iconRefresh"></use></svg>
+            ${window.siyuan.languages.refresh}
         </button>
     </div>
-    <div class="fn__hr"></div>
-    <div class="b3-list b3-list--border b3-list--background">
-        <div class="b3-list-item b3-list-item--narrow toggle">
-            <span class="b3-list-item__toggle b3-list-item__toggle--hl"><svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg></span>
-            <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.general}</span>
-        </div>
-        <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.general, "general")}</div>
+    <div class="fn__flex b3-label config__item">
+        <span class="fn__flex-center">${window.siyuan.languages.keymapTip2}</span>
+        <span class="fn__flex-1"></span>
+        <span class="fn__space"></span>
+        <button id="keymapResetBtn" class="b3-button b3-button--outline fn__flex-center fn__size200">
+            <svg><use xlink:href="#iconUndo"></use></svg>
+            ${window.siyuan.languages.reset}
+        </button>
     </div>
-    <div class="b3-list b3-list--border b3-list--background">
-        <div class="b3-list-item b3-list-item--narrow toggle">
-            <span class="b3-list-item__toggle b3-list-item__toggle--hl">
-                <svg class="b3-list-item__arrow b3-list-item__arrow--open"><use xlink:href="#iconRight"></use></svg>
-            </span>
-            <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.editor}</span>
+</div>
+<div class="config-group">
+    <div class="b3-label file-tree config-keymap" id="keymapList">
+        <div class="fn__flex config__item">
+            <label class="b3-form__icon fn__block">
+                <svg class="b3-form__icon-icon"><use xlink:href="#iconSearch"></use></svg>
+                <input id="keymapInput" class="b3-form__icon-input b3-text-field fn__block" placeholder="${window.siyuan.languages.search}">
+            </label>
+            <div class="fn__space"></div>
+            <label class="b3-form__icon fn__block searchByKeyLabel">
+                <svg class="b3-form__icon-icon"><use xlink:href="#iconKeymap"></use></svg>
+                <input id="searchByKey" style="font-family: var(--b3-font-family-kbd);" data-keymap="" class="b3-form__icon-input b3-text-field fn__block" spellcheck="false" placeholder="${window.siyuan.languages.keymap}">
+            </label>
+            <div class="fn__space"></div>
+            <button id="clearSearchBtn" class="b3-button b3-button--outline fn__flex-center fn__size200">
+                <svg><use xlink:href="#iconClose"></use></svg>
+                ${window.siyuan.languages.clear}
+            </button>
         </div>
-        <div class="b3-list__panel">
+        <div class="fn__hr"></div>
+        <div class="b3-list b3-list--border b3-list--background">
             <div class="b3-list-item b3-list-item--narrow toggle">
-                <span class="b3-list-item__toggle b3-list-item__toggle--hl">
-                    <svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg>
-                </span>
+                <span class="b3-list-item__toggle b3-list-item__toggle--hl"><svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg></span>
                 <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.general}</span>
             </div>
-            <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.editor.general, "editor" + Constants.ZWSP + "general")}</div>
-            <div class="b3-list-item b3-list-item--narrow toggle">
-                <span class="b3-list-item__toggle b3-list-item__toggle--hl">
-                    <svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg>
-                </span>
-                <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.element}</span>
-            </div>
-            <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.editor.insert, "editor" + Constants.ZWSP + "insert")}</div>
-            <div class="b3-list-item b3-list-item--narrow toggle">
-                <span class="b3-list-item__toggle b3-list-item__toggle--hl">
-                    <svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg>
-                </span>
-                <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.headings}</span>
-            </div>
-            <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.editor.heading, "editor" + Constants.ZWSP + "heading")}</div>
-            <div class="b3-list-item b3-list-item--narrow toggle">
-                <span class="b3-list-item__toggle b3-list-item__toggle--hl">
-                    <svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg>
-                </span>
-                <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.list1}</span>
-            </div>
-            <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.editor.list, "editor" + Constants.ZWSP + "list")}</div>
-            <div class="b3-list-item b3-list-item--narrow toggle">
-                <span class="b3-list-item__toggle b3-list-item__toggle--hl">
-                    <svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg>
-                </span>
-                <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.table}</span>
-            </div>
-            <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.editor.table, "editor" + Constants.ZWSP + "table")}</div>
+            <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.general, "general")}</div>
         </div>
+        <div class="b3-list b3-list--border b3-list--background">
+            <div class="b3-list-item b3-list-item--narrow toggle">
+                <span class="b3-list-item__toggle b3-list-item__toggle--hl">
+                    <svg class="b3-list-item__arrow b3-list-item__arrow--open"><use xlink:href="#iconRight"></use></svg>
+                </span>
+                <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.editor}</span>
+            </div>
+            <div class="b3-list__panel">
+                <div class="b3-list-item b3-list-item--narrow toggle">
+                    <span class="b3-list-item__toggle b3-list-item__toggle--hl">
+                        <svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg>
+                    </span>
+                    <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.general}</span>
+                </div>
+                <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.editor.general, "editor" + Constants.ZWSP + "general")}</div>
+                <div class="b3-list-item b3-list-item--narrow toggle">
+                    <span class="b3-list-item__toggle b3-list-item__toggle--hl">
+                        <svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg>
+                    </span>
+                    <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.element}</span>
+                </div>
+                <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.editor.insert, "editor" + Constants.ZWSP + "insert")}</div>
+                <div class="b3-list-item b3-list-item--narrow toggle">
+                    <span class="b3-list-item__toggle b3-list-item__toggle--hl">
+                        <svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg>
+                    </span>
+                    <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.headings}</span>
+                </div>
+                <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.editor.heading, "editor" + Constants.ZWSP + "heading")}</div>
+                <div class="b3-list-item b3-list-item--narrow toggle">
+                    <span class="b3-list-item__toggle b3-list-item__toggle--hl">
+                        <svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg>
+                    </span>
+                    <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.list1}</span>
+                </div>
+                <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.editor.list, "editor" + Constants.ZWSP + "list")}</div>
+                <div class="b3-list-item b3-list-item--narrow toggle">
+                    <span class="b3-list-item__toggle b3-list-item__toggle--hl">
+                        <svg class="b3-list-item__arrow"><use xlink:href="#iconRight"></use></svg>
+                    </span>
+                    <span class="b3-list-item__text ft__on-surface">${window.siyuan.languages.table}</span>
+                </div>
+                <div class="fn__none b3-list__panel">${keymap._genItem(window.siyuan.config.keymap.editor.table, "editor" + Constants.ZWSP + "table")}</div>
+            </div>
+        </div>
+        ${pluginHtml}
     </div>
-    ${pluginHtml}
 </div>`;
     },
     _setkeymap(app: App) {
