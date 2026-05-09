@@ -3,7 +3,8 @@ import * as path from "path";
 /// #endif
 import {Constants} from "../constants";
 import {exportLayout, resetLayout} from "../layout/util";
-import {isBrowser} from "../util/functions";
+import {readCookieValue} from "../util/cookie";
+import {isBrowser, isMobile} from "../util/functions";
 import {fetchPost} from "../util/fetch";
 import {genLangOptions, genOptions} from "../util/genOptions";
 import {openSnippets} from "./util/snippets";
@@ -276,7 +277,11 @@ export const appearance = {
                 <div class="b3-label__text">${window.siyuan.languages.mobileModeTip}</div>
             </div>
             <div class="fn__space"></div>
-            <input class="b3-switch fn__flex-center" id="desktopMode" type="checkbox" checked>
+            ${(() => {
+                const raw = readCookieValue("siyuan-desktop-mode");
+                const desktopModeChecked = raw === "true" || (raw !== "false" && !isMobile());
+                return `<input class="b3-switch fn__flex-center" id="desktopMode" type="checkbox"${desktopModeChecked ? " checked" : ""}>`;
+            })()}
         </label>
     </div>
 </div>`;
