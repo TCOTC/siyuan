@@ -1,18 +1,8 @@
 import type {EditorRow} from "./editorEntries";
-import {getEditorRowById, getEditorSections} from "./editorEntries";
+import {getEditorSections} from "./editorEntries";
 import {getAtPath} from "./editorMergePatch";
 
 const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config.editor, id));
-
-const getNumberInputAttrs = (id: string): {value: number; min?: number; max?: number} => {
-    const row = getEditorRowById().get(id);
-    const raw = getAtPath(window.siyuan.config.editor, id);
-    const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
-    if (row?.type === "number") {
-        return {value, min: row.min, max: row.max};
-    }
-    return {value: 0};
-};
 
 const renderSwitchRow = (id: string, title: string, desc: string, checked: boolean): string =>
     `<label class="fn__flex b3-label">
@@ -52,7 +42,8 @@ const renderNumberRow = (
     min?: number,
     max?: number
 ): string => {
-    const {value} = getNumberInputAttrs(id);
+    const raw = getAtPath(window.siyuan.config.editor, id);
+    const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
     const minAttr = min !== undefined ? ` min="${min}"` : "";
     const maxAttr = max !== undefined ? ` max="${max}"` : "";
     return `<div class="fn__flex b3-label config__item">

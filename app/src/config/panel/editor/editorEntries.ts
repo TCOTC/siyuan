@@ -394,19 +394,6 @@ export function getEditorSections(): EditorSection[] {
     ];
 }
 
-/** 工厂项 `id` → 行定义（解析 `type`、保存时读 DOM）；每次与当前分组一致。 */
-export function getEditorRowById(): Map<string, EditorRow> {
-    const m = new Map<string, EditorRow>();
-    getEditorSections().forEach((sec) => {
-        sec.items.forEach((row) => {
-            if ("id" in row && row.id) {
-                m.set(row.id, row);
-            }
-        });
-    });
-    return m;
-}
-
 /** 设置搜索「一级标签」索引：`getLang` 所用的 languages 键（过渡期，迁移至注册表驱动后可删） */
 export const EDITOR_TAB_SEARCH_LANG_KEYS: string[] = [
     "editor",

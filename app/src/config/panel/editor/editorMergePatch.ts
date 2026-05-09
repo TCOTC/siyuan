@@ -1,6 +1,3 @@
-import type {EditorRow} from "./editorEntries";
-import {getEditorRowById} from "./editorEntries";
-
 /** 按实心点路径读取配置（与控件 `id` 约定一致） */
 export function getAtPath(root: unknown, dottedPath: string): unknown {
     const segments = dottedPath.split(".");
@@ -71,46 +68,53 @@ function clampNumber(
     return v;
 }
 
-function readDomValue(controlId: string, row: EditorRow, el: HTMLElement): unknown {
-    switch (row.type) {
-        case "custom":
-            return undefined;
-        case "switch":
-            return (el as HTMLInputElement).checked;
-        case "select":
-            return parseInt((el as HTMLSelectElement).value, 10);
-        case "text":
-            return (el as HTMLInputElement).value;
-        case "number": {
-            const input = el as HTMLInputElement;
-            let n = parseInt(input.value, 10);
-            if (Number.isNaN(n)) {
-                n = row.min ?? 0;
-            }
-            let min = row.min;
-            const max = row.max;
-            if (controlId === "dynamicLoadBlocks") {
-                min = 48;
-            }
-            n = clampNumber(n, min, max, input);
-            return n;
+function parseInputBound(el: HTMLInputElement, attr: "min" | "max"): number | undefined {
+    const s = el.getAttribute(attr);
+    if (s === null || s === "") {
+        return undefined;
+    }
+    const n = parseInt(s, 10);
+    return Number.isNaN(n) ? undefined : n;
+}
+
+/** 仅依据 DOM（与 renderEditorHtml 生成的属性一致），不依赖编辑器行定义表 */
+function readDomValueFromEl(el: HTMLElement): unknown {
+    if (el instanceof HTMLSelectElement) {
+        return parseInt(el.value, 10);
+    }
+    if (el instanceof HTMLTextAreaElement) {
+        return el.value;
+    }
+    if (el instanceof HTMLInputElement) {
+        if (el.type === "checkbox") {
+            return el.checked;
         }
-        case "range": {
-            const input = el as HTMLInputElement;
-            let n = parseInt(input.value, 10);
+        if (el.type === "number") {
+            let n = parseInt(el.value, 10);
             if (Number.isNaN(n)) {
-                n = row.min;
+                return undefined;
             }
-            n = clampNumber(n, row.min, row.max, input);
-            const parent = input.parentElement;
+            const minV = parseInputBound(el, "min");
+            const maxV = parseInputBound(el, "max");
+            return clampNumber(n, minV, maxV, el);
+        }
+        if (el.type === "range") {
+            let n = parseInt(el.value, 10);
+            if (Number.isNaN(n)) {
+                return undefined;
+            }
+            const minV = parseInputBound(el, "min");
+            const maxV = parseInputBound(el, "max");
+            n = clampNumber(n, minV, maxV, el);
+            const parent = el.parentElement;
             if (parent) {
                 parent.setAttribute("aria-label", String(n));
             }
             return n;
         }
-        default:
-            return undefined;
+        return el.value;
     }
+    return undefined;
 }
 
 /**
@@ -129,26 +133,12 @@ export function mergeEditorFromControlId(root: HTMLElement, controlId: string): 
     }
     /// #endif
 
-    const row = getEditorRowById().get(controlId);
     const el = root.querySelector<HTMLElement>(`[id="${CSS.escape(controlId)}"]`);
     if (!el) {
         return prev;
     }
 
-    if (!row) {
-        if (controlId === "readOnly" && el instanceof HTMLInputElement && el.type === "checkbox") {
-            return assignByDottedPath(prev, controlId, el.checked);
-        }
-        if (el instanceof HTMLTextAreaElement) {
-            return assignByDottedPath(prev, controlId, el.value);
-        }
-        if (el instanceof HTMLInputElement && el.type === "checkbox") {
-            return assignByDottedPath(prev, controlId, el.checked);
-        }
-        return prev;
-    }
-
-    const value = readDomValue(controlId, row, el);
+    const value = readDomValueFromEl(el);
     if (value === undefined) {
         return prev;
     }
