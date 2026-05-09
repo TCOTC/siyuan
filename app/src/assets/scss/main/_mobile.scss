@@ -261,39 +261,6 @@
       background-color: var(--b3-theme-background);
     }
   }
-
-  // 侧栏设置进入全屏模型时根节点带 `config--mobile`，与窄屏设置面板一致的表单项换行
-  .config--mobile .config__item {
-    flex-wrap: wrap;
-
-    & > .b3-text-field,
-    & > .b3-select,
-    .b3-slider,
-    & > .b3-button,
-    & > .b3-tooltips,
-    &-line,
-    .searchByKeyLabel {
-      width: 100%;
-      margin-top: 8px;
-    }
-  }
-
-  .config--mobile .config-keymap {
-    label.b3-list-item {
-      flex-wrap: wrap;
-    }
-
-    .b3-list-item__action {
-      display: flex;
-    }
-
-    .config-keymap__key,
-    .b3-text-field {
-      width: 100%;
-      margin-left: 0 !important;
-      text-align: center;
-    }
-  }
 }
 
 #menu {
