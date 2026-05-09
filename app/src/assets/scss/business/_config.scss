@@ -49,20 +49,6 @@
         padding: 16px 40px 0 40px;
         font-size: 16px;
       }
-
-      // 账号分组：列表内侧留白，避免滚动区域内控件 hover 外扩阴影贴边被裁切（不必再用 overflow / filter 等方式补救）
-      &--account .config-account__list {
-        padding: 8px 8px 16px;
-        box-sizing: border-box;
-
-        #configAccountLoginRoot {
-          box-sizing: border-box;
-          max-width: 420px;
-          width: 100%;
-          margin-left: auto;
-          margin-right: auto;
-        }
-      }
     }
 
   }
@@ -176,35 +162,8 @@
       margin-left: auto;
     }
 
-    &__row {
-      // 仅登录态头像行垂直居中；访客行多为多行说明文案，与按钮顶对齐更易读（否则整段文字相对按钮垂直居中会显得「不居中」）
-      &--profile:not(&--guest) {
-        align-items: center;
-      }
-
-      &--guest {
-        align-items: flex-start;
-      }
-    }
-
-    &__row--pay {
-      .b3-button {
-        margin: 4px 0;
-      }
-    }
-
-    &__row--profile {
-      border-radius: var(--b3-border-radius);
-      color: var(--b3-theme-on-surface);
-      background-color: var(--b3-theme-surface);
-    }
-
     &__row-actions {
       align-items: center;
-    }
-
-    &__profile {
-      padding: 12px;
     }
 
     &__profile-avatar {
@@ -220,23 +179,6 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-    }
-
-    &__profile-avatar--guest {
-      color: var(--b3-theme-on-surface-light);
-
-      svg {
-        height: 24px;
-        width: 24px;
-      }
-    }
-
-    &__profile-name {
-      font-weight: 600;
-    }
-
-    &__profile--guest {
-      color: var(--b3-theme-on-surface);
     }
 
     &__center {
@@ -488,4 +430,10 @@
       }
     }
   }
+}
+
+#configAccountLoginRoot {
+  max-width: 400px;
+  width: 100%;
+  align-self: center;
 }

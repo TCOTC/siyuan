@@ -13,6 +13,13 @@ import {openByMobile, writeText} from "../protyle/util/compatibility";
 import {bindLoginEvent, getLoginHTML} from "./mobileCloudAuth";
 import {Dialog} from "../dialog";
 
+/** 临时调试：桌面端在账号分组内按 iOS 逻辑渲染付费按钮区（仅 buildAccountSectionHTML 读取） */
+let accountDebugSimulateIOS = false;
+/** 临时调试：切到「未登录」时缓存的 user，用于切回「已登录」或拉取云端后对齐 */
+let accountDebugSavedUser: NonNullable<typeof window.siyuan.user> | null = null;
+/** 临时调试：勾选「有 userNickname」时写回的昵称（来自当前 user、备份或取消勾选前的值） */
+let accountDebugNicknameRestore = "";
+
 const genSVGBG = () => {
     let html = "";
     const svgs: string[] = [];
@@ -520,7 +527,7 @@ const bindProviderEvent = () => {
 };
 
 const buildAccountSectionHTML = (onlyPayHTML = false) => {
-        const isIOS = isInIOS();
+        const isIOS = accountDebugSimulateIOS || isInIOS();
         let payHTML;
         if (isIOS) {
             // 已付费
@@ -611,22 +618,23 @@ ${genSVGBG()}
                     paymentActionHTML = payHTML;
                 }
             }
-            return `<div class="config-account__list">
-<div class="fn__flex b3-label config__item config-account__row config-account__row--profile">
+            const memberUrl = getCloudURL("member/" + window.siyuan.user.userName);
+            const displayName = window.siyuan.user.userNickname
+                ? `<div class="fn__flex"><b>${window.siyuan.user.userNickname}</b><span class="fn__space"></span>
+<a target="_blank" class="fn__a ft__smaller" href="${memberUrl}">${window.siyuan.user.userName}</a></div>`
+                : `<div class="fn__flex"><a target="_blank" class="fn__a" href="${memberUrl}"><b>${window.siyuan.user.userName}</b></a></div>`;
+
+            return `<div class="fn__flex b3-label config__item" style="align-items: center;">
     <a href="${getCloudURL("settings/avatar")}" class="config-account__profile-avatar" style="background-image: url(${window.siyuan.user.userAvatarURL})" target="_blank"></a>
     <span class="fn__space"></span>
-    <div class="fn__flex-1 config-account__profile">
-        <a target="_blank" class="fn__a config-account__profile-name" href="${getCloudURL("member/" + window.siyuan.user.userName)}">${window.siyuan.user.userName}</a>
-        <div class="b3-label__text">
-            <span>${0 === window.siyuan.config.cloudRegion ? "ld246.com" : "liuyun.io"}</span>
-            <span class="fn__space"></span>
-            <span>${window.siyuan.user.userNickname || ""}</span>
-        </div>
+    <div class="fn__flex-1">
+        ${displayName}
+        <div class="b3-label__text">${0 === window.siyuan.config.cloudRegion ? "ld246.com" : "liuyun.io"}</div>
     </div>
     <span class="fn__space"></span>
     <div class="fn__flex config-account__row-actions">
-        <button class="b3-button b3-button--outline" id="refresh" aria-label="${window.siyuan.languages.refreshUserInfo}">
-    <svg><use xlink:href="#iconRefresh"></use></svg>${window.siyuan.languages.refreshUserInfo}
+        <button class="b3-button b3-button--outline" id="refresh">
+    <svg><use xlink:href="#iconRefresh"></use></svg>${window.siyuan.languages.refresh}
 </button>
         <span class="fn__space"></span>
         <button type="button" class="b3-button b3-button--text${window.siyuan.config.system.container === "ios" ? "" : " fn__none"}" id="deactivateUser">${window.siyuan.languages.deactivateUser}</button>
@@ -636,7 +644,7 @@ ${genSVGBG()}
         <button class="b3-button b3-button--cancel" id="logout">${window.siyuan.languages.logout}</button>
     </div>
 </div>
-<div class="fn__flex b3-label config__item config-account__row config-account__row--pay">
+<div class="fn__flex b3-label config__item">
     <div class="fn__flex-1 config-account__pay-content">
         <div class="fn__flex config-account__pay-header">
             <span class="config-account__pay-label">${window.siyuan.languages.paymentStatus}</span>
@@ -646,12 +654,12 @@ ${genSVGBG()}
         <div class="b3-label__text${activeSubscriptionHTML ? "" : " fn__none"}">${activeSubscriptionHTML}</div>
     </div>
 </div>
-<label class="fn__flex b3-label config__item">
+<label class="fn__flex b3-label config__item${window.siyuan.user.userTitles.length > 0 ? "" : " fn__none"}">
     <div class="fn__flex-1 config-account__pay-content">
         <div class="fn__flex config-account__pay-header">
             <span>${window.siyuan.languages.accountDisplayTitle}</span>
             <span class="fn__space"></span>
-            <span class="fn__flex config-account__pay-status${window.siyuan.user.userTitles.length > 0 ? "" : " fn__none"}">${userTitlesHTML}</span>
+            <span class="fn__flex config-account__pay-status">${userTitlesHTML}</span>
         </div>
     </div>
     <span class="fn__space"></span>
@@ -661,13 +669,10 @@ ${genSVGBG()}
     <div class="fn__flex-1">${window.siyuan.languages.accountDisplayVIP}</div>
     <span class="fn__space"></span>
     <input class="b3-switch fn__flex-center" id="displayVIP" type="checkbox"${window.siyuan.config.account.displayVIP ? " checked" : ""}/>
-</label>
-</div>`;
+</label>`;
         }
-        return `<div class="config-account__list" id="configAccountGuestList">
-<div class="b3-label config__item fn__flex-column">
+        return `<div class="b3-label config__item fn__flex-column">
     <div id="configAccountLoginRoot" class="fn__flex-1">${getLoginHTML()}</div>
-</div>
 </div>`;
 };
 
@@ -1145,5 +1150,285 @@ export const sync = {
         sync.bindAccountEvent(root);
         bindSyncReposGroupDelegatedClick(root);
         sync.bindReposEvent();
+        mountSiyuanAccountDebugPanel();
     },
 };
+
+/** 临时：全局浮动面板，篡改 window.siyuan.user 等以预览账号分组 UI，用完请删 */
+function mountSiyuanAccountDebugPanel() {
+    if (document.getElementById("siyuanAccountDebugPanel")) {
+        return;
+    }
+    const wrap = document.createElement("div");
+    wrap.id = "siyuanAccountDebugPanel";
+    wrap.setAttribute("data-temp-debug", "account");
+    wrap.style.cssText = "position:fixed;right:6px;bottom:6px;z-index:2147483646;max-width:min(360px,calc(100vw - 12px));font-size:12px;box-shadow:var(--b3-dialog-shadow);border-radius:var(--b3-border-radius);background:var(--b3-theme-background);border:1px solid var(--b3-border-color);";
+    wrap.innerHTML = `<div class="fn__flex" style="padding:8px 10px;cursor:pointer;user-select:none;border-bottom:1px solid var(--b3-border-color);" id="siyuanAccountDebugHead">
+    <span class="fn__flex-1 ft__on-surface">账号分组调试（临时）</span>
+    <span class="ft__secondary" id="siyuanAccountDebugToggle">▲</span>
+</div>
+<div id="siyuanAccountDebugBody" style="padding:10px;display:block;">
+    <div class="ft__smaller ft__secondary" style="margin-bottom:6px;">登录状态</div>
+    <select class="b3-select fn__block" id="siyuanAccountDebugLogin" style="margin-bottom:8px;">
+        <option value="in">已登录</option>
+        <option value="out">未登录</option>
+        <option value="2fa">两步验证码</option>
+    </select>
+    <label class="fn__flex" style="margin-bottom:8px;align-items:center;gap:8px;">
+        <span class="fn__flex-1">模拟 iOS 付费区</span>
+        <input type="checkbox" id="siyuanAccountDebugIos"/>
+    </label>
+    <label class="fn__flex" style="margin-bottom:8px;align-items:center;gap:8px;">
+        <span class="fn__flex-1">有 userNickname</span>
+        <input type="checkbox" id="siyuanAccountDebugNickname"/>
+    </label>
+    <div class="ft__smaller ft__secondary" style="margin-bottom:6px;">会员场景（需已登录）</div>
+    <select class="b3-select fn__block" id="siyuanAccountDebugPreset" style="margin-bottom:8px;">
+        <option value="">— 选择预设 —</option>
+        <option value="free">未订阅、未买断</option>
+        <option value="onetimeOnly">仅买断（无订阅）</option>
+        <option value="yearSub">年费订阅中</option>
+        <option value="subAndOnetime">同时买断和订阅</option>
+        <option value="trialSub">试用订阅中</option>
+        <option value="lifetime">终身会员</option>
+        <option value="expired">订阅已过期</option>
+    </select>
+    <div class="ft__smaller ft__secondary" style="margin-bottom:6px;">头衔</div>
+    <select class="b3-select fn__block" id="siyuanAccountDebugTitles" style="margin-bottom:8px;">
+        <option value="keep">保持当前</option>
+        <option value="none">无头衔</option>
+        <option value="one">单个示例头衔</option>
+        <option value="two">两个示例头衔</option>
+    </select>
+    <div class="fn__flex" style="gap:6px;">
+        <button type="button" class="b3-button b3-button--outline fn__flex-1 fn__flex-center" id="siyuanAccountDebugReloadUI">刷新界面</button>
+        <button type="button" class="b3-button b3-button--text fn__flex-1 fn__flex-center" id="siyuanAccountDebugCloud">拉取云端恢复</button>
+    </div>
+</div>`;
+    document.body.appendChild(wrap);
+    const body = wrap.querySelector("#siyuanAccountDebugBody") as HTMLElement;
+    const head = wrap.querySelector("#siyuanAccountDebugHead") as HTMLElement;
+    const toggleMark = wrap.querySelector("#siyuanAccountDebugToggle") as HTMLElement;
+    head.addEventListener("click", () => {
+        const open = body.style.display !== "none";
+        body.style.display = open ? "none" : "block";
+        toggleMark.textContent = open ? "▼" : "▲";
+    });
+    const loginSelect = wrap.querySelector("#siyuanAccountDebugLogin") as HTMLSelectElement;
+    const iosInput = wrap.querySelector("#siyuanAccountDebugIos") as HTMLInputElement;
+    const nicknameInput = wrap.querySelector("#siyuanAccountDebugNickname") as HTMLInputElement;
+    const presetSelect = wrap.querySelector("#siyuanAccountDebugPreset") as HTMLSelectElement;
+    const titlesSelect = wrap.querySelector("#siyuanAccountDebugTitles") as HTMLSelectElement;
+    if (window.siyuan.user) {
+        accountDebugSavedUser = structuredClone(window.siyuan.user);
+    }
+    accountDebugNicknameRestore = window.siyuan.user?.userNickname?.trim() ?? "";
+    loginSelect.value = window.siyuan.user ? "in" : "out";
+    iosInput.checked = accountDebugSimulateIOS;
+    nicknameInput.checked = !!window.siyuan.user?.userNickname;
+    const applyTitles = (mode: string) => {
+        const u = window.siyuan.user;
+        if (!u || mode === "keep") {
+            return;
+        }
+        if (mode === "none") {
+            u.userTitles = [];
+        } else if (mode === "one") {
+            u.userTitles = [{name: "调试头衔", icon: "🏅", desc: "临时"}];
+        } else if (mode === "two") {
+            u.userTitles = [
+                {name: "头衔 A", icon: "⭐", desc: ""},
+                {name: "头衔 B", icon: "🎖️", desc: ""},
+            ];
+        }
+    };
+    const applyPreset = (key: string) => {
+        const u = window.siyuan.user;
+        if (!u || !key) {
+            return;
+        }
+        const now = Date.now();
+        const d30 = now + 30 * 86400000;
+        switch (key) {
+            case "lifetime":
+                u.userSiYuanProExpireTime = -1;
+                u.userSiYuanSubscriptionStatus = 0;
+                u.userSiYuanOneTimePayStatus = 0;
+                u.userSiYuanSubscriptionPlan = 0;
+                break;
+            case "yearSub":
+                u.userSiYuanProExpireTime = d30;
+                u.userSiYuanSubscriptionPlan = 0;
+                u.userSiYuanSubscriptionStatus = 0;
+                u.userSiYuanOneTimePayStatus = 0;
+                break;
+            case "subAndOnetime":
+                u.userSiYuanProExpireTime = d30;
+                u.userSiYuanSubscriptionPlan = 0;
+                u.userSiYuanSubscriptionStatus = 0;
+                u.userSiYuanOneTimePayStatus = 1;
+                break;
+            case "trialSub":
+                u.userSiYuanProExpireTime = d30;
+                u.userSiYuanSubscriptionPlan = 2;
+                u.userSiYuanSubscriptionStatus = 0;
+                u.userSiYuanOneTimePayStatus = 0;
+                break;
+            case "expired":
+                u.userSiYuanProExpireTime = now - 86400000;
+                u.userSiYuanSubscriptionStatus = 2;
+                u.userSiYuanOneTimePayStatus = 0;
+                u.userSiYuanSubscriptionPlan = 0;
+                break;
+            case "free":
+                u.userSiYuanProExpireTime = 0;
+                u.userSiYuanSubscriptionStatus = -1;
+                u.userSiYuanOneTimePayStatus = 0;
+                break;
+            case "onetimeOnly":
+                u.userSiYuanProExpireTime = 0;
+                u.userSiYuanSubscriptionStatus = -1;
+                u.userSiYuanOneTimePayStatus = 1;
+                break;
+            default:
+                break;
+        }
+    };
+    const refreshAccountGroup = () => {
+        const el = sync.element;
+        if (!el) {
+            return;
+        }
+        sync.renderAccount(el);
+        sync.bindAccountEvent(el);
+        sync.onSetaccount();
+    };
+    const applyAccountDebugLoginFormPhase = () => {
+        const el = sync.element;
+        if (!el || window.siyuan.user) {
+            return;
+        }
+        const loginRoot = el.querySelector("#configAccountLoginRoot");
+        if (!loginRoot) {
+            return;
+        }
+        const form1 = loginRoot.querySelector("#form1");
+        const form2 = loginRoot.querySelector("#form2");
+        if (!form1 || !form2) {
+            return;
+        }
+        if (loginSelect.value === "2fa") {
+            form1.classList.add("fn__none");
+            form2.classList.remove("fn__none");
+        } else {
+            form2.classList.add("fn__none");
+            form1.classList.remove("fn__none");
+        }
+    };
+    const applyDebugControlsAndRefresh = () => {
+        accountDebugSimulateIOS = iosInput.checked;
+        const preset = presetSelect.value;
+        const titlesMode = titlesSelect.value;
+        if (window.siyuan.user) {
+            applyPreset(preset);
+            applyTitles(titlesMode);
+            if (nicknameInput.checked) {
+                const nick = accountDebugNicknameRestore
+                    || accountDebugSavedUser?.userNickname?.trim()
+                    || window.siyuan.user.userNickname?.trim()
+                    || "";
+                window.siyuan.user.userNickname = nick;
+                if (nick) {
+                    accountDebugNicknameRestore = nick;
+                }
+            } else {
+                const cur = window.siyuan.user.userNickname?.trim();
+                if (cur) {
+                    accountDebugNicknameRestore = cur;
+                }
+                window.siyuan.user.userNickname = "";
+            }
+            nicknameInput.checked = !!window.siyuan.user.userNickname?.trim();
+        } else if (preset || titlesMode !== "keep" || nicknameInput.checked) {
+            showMessage("请先登录后再试会员 / 头衔预设", 4000);
+        }
+        refreshAccountGroup();
+        applyAccountDebugLoginFormPhase();
+    };
+    const finishLoginStateRefresh = () => {
+        if (window.siyuan.user) {
+            loginSelect.value = "in";
+        } else if (loginSelect.value !== "2fa") {
+            loginSelect.value = "out";
+        }
+        nicknameInput.checked = !!window.siyuan.user?.userNickname;
+        if (window.siyuan.user) {
+            accountDebugNicknameRestore = window.siyuan.user.userNickname?.trim() ?? "";
+        }
+        refreshAccountGroup();
+        processSync();
+        const el = sync.element;
+        if (el) {
+            sync.refreshSyncReposGroup(el);
+        }
+        applyAccountDebugLoginFormPhase();
+    };
+    loginSelect.addEventListener("change", () => {
+        const v = loginSelect.value;
+        if (v === "in") {
+            if (accountDebugSavedUser) {
+                window.siyuan.user = structuredClone(accountDebugSavedUser);
+                finishLoginStateRefresh();
+            } else {
+                fetchPost("/api/setting/getCloudUser", {
+                    token: "",
+                }, (response) => {
+                    window.siyuan.user = response.data;
+                    if (window.siyuan.user) {
+                        accountDebugSavedUser = structuredClone(window.siyuan.user);
+                    } else {
+                        showMessage("当前无云端登录态，请先正常登录", 4000);
+                        loginSelect.value = "out";
+                    }
+                    finishLoginStateRefresh();
+                });
+            }
+        } else {
+            if (window.siyuan.user) {
+                accountDebugSavedUser = structuredClone(window.siyuan.user);
+            }
+            window.siyuan.user = null;
+            finishLoginStateRefresh();
+        }
+    });
+    iosInput.addEventListener("change", applyDebugControlsAndRefresh);
+    nicknameInput.addEventListener("change", applyDebugControlsAndRefresh);
+    presetSelect.addEventListener("change", applyDebugControlsAndRefresh);
+    titlesSelect.addEventListener("change", applyDebugControlsAndRefresh);
+    wrap.querySelector("#siyuanAccountDebugReloadUI")?.addEventListener("click", () => {
+        fetchPost("/api/ui/reloadUI", {});
+    });
+    wrap.querySelector("#siyuanAccountDebugCloud")?.addEventListener("click", () => {
+        fetchPost("/api/setting/getCloudUser", {
+            token: window.siyuan.user?.userToken || accountDebugSavedUser?.userToken || "",
+        }, (response) => {
+            window.siyuan.user = response.data;
+            accountDebugSimulateIOS = false;
+            iosInput.checked = false;
+            presetSelect.value = "";
+            titlesSelect.value = "keep";
+            accountDebugSavedUser = window.siyuan.user ? structuredClone(window.siyuan.user) : null;
+            loginSelect.value = window.siyuan.user ? "in" : "out";
+            nicknameInput.checked = !!window.siyuan.user?.userNickname;
+            accountDebugNicknameRestore = window.siyuan.user?.userNickname?.trim() ?? "";
+            refreshAccountGroup();
+            processSync();
+            const el = sync.element;
+            if (el) {
+                sync.refreshSyncReposGroup(el);
+            }
+            applyAccountDebugLoginFormPhase();
+            showMessage(window.siyuan.languages.refreshUser, 3000);
+        });
+    });
+}
