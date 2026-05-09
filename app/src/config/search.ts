@@ -1,6 +1,7 @@
 import {Constants} from "../constants";
 import type {TConfigTab} from "./types";
 import {CONFIG_TAB_DEFS} from "./tabs";
+import {EDITOR_TAB_SEARCH_LANG_KEYS} from "./panel/editor/editorEntries";
 import {mountConfigTab} from "./mountConfigTab";
 import {keymap} from "./keymap";
 import {App} from "../index";
@@ -186,24 +187,7 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
  * 用于在未展开面板时匹配「应显示哪几个一级标签」。
  */
 const TAB_LANG_KEYS: Record<TConfigTab, string[]> = {
-    editor: [
-        "editor", "configGroupBehavior", "configGroupBlockFeatures", "configGroupBidirectionalLinks",
-        "configGroupMarkdownInlineSyntax", "configGroupAdvanced",
-        "editReadonly", "editReadonlyTip", "spellcheck", "spellcheckTip", "spellcheckTip2",
-        "md29", "md30", "outlineOutdent", "outlineOutdentTip", "listItemDotNumberClickFocus", "listItemDotNumberClickFocusTip",
-        "pasteURLAutoConvert", "pasteURLAutoConvertTip", "dynamicLoadBlocks", "dynamicLoadBlocksTip",
-        "md7", "md8", "md12", "md16", "embedBlockBreadcrumb", "embedBlockBreadcrumbTip",
-        "headingEmbedMode", "headingEmbedModeTip", "showHeadingWithBlocks", "showHeadingOnlyTitle", "showHeadingOnlyBlocks",
-        "md31", "md32", "md2", "md3", "md27", "md28",
-        "onlySearchForDoc", "onlySearchForDocTip", "md37", "md38", "md33", "md34", "md9", "md35", "md36", "md41",
-        "backlinkContainChildren", "backlinkContainChildrenTip", "backlinkExpand", "backlinkExpandTip",
-        "backmentionExpand", "backmentionExpandTip",
-        "editorMarkdownInlineAsterisk", "editorMarkdownInlineAsteriskTip", "editorMarkdownInlineUnderscore", "editorMarkdownInlineUnderscoreTip",
-        "editorMarkdownInlineSup", "editorMarkdownInlineSupTip", "editorMarkdownInlineSub", "editorMarkdownInlineSubTip",
-        "editorMarkdownInlineTag", "editorMarkdownInlineTagTip", "editorMarkdownInlineMath", "editorMarkdownInlineMathTip",
-        "editorMarkdownInlineStrikethrough", "editorMarkdownInlineStrikethroughTip", "editorMarkdownInlineMark", "editorMarkdownInlineMarkTip",
-        "md39", "md40", "katexMacros", "katexMacrosTip", "allowSVGScript", "allowSVGScriptTip", "allowHTMLBLockScript", "allowHTMLBLockScriptTip",
-    ],
+    editor: EDITOR_TAB_SEARCH_LANG_KEYS,
     file: [
         "fileTree", "configGroupTabs", "configGroupNewDocument", "configGroupFileManagement", "configGroupOthers",
         "selectOpen", "fileTree2", "fileTree7", "fileTree8", "noSplitScreenWhenOpenTab", "noSplitScreenWhenOpenTabTip",
