@@ -1,5 +1,5 @@
 import type {EditorRow} from "./editorEntries";
-import {EDITOR_ROW_BY_ID} from "./editorEntries";
+import {getEditorRowById} from "./editorEntries";
 
 /** 按实心点路径读取配置（与控件 `id` 约定一致） */
 export function getAtPath(root: unknown, dottedPath: string): unknown {
@@ -129,7 +129,7 @@ export function mergeEditorFromControlId(root: HTMLElement, controlId: string): 
     }
     /// #endif
 
-    const row = EDITOR_ROW_BY_ID.get(controlId);
+    const row = getEditorRowById().get(controlId);
     const el = root.querySelector<HTMLElement>(`[id="${CSS.escape(controlId)}"]`);
     if (!el) {
         return prev;

@@ -61,8 +61,9 @@ export interface EditorSection {
     items: EditorRow[];
 }
 
-/** 顺序与原版 settings 编辑器标签页一致。文案在模块加载时求值（方案 A）。 */
-export const EDITOR_SECTIONS: EditorSection[] = [
+/** 每次调用时重新构造，避免缓存住随语言/配置变化的文案与闭包。 */
+export function getEditorSections(): EditorSection[] {
+    return [
     {
         title: window.siyuan.languages.configGroupBehavior,
         items: [
@@ -390,12 +391,13 @@ export const EDITOR_SECTIONS: EditorSection[] = [
             },
         ],
     },
-];
+    ];
+}
 
-/** 工厂项 `id` → 行定义（解析 `type`、保存时读 DOM） */
-const buildEditorRowById = (): Map<string, EditorRow> => {
+/** 工厂项 `id` → 行定义（解析 `type`、保存时读 DOM）；每次与当前分组一致。 */
+export function getEditorRowById(): Map<string, EditorRow> {
     const m = new Map<string, EditorRow>();
-    EDITOR_SECTIONS.forEach((sec) => {
+    getEditorSections().forEach((sec) => {
         sec.items.forEach((row) => {
             if ("id" in row && row.id) {
                 m.set(row.id, row);
@@ -403,9 +405,7 @@ const buildEditorRowById = (): Map<string, EditorRow> => {
         });
     });
     return m;
-};
-
-export const EDITOR_ROW_BY_ID: Map<string, EditorRow> = buildEditorRowById();
+}
 
 /** 设置搜索「一级标签」索引：`getLang` 所用的 languages 键（过渡期，迁移至注册表驱动后可删） */
 export const EDITOR_TAB_SEARCH_LANG_KEYS: string[] = [

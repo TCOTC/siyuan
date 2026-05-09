@@ -5,7 +5,7 @@ import {reloadProtyle} from "../../../protyle/util/reload";
 import {resize} from "../../../protyle/util/resize";
 import {setReadOnly} from "../../util/setReadOnly";
 import {Constants} from "../../../constants";
-import {EDITOR_SECTIONS} from "./editorEntries";
+import {getEditorSections} from "./editorEntries";
 import type {EditorBindApi} from "./editorBindApi";
 import {mergeEditorFromControlId} from "./editorMergePatch";
 import {renderEditorTabHtml} from "./renderEditorHtml";
@@ -22,7 +22,7 @@ export const editor = {
         };
         const api: EditorBindApi = {root, scheduleSave};
 
-        for (const section of EDITOR_SECTIONS) {
+        for (const section of getEditorSections()) {
             for (const row of section.items) {
                 if (row.type === "custom" && row.bind) {
                     await row.bind(api);

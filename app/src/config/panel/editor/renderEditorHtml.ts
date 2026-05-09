@@ -1,11 +1,11 @@
 import type {EditorRow} from "./editorEntries";
-import {EDITOR_ROW_BY_ID, EDITOR_SECTIONS} from "./editorEntries";
+import {getEditorRowById, getEditorSections} from "./editorEntries";
 import {getAtPath} from "./editorMergePatch";
 
 const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config.editor, id));
 
 const getNumberInputAttrs = (id: string): {value: number; min?: number; max?: number} => {
-    const row = EDITOR_ROW_BY_ID.get(id);
+    const row = getEditorRowById().get(id);
     const raw = getAtPath(window.siyuan.config.editor, id);
     const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
     if (row?.type === "number") {
@@ -141,10 +141,10 @@ const renderOne = (entry: EditorRow): string => {
     }
 };
 
-/** 按 EDITOR_SECTIONS 生成「设置 — 编辑器」标签页 HTML，结构与原版一致 */
+/** 按 `getEditorSections()` 生成「设置 — 编辑器」标签页 HTML，结构与原版一致 */
 export const renderEditorTabHtml = (): string => {
     const parts: string[] = [];
-    EDITOR_SECTIONS.forEach((section) => {
+    getEditorSections().forEach((section) => {
         parts.push(`<b class="config-group__title">${section.title}</b>`);
         parts.push('<div class="config-group">');
         section.items.forEach((row) => {
