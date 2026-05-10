@@ -1,19 +1,18 @@
-import {buildEditorSections} from "./editorEntries";
+import {buildFileSections} from "./fileEntries";
 import {filterSettingSections} from "../common/settingPanelSearch";
 import {renderSettingTabHtmlFromSections} from "../common/renderSettingHtml";
 import {scheduleSettingSave} from "../../registry/scheduleSettingSave";
-import {applyEditorServerConfig} from "./applyEditorServerConfig";
-import {sendEditorSettingFromControl} from "./sendEditorSetting";
-import type {SettingBindApi} from "../common/settingBindApi";
+import {sendFiletreeSettingFromControl} from "./sendFiletreeSetting";
+import {SettingBindApi} from "../common/settingBindApi";
 
-export const editor = {
+export const file = {
     /**
-     * 挂载编辑器设置
+     * 挂载文档设置
      * @param root 容器
      * @param searchQuery 搜索关键词
      */
     mount: async (root: HTMLElement, searchQuery?: string) => {
-        const sections = filterSettingSections(buildEditorSections(), searchQuery);
+        const sections = filterSettingSections(buildFileSections(), searchQuery);
         root.innerHTML = renderSettingTabHtmlFromSections(sections);
 
         const scheduleSave = (controlId: string) => scheduleSettingSave(root, controlId);
@@ -28,10 +27,10 @@ export const editor = {
 
         root.querySelectorAll("input, select").forEach((item) => {
             item.addEventListener("change", () => {
+                console.log("change", item.id);
                 scheduleSave(item.id);
             });
         });
     },
-    onSetEditor: applyEditorServerConfig,
-    send: sendEditorSettingFromControl,
+    send: sendFiletreeSettingFromControl,
 };

@@ -1,9 +1,12 @@
 import {Constants} from "../constants";
 import type {TConfigTab} from "./types";
 import {getConfigTabDefs} from "./tabs";
-import {getEditorTabSearchStrings} from "./panel/editor/editorEntries";
+import {collectSettingTabSearchStrings} from "./panel/common/settingPanelSearch";
+import {buildEditorSections} from "./panel/editor/editorEntries";
+import {buildFileSections} from "./panel/file/fileEntries";
 import {mountConfigTab} from "./mountConfigTab";
 import {editor} from "./editor";
+import {file} from "./file";
 import {keymap} from "./keymap";
 import {App} from "../index";
 import {isPhablet} from "../protyle/util/compatibility";
@@ -183,24 +186,15 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
     }
 };
 
-type TConfigTabLangKeys = Exclude<TConfigTab, "editor">;
+type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file">;
 
 /**
  * 侧栏标签索引关键词：按一级 Tab 的 `id` 与 `TAB_LANG_KEYS` 的键对应；
  * 用于在未展开面板时匹配「应显示哪几个一级标签」（与侧栏 `li[data-name]` 对齐）。
- * 「编辑器」Tab 见 `getEditorTabSearchStrings()`，不由本表维护。
+ * 「编辑器」与「文档」由 `collectSettingTabSearchStrings` + `buildEditorSections` / `buildFileSections` 从注册表推导，不由本表维护。
  * TODO 最终要实现移除这个对象
  */
 const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
-    file: [
-        "fileTree", "configGroupTabs", "configGroupNewDocument", "configGroupFileManagement", "configGroupOthers",
-        "selectOpen", "fileTree2", "fileTree7", "fileTree8", "noSplitScreenWhenOpenTab", "noSplitScreenWhenOpenTabTip",
-        "tabLimit", "tabLimit1", "fileTree9", "fileTree10", "fileTree24", "fileTree25", "fileTree12", "fileTree13",
-        "fileTree5", "fileTree6", "fileTree26", "fileTree27", "generateHistory", "generateHistoryInterval", "historyRetentionDaysTip",
-        "clearHistory", "purge", "historyRetentionDays", "fileTree16", "fileTree17", "fileTree22", "fileTree23",
-        "fileTree18", "fileTree19", "fileTree20", "fileTree21", "fileTree3", "fileTree4",
-        "recentDocsMaxListCount", "recentDocsMaxListCountTip", "confirmClearHistory",
-    ],
     appearance: [
         "appearance", "configGroupContent", "configGroupInterface", "configGroupControls", "configGroupPersonalization",
         "font", "font1", "editorFontSize", "fontSizeTip", "fontSizeScrollZoom", "fontSizeScrollZoomTip",
@@ -296,10 +290,20 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
     ],
 };
 
+const getTabSearchStrings = (tabId: TConfigTab): string[] => {
+    if (tabId === "editor") {
+        return collectSettingTabSearchStrings(window.siyuan.languages.editor, buildEditorSections());
+    }
+    if (tabId === "file") {
+        return collectSettingTabSearchStrings(window.siyuan.languages.fileTree, buildFileSections());
+    }
+    return getLang(TAB_LANG_KEYS[tabId]);
+};
+
 export const initConfigSearch = (element: HTMLElement, app: App) => {
     const tabSearchStrings = getConfigTabDefs().map((def) => ({
         id: def.id,
-        strings: def.id === "editor" ? getEditorTabSearchStrings() : getLang(TAB_LANG_KEYS[def.id]),
+        strings: getTabSearchStrings(def.id),
     }));
     const inputElement = element.querySelector(".b3-form__icon input") as HTMLInputElement;
     if (!isPhablet()) {
@@ -396,6 +400,11 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
         return;
     }
 
+    if (type === "file" && keywords) {
+        void file.mount(containerElement as HTMLElement, keywords);
+        return;
+    }
+
     if (containerElement.innerHTML === "") {
         mountConfigTab(type, containerElement, app);
     }
@@ -431,6 +440,8 @@ const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
         }
         if (type === "editor") {
             void editor.mount(container);
+        } else if (type === "file") {
+            void file.mount(container as HTMLElement);
         } else if (type === "keymap") {
             keymap.element = container;
             const searchElement = container.querySelector("#keymapInput") as HTMLInputElement | null;

@@ -23,9 +23,7 @@ export const mountConfigTab = (type: TConfigTab, containerElement: Element, app:
             void editor.mount(containerElement as HTMLElement);
             break;
         case "file":
-            file.element = containerElement;
-            containerElement.innerHTML = file.genHTML();
-            file.bindEvent();
+            void file.mount(containerElement as HTMLElement);
             break;
         case "appearance":
             appearance.element = containerElement;

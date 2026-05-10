@@ -16,7 +16,7 @@ import {setStatusBar} from "./util/setStatusBar";
 import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Menu} from "../plugin/Menu";
 import {escapeAttr} from "../util/escape";
-import {editor} from "./editor";
+import {applyEditorServerConfig} from "./panel/editor/applyEditorServerConfig";
 
 export const appearance = {
     element: undefined as Element,
@@ -343,8 +343,7 @@ export const appearance = {
             floatWindowMode,
             floatWindowDelay,
         }, response => {
-            window.siyuan.config.editor = response.data;
-            editor.onSetEditor(response.data);
+            applyEditorServerConfig(response.data);
             if (fontFamilyElement) {
                 fontFamilyElement.dataset.family = response.data.fontFamily || "";
                 fontFamilyElement.dataset.weight = String(response.data.fontWeight ?? 0);

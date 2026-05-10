@@ -1,7 +1,7 @@
-import type {EditorRow, EditorSection} from "./editorEntries";
-import {getAtPath} from "./editorMergePatch";
+import type {SettingRow, SettingSection} from "./settingPanelTypes";
+import {getAtPath} from "../editor/editorMergePatch";
 
-const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config.editor, id));
+const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config, id));
 
 const renderSwitchRow = (id: string, title: string, desc: string, checked: boolean): string =>
     `<label class="fn__flex b3-label">
@@ -34,14 +34,8 @@ const renderRangeRow = (
     </div>
 </div>`;
 
-const renderNumberRow = (
-    id: string,
-    title: string,
-    desc: string,
-    min?: number,
-    max?: number
-): string => {
-    const raw = getAtPath(window.siyuan.config.editor, id);
+const renderNumberRow = (id: string, title: string, desc: string, min?: number, max?: number): string => {
+    const raw = getAtPath(window.siyuan.config, id);
     const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
     const minAttr = min !== undefined ? ` min="${min}"` : "";
     const maxAttr = max !== undefined ? ` max="${max}"` : "";
@@ -90,20 +84,15 @@ const renderTextRow = (id: string, title: string, desc: string, value: string): 
     <input class="b3-text-field fn__flex-center fn__size200" id="${id}" value="${value}"/>
 </div>`;
 
-const renderOne = (entry: EditorRow): string => {
-    const e = window.siyuan.config.editor;
+const renderOne = (entry: SettingRow): string => {
+    const cfg = window.siyuan.config;
     switch (entry.type) {
         case "custom":
             return entry.html();
         case "switch":
-            return renderSwitchRow(
-                entry.id,
-                entry.title,
-                entry.desc,
-                getSwitchChecked(entry.id)
-            );
+            return renderSwitchRow(entry.id, entry.title, entry.desc, getSwitchChecked(entry.id));
         case "range": {
-            const v = getAtPath(e, entry.id);
+            const v = getAtPath(cfg, entry.id);
             const num = typeof v === "number" && !Number.isNaN(v) ? v : entry.min;
             return renderRangeRow(
                 entry.id,
@@ -119,23 +108,32 @@ const renderOne = (entry: EditorRow): string => {
         case "number":
             return renderNumberRow(entry.id, entry.title, entry.desc, entry.min, entry.max);
         case "select": {
-            const cur = getAtPath(e, entry.id);
-            const num = typeof cur === "number" && !Number.isNaN(cur) ? cur : e.headingEmbedMode;
+            const cur = getAtPath(cfg, entry.id);
+            const fallbackHeading = getAtPath(cfg, "editor.headingEmbedMode");
+            const num =
+                typeof cur === "number" && !Number.isNaN(cur)
+                    ? cur
+                    : typeof fallbackHeading === "number" && !Number.isNaN(fallbackHeading)
+                      ? fallbackHeading
+                      : 0;
             return renderSelectRow(entry.id, entry.title, entry.desc, entry.options, num);
         }
         case "text": {
-            const val = getAtPath(e, entry.id);
-            const str = typeof val === "string" ? val : e.plantUMLServePath;
+            const val = getAtPath(cfg, entry.id);
+            const fallbackPath = getAtPath(cfg, "editor.plantUMLServePath");
+            const str = typeof val === "string" ? val : typeof fallbackPath === "string" ? fallbackPath : "";
             return renderTextRow(entry.id, entry.title, entry.desc, str);
         }
     }
 };
 
-/** 按给定节列表生成「设置 — 编辑器」标签页 HTML（全量即传入 `getEditorSections()`） */
-export const renderEditorTabHtmlFromSections = (sections: EditorSection[]): string => {
+/** 按节列表生成设置 Tab HTML（编辑器 / 文档等共用；通常传入 `filterSettingSections(build*Sections(), query)` 的结果） */
+export const renderSettingTabHtmlFromSections = (sections: SettingSection[]): string => {
     const parts: string[] = [];
     sections.forEach((section) => {
-        parts.push(`<b class="config-group__title">${section.title}</b>`);
+        if (section.title) {
+            parts.push(`<b class="config-group__title">${section.title}</b>`);
+        }
         parts.push('<div class="config-group">');
         section.items.forEach((row) => {
             parts.push(renderOne(row));
