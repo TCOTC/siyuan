@@ -2,6 +2,9 @@ import {fetchPost} from "../util/fetch";
 import {confirmDialog} from "../dialog/confirmDialog";
 import {genNotebookOption} from "../menus/onGetnotebookconf";
 
+const isMobileKernelContainer = () =>
+    ["android", "ios", "harmony"].includes(window.siyuan.config.system.container);
+
 export const file = {
     element: undefined as Element,
     genHTML: () => {
@@ -78,7 +81,7 @@ export const file = {
         <input class="b3-text-field fn__flex-1" id="refCreateSavePath" value="${window.siyuan.config.fileTree.refCreateSavePath}">
     </div>
 </div>
-<div class="b3-label config__item${["android", "ios", "harmony"].includes(window.siyuan.config.system.container) ? "" : " fn__none"}">
+${isMobileKernelContainer() ? `<div class="b3-label config__item">
     ${window.siyuan.languages.fileTree26}
     <div class="b3-label__text">${window.siyuan.languages.fileTree27}</div>
     <span class="fn__hr"></span>
@@ -87,7 +90,7 @@ export const file = {
         <div class="fn__space"></div>
         <input class="b3-text-field fn__flex-1" id="shorthandSavePath" value="${window.siyuan.config.fileTree.shorthandSavePath}">
     </div>
-</div>
+</div>` : ""}
 </div>
 <b class="config-group__title">${window.siyuan.languages.configGroupFileManagement}</b>
 <div class="config-group">
@@ -192,8 +195,10 @@ export const file = {
             alwaysSelectOpenedFile: (file.element.querySelector("#alwaysSelectOpenedFile") as HTMLInputElement).checked,
             refCreateSavePath: (file.element.querySelector("#refCreateSavePath") as HTMLInputElement).value,
             refCreateSaveBox: (file.element.querySelector("#refCreateSaveBox") as HTMLInputElement).value,
-            shorthandSavePath: (file.element.querySelector("#shorthandSavePath") as HTMLInputElement).value,
-            shorthandSaveBox: (file.element.querySelector("#shorthandSaveBox") as HTMLInputElement).value,
+            ...(isMobileKernelContainer() ? {
+                shorthandSavePath: (file.element.querySelector("#shorthandSavePath") as HTMLInputElement).value,
+                shorthandSaveBox: (file.element.querySelector("#shorthandSaveBox") as HTMLInputElement).value,
+            } : {}),
             docCreateSavePath: (file.element.querySelector("#docCreateSavePath") as HTMLInputElement).value,
             docCreateSaveBox: (file.element.querySelector("#docCreateSaveBox") as HTMLInputElement).value,
             openFilesUseCurrentTab: (file.element.querySelector("#openFilesUseCurrentTab") as HTMLInputElement).checked,
@@ -222,7 +227,10 @@ export const file = {
     bindEvent: () => {
         (file.element.querySelector("#docCreateSavePath") as HTMLInputElement).value = window.siyuan.config.fileTree.docCreateSavePath;
         (file.element.querySelector("#refCreateSavePath") as HTMLInputElement).value = window.siyuan.config.fileTree.refCreateSavePath;
-        (file.element.querySelector("#shorthandSavePath") as HTMLInputElement).value = window.siyuan.config.fileTree.shorthandSavePath;
+        if (isMobileKernelContainer()) {
+            (file.element.querySelector("#shorthandSavePath") as HTMLInputElement).value =
+                window.siyuan.config.fileTree.shorthandSavePath;
+        }
         file.element.querySelector("#clearHistory").addEventListener("click", () => {
             confirmDialog(window.siyuan.languages.clearHistory, window.siyuan.languages.confirmClearHistory, () => {
                 fetchPost("/api/history/clearWorkspaceHistory", {});
