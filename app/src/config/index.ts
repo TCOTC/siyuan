@@ -5,20 +5,20 @@ import {initConfigSearch, switchConfigTab} from "./search";
 import {Dialog} from "../dialog";
 import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";
-import {CONFIG_TAB_DEFS, getConfigTabTitle, isConfigTabMenuHidden} from "./tabs";
+import {getConfigTabDefs, getConfigTabTitle, isConfigTabMenuHidden} from "./tabs";
 /// #endif
 
 import type {TConfigTab} from "./types";
 import type {App} from "../index";
 
 /// #if !MOBILE
-const genConfigTabListHTML = (activeTab: TConfigTab) => CONFIG_TAB_DEFS.map(def => {
+const genConfigTabListHTML = (activeTab: TConfigTab) => getConfigTabDefs().map(def => {
     const hidden = isConfigTabMenuHidden(def.id) ? " fn__none" : "";
     const focus = def.id === activeTab ? " b3-list-item--focus" : "";
     return `<li data-name="${def.id}" class="b3-list-item${focus}${hidden}"><svg class="b3-list-item__graphic"><use xlink:href="#${def.icon}"></use></svg><span class="b3-list-item__text">${getConfigTabTitle(def.id)}</span></li>`;
 }).join("");
 
-const genConfigTabPanelsHTML = (activeTab: TConfigTab) => CONFIG_TAB_DEFS.map(def => {
+const genConfigTabPanelsHTML = (activeTab: TConfigTab) => getConfigTabDefs().map(def => {
     const none = def.id === activeTab ? "" : " fn__none";
     const extra = def.panelExtraClass ? ` ${def.panelExtraClass}` : "";
     const style = def.panelStyle ? ` style="${def.panelStyle}"` : "";

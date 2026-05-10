@@ -1,6 +1,6 @@
 import {Constants} from "../constants";
 import type {TConfigTab} from "./types";
-import {CONFIG_TAB_DEFS} from "./tabs";
+import {getConfigTabDefs} from "./tabs";
 import {getEditorTabSearchStrings} from "./panel/editor/editorEntries";
 import {mountConfigTab} from "./mountConfigTab";
 import {editor} from "./editor";
@@ -306,7 +306,7 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
 };
 
 export const initConfigSearch = (element: HTMLElement, app: App) => {
-    const tabSearchStrings = CONFIG_TAB_DEFS.map((def) => ({
+    const tabSearchStrings = getConfigTabDefs().map((def) => ({
         id: def.id,
         strings: def.id === "editor" ? getEditorTabSearchStrings() : getLang(TAB_LANG_KEYS[def.id]),
     }));

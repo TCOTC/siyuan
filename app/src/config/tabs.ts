@@ -16,22 +16,29 @@ export interface IConfigTabDef {
     panelStyle?: string;
 }
 
-export const CONFIG_TAB_DEFS: IConfigTabDef[] = [
-    {id: "editor", icon: "iconEdit"},
-    {id: "file", icon: "iconFiles"},
-    {id: "appearance", icon: "iconTheme"},
-    {id: "bazaar", icon: "iconBazaar", hidden: !!(isHuawei() || isInHarmony()), panelExtraClass: "config__tab-container--top"},
-    {id: "flashcard", icon: "iconRiffCard"},
-    {id: "ai", icon: "iconSparkles"},
-    {id: "assets", icon: "iconImage", panelExtraClass: "config__tab-container--top"},
-    {id: "export", icon: "iconUpload"},
-    {id: "search", icon: "iconSearch"},
-    {id: "keymap", icon: "iconKeymap", panelStyle: "overflow: scroll"},
-    {id: "sync", icon: "iconCloud", panelExtraClass: "config__tab-container--full"},
-    {id: "access", icon: "iconLock"},
-    {id: "app", icon: "TODO"},
-    {id: "about", icon: "iconInfo"},
-];
+let configTabDefsCache: IConfigTabDef[] | undefined;
+
+export const getConfigTabDefs = (): IConfigTabDef[] => {
+    if (!configTabDefsCache) {
+        configTabDefsCache = [
+            {id: "editor", icon: "iconEdit"},
+            {id: "file", icon: "iconFiles"},
+            {id: "appearance", icon: "iconTheme"},
+            {id: "bazaar", icon: "iconBazaar", hidden: !!(isHuawei() || isInHarmony()), panelExtraClass: "config__tab-container--top"},
+            {id: "flashcard", icon: "iconRiffCard"},
+            {id: "ai", icon: "iconSparkles"},
+            {id: "assets", icon: "iconImage", panelExtraClass: "config__tab-container--top"},
+            {id: "export", icon: "iconUpload"},
+            {id: "search", icon: "iconSearch"},
+            {id: "keymap", icon: "iconKeymap", panelStyle: "overflow: scroll"},
+            {id: "sync", icon: "iconCloud", panelExtraClass: "config__tab-container--full"},
+            {id: "access", icon: "iconLock"},
+            {id: "app", icon: "TODO"},
+            {id: "about", icon: "iconInfo"},
+        ];
+    }
+    return configTabDefsCache;
+};
 
 export const getConfigTabTitle = (type: TConfigTab): string => {
     switch (type) {
@@ -67,11 +74,11 @@ export const getConfigTabTitle = (type: TConfigTab): string => {
 };
 
 export const getConfigTabIcon = (type: TConfigTab): string =>
-    CONFIG_TAB_DEFS.find(t => t.id === type)?.icon ?? "iconSettings";
+    getConfigTabDefs().find(t => t.id === type)?.icon ?? "iconSettings";
 
 /** 侧栏 / 菜单中是否不展示该设置项（与桌面设置标签栏可见性一致） */
 export const isConfigTabMenuHidden = (type: TConfigTab): boolean => {
-    const def = CONFIG_TAB_DEFS.find(t => t.id === type);
+    const def = getConfigTabDefs().find(t => t.id === type);
     if (!def) {
         return true;
     }

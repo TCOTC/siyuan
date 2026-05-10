@@ -15,13 +15,13 @@ import {newFile} from "../../util/newFile";
 import {afterLoadPlugin} from "../../plugin/loader";
 import {commandPanel} from "../../boot/globalEvent/command/panel";
 import {openTopBarMenu} from "../../plugin/openTopBarMenu";
-import {CONFIG_TAB_DEFS, configTabToMenuId, getConfigTabTitle, isConfigTabMenuHidden} from "../../config/tabs";
+import {getConfigTabDefs, configTabToMenuId, getConfigTabTitle, isConfigTabMenuHidden} from "../../config/tabs";
 import type {TConfigTab} from "../../config/types";
 import {openMobileConfigTab} from "./openConfigTab";
 import {getCurrentEditor} from "../editor";
 
 const CONFIG_MENU_ID_TO_TAB = new Map<string, TConfigTab>(
-    CONFIG_TAB_DEFS.map(def => [configTabToMenuId(def.id), def.id])
+    getConfigTabDefs().map(def => [configTabToMenuId(def.id), def.id])
 );
 
 const getConfigTabFromMenuTarget = (target: HTMLElement): TConfigTab | undefined => {
@@ -39,7 +39,7 @@ export const popMenu = () => {
 
 export const initRightMenu = (app: App) => {
     const menuElement = document.getElementById("menu");
-    const configSettingsMenuHTML = CONFIG_TAB_DEFS.filter(def => !isConfigTabMenuHidden(def.id)).map(def =>
+    const configSettingsMenuHTML = getConfigTabDefs().filter(def => !isConfigTabMenuHidden(def.id)).map(def =>
         `<div class="b3-menu__item" id="${configTabToMenuId(def.id)}">
         <svg class="b3-menu__icon"><use xlink:href="#${def.icon}"></use></svg>
         <span class="b3-menu__label">${getConfigTabTitle(def.id)}</span>
