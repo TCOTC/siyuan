@@ -1,5 +1,4 @@
-import type {EditorRow} from "./editorEntries";
-import {getEditorSections} from "./editorEntries";
+import type {EditorRow, EditorSection} from "./editorEntries";
 import {getAtPath} from "./editorMergePatch";
 
 const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config.editor, id));
@@ -132,10 +131,10 @@ const renderOne = (entry: EditorRow): string => {
     }
 };
 
-/** 按 `getEditorSections()` 生成「设置 — 编辑器」标签页 HTML，结构与原版一致 */
-export const renderEditorTabHtml = (): string => {
+/** 按给定节列表生成「设置 — 编辑器」标签页 HTML（全量即传入 `getEditorSections()`） */
+export const renderEditorTabHtmlFromSections = (sections: EditorSection[]): string => {
     const parts: string[] = [];
-    getEditorSections().forEach((section) => {
+    sections.forEach((section) => {
         parts.push(`<b class="config-group__title">${section.title}</b>`);
         parts.push('<div class="config-group">');
         section.items.forEach((row) => {

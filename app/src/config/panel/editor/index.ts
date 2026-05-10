@@ -8,16 +8,20 @@ import {Constants} from "../../../constants";
 import {getEditorSections} from "./editorEntries";
 import type {EditorBindApi} from "./editorBindApi";
 import {mergeEditorFromControlId} from "./editorMergePatch";
-import {renderEditorTabHtml} from "./renderEditorHtml";
+import {renderEditorTabHtmlFromSections} from "./renderEditorHtml";
 
 export const editor = {
-    element: undefined as Element,
-    genHTML: () => renderEditorTabHtml(),
-    bindEvent: async () => {
-        const root = editor.element as HTMLElement;
+    /**
+     * 挂载「设置 — 编辑器」面板：写入 HTML 并绑定事件。
+     * @param root 面板容器
+     * @param searchQuery 设置搜索关键词，见 `getEditorSections(searchQuery)`
+     */
+    mount: async (root: HTMLElement, searchQuery?: string) => {
+        root.innerHTML = renderEditorTabHtmlFromSections(getEditorSections(searchQuery));
+
         const scheduleSave = (controlId: string) => {
             fetchPost("/api/setting/setEditor", mergeEditorFromControlId(root, controlId), (response) => {
-                editor._onSetEditor(response.data);
+                editor.onSetEditor(response.data);
             });
         };
         const api: EditorBindApi = {root, scheduleSave};
@@ -62,7 +66,7 @@ export const editor = {
             });
         });
     },
-    _onSetEditor: (editorData: Config.IEditor) => {
+    onSetEditor: (editorData: Config.IEditor) => {
         const changeReadonly = editorData.readOnly !== window.siyuan.config.editor.readOnly;
         if (changeReadonly) {
             setReadOnly(editorData.readOnly);
@@ -86,6 +90,6 @@ export const editor = {
             }
         });
 
-        setInlineStyle();
+        void setInlineStyle();
     },
 };

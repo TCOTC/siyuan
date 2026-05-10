@@ -19,9 +19,7 @@ import {flashcard} from "./flashcard";
 export const mountConfigTab = (type: TConfigTab, containerElement: Element, app: App) => {
     switch (type) {
         case "editor":
-            editor.element = containerElement;
-            containerElement.innerHTML = editor.genHTML();
-            void editor.bindEvent();
+            void editor.mount(containerElement as HTMLElement);
             break;
         case "file":
             file.element = containerElement;

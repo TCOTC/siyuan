@@ -344,7 +344,7 @@ export const appearance = {
             floatWindowDelay,
         }, response => {
             window.siyuan.config.editor = response.data;
-            editor._onSetEditor(response.data);
+            editor.onSetEditor(response.data);
             if (fontFamilyElement) {
                 fontFamilyElement.dataset.family = response.data.fontFamily || "";
                 fontFamilyElement.dataset.weight = String(response.data.fontWeight ?? 0);

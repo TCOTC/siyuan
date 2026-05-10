@@ -1,8 +1,9 @@
 import {Constants} from "../constants";
 import type {TConfigTab} from "./types";
 import {CONFIG_TAB_DEFS} from "./tabs";
-import {EDITOR_TAB_SEARCH_LANG_KEYS} from "./panel/editor/editorEntries";
+import {getEditorTabSearchStrings} from "./panel/editor/editorEntries";
 import {mountConfigTab} from "./mountConfigTab";
+import {editor} from "./editor";
 import {keymap} from "./keymap";
 import {App} from "../index";
 import {isPhablet} from "../protyle/util/compatibility";
@@ -13,6 +14,15 @@ const getLang = (keys: string[]) => {
         langArray.push(window.siyuan.languages[key]);
     });
     return langArray;
+};
+
+let editorSearchDebounceTimer: number | undefined;
+
+const clearEditorSearchDebounce = () => {
+    if (editorSearchDebounceTimer !== undefined) {
+        window.clearTimeout(editorSearchDebounceTimer);
+        editorSearchDebounceTimer = undefined;
+    }
 };
 
 /** 标记由设置搜索临时隐藏的节点，清空搜索时需一并复原 */
@@ -182,12 +192,14 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
     }
 };
 
+type TConfigTabLangKeys = Exclude<TConfigTab, "editor">;
+
 /**
  * 侧栏标签索引关键词：顺序必须与 CONFIG_TAB_DEFS / genConfigTabListHTML 一致；
  * 用于在未展开面板时匹配「应显示哪几个一级标签」。
+ * 「编辑器」Tab 见 `getEditorTabSearchStrings()`，不由本表维护。
  */
-const TAB_LANG_KEYS: Record<TConfigTab, string[]> = {
-    editor: EDITOR_TAB_SEARCH_LANG_KEYS,
+const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
     file: [
         "fileTree", "configGroupTabs", "configGroupNewDocument", "configGroupFileManagement", "configGroupOthers",
         "selectOpen", "fileTree2", "fileTree7", "fileTree8", "noSplitScreenWhenOpenTab", "noSplitScreenWhenOpenTabTip",
@@ -311,6 +323,18 @@ export const applySettingSearchToTab = (
     if (panelElement.innerHTML === "") {
         mountConfigTab(type, panelElement, app);
     }
+    if (type === "editor") {
+        if (!query.trim()) {
+            clearEditorSearchDebounce();
+            return;
+        }
+        clearEditorSearchDebounce();
+        editorSearchDebounceTimer = window.setTimeout(() => {
+            editorSearchDebounceTimer = undefined;
+            void editor.mount(panelElement, query);
+        }, Constants.TIMEOUT_INPUT);
+        return;
+    }
     if (type === "keymap") {
         const searchElement = keymap.element.querySelector("#keymapInput") as HTMLInputElement;
         const searchKeymapElement = keymap.element.querySelector("#searchByKey") as HTMLInputElement;
@@ -327,7 +351,9 @@ export const initConfigSearch = (
     app: App,
     switchConfigTab: (dialogElement: HTMLElement, app: App, type: TConfigTab) => void // 避免循环依赖
 ) => {
-    const configIndex = CONFIG_TAB_DEFS.map((def) => getLang(TAB_LANG_KEYS[def.id]));
+    const configIndex = CONFIG_TAB_DEFS.map((def) =>
+        def.id === "editor" ? getEditorTabSearchStrings() : getLang(TAB_LANG_KEYS[def.id])
+    );
     const inputElement = element.querySelector(".b3-form__icon input") as HTMLInputElement;
     if (!isPhablet()) {
         inputElement.focus();
@@ -384,6 +410,9 @@ export const initConfigSearch = (
                         searchKeymapElement.value = "";
                         keymap.search("", "");
                     }
+                } else if (t === "editor") {
+                    clearEditorSearchDebounce();
+                    void editor.mount(c);
                 } else {
                     applySettingPanelSearch(c, "");
                 }

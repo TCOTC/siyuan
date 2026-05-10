@@ -61,9 +61,42 @@ export interface EditorSection {
     items: EditorRow[];
 }
 
-/** 每次调用时重新构造，避免缓存住随语言/配置变化的文案与闭包。 */
-export function getEditorSections(): EditorSection[] {
-    return [
+const textMatchesConfigSearch = (text: string, queryLower: string): boolean => {
+    if (!queryLower) {
+        return true;
+    }
+    const t = (text || "").toLowerCase().trim();
+    if (!t) {
+        return false;
+    }
+    return t.indexOf(queryLower) > -1;
+};
+
+const editorRowMatchesQuery = (row: EditorRow, queryLower: string): boolean => {
+    switch (row.type) {
+        case "custom":
+            return row.keywords.some((k) => textMatchesConfigSearch(k, queryLower));
+        case "select":
+            if (
+                textMatchesConfigSearch(row.title, queryLower) ||
+                textMatchesConfigSearch(row.desc, queryLower)
+            ) {
+                return true;
+            }
+            return row.options.some((o) => textMatchesConfigSearch(o.label, queryLower));
+        default:
+            return (
+                textMatchesConfigSearch(row.title, queryLower) ||
+                textMatchesConfigSearch(row.desc, queryLower)
+            );
+    }
+};
+
+/** 每次调用时重新构造，避免缓存住随语言/配置变化的文案与闭包。
+ * @param searchQuery 设置搜索关键词；不传或仅空白则返回完整列表，否则按节标题 / 行文案过滤（见 docs/settings-refactor.md §11.2）。
+ */
+export function getEditorSections(searchQuery?: string): EditorSection[] {
+    const sections: EditorSection[] = [
     {
         title: window.siyuan.languages.configGroupBehavior,
         items: [
@@ -392,86 +425,43 @@ export function getEditorSections(): EditorSection[] {
         ],
     },
     ];
+    const queryLower = (searchQuery ?? "").trim().toLowerCase();
+    if (!queryLower) {
+        return sections;
+    }
+    const out: EditorSection[] = [];
+    for (const section of sections) {
+        if (textMatchesConfigSearch(section.title, queryLower)) {
+            out.push(section);
+            continue;
+        }
+        const items = section.items.filter((row) => editorRowMatchesQuery(row, queryLower));
+        if (items.length > 0) {
+            out.push({title: section.title, items});
+        }
+    }
+    return out;
 }
 
-/** 设置搜索「一级标签」索引：`getLang` 所用的 languages 键（过渡期，迁移至注册表驱动后可删） */
-export const EDITOR_TAB_SEARCH_LANG_KEYS: string[] = [
-    "editor",
-    "configGroupBehavior",
-    "configGroupBlockFeatures",
-    "configGroupBidirectionalLinks",
-    "configGroupMarkdownInlineSyntax",
-    "configGroupAdvanced",
-    "editReadonly",
-    "editReadonlyTip",
-    "spellcheck",
-    "spellcheckTip",
-    "spellcheckTip2",
-    "md29",
-    "md30",
-    "outlineOutdent",
-    "outlineOutdentTip",
-    "listItemDotNumberClickFocus",
-    "listItemDotNumberClickFocusTip",
-    "pasteURLAutoConvert",
-    "pasteURLAutoConvertTip",
-    "dynamicLoadBlocks",
-    "dynamicLoadBlocksTip",
-    "md7",
-    "md8",
-    "md12",
-    "md16",
-    "embedBlockBreadcrumb",
-    "embedBlockBreadcrumbTip",
-    "headingEmbedMode",
-    "headingEmbedModeTip",
-    "showHeadingWithBlocks",
-    "showHeadingOnlyTitle",
-    "showHeadingOnlyBlocks",
-    "md31",
-    "md32",
-    "md2",
-    "md3",
-    "md27",
-    "md28",
-    "onlySearchForDoc",
-    "onlySearchForDocTip",
-    "md37",
-    "md38",
-    "md33",
-    "md34",
-    "md9",
-    "md35",
-    "md36",
-    "md41",
-    "backlinkContainChildren",
-    "backlinkContainChildrenTip",
-    "backlinkExpand",
-    "backlinkExpandTip",
-    "backmentionExpand",
-    "backmentionExpandTip",
-    "editorMarkdownInlineAsterisk",
-    "editorMarkdownInlineAsteriskTip",
-    "editorMarkdownInlineUnderscore",
-    "editorMarkdownInlineUnderscoreTip",
-    "editorMarkdownInlineSup",
-    "editorMarkdownInlineSupTip",
-    "editorMarkdownInlineSub",
-    "editorMarkdownInlineSubTip",
-    "editorMarkdownInlineTag",
-    "editorMarkdownInlineTagTip",
-    "editorMarkdownInlineMath",
-    "editorMarkdownInlineMathTip",
-    "editorMarkdownInlineStrikethrough",
-    "editorMarkdownInlineStrikethroughTip",
-    "editorMarkdownInlineMark",
-    "editorMarkdownInlineMarkTip",
-    "md39",
-    "md40",
-    "katexMacros",
-    "katexMacrosTip",
-    "allowSVGScript",
-    "allowSVGScriptTip",
-    "allowHTMLBLockScript",
-    "allowHTMLBLockScriptTip",
-];
+/** 编辑器 Tab 侧栏检索索引文案：「编辑器」标签名 + 注册表节标题、行文案与 `custom.keywords`（见 docs/settings-refactor.md §11）。 */
+export function getEditorTabSearchStrings(): string[] {
+    const strings: string[] = [window.siyuan.languages.editor];
+    for (const section of getEditorSections()) {
+        strings.push(section.title);
+        for (const row of section.items) {
+            switch (row.type) {
+                case "custom":
+                    strings.push(...row.keywords);
+                    break;
+                case "select":
+                    strings.push(row.title, row.desc);
+                    row.options.forEach((opt) => strings.push(opt.label));
+                    break;
+                default:
+                    strings.push(row.title, row.desc);
+                    break;
+            }
+        }
+    }
+    return strings;
+}
