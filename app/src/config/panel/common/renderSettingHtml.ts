@@ -1,5 +1,17 @@
 import type {SettingRow, SettingSection} from "./settingPanelTypes";
-import {getAtPath} from "../editor/editorMergePatch";
+
+/** 按实心点路径读取配置（与控件 `id` 约定一致） */
+const getAtPath = (root: unknown, dottedPath: string): unknown => {
+    const segments = dottedPath.split(".");
+    let cur: unknown = root;
+    for (const s of segments) {
+        if (cur === null || cur === undefined) {
+            return undefined;
+        }
+        cur = (cur as Record<string, unknown>)[s];
+    }
+    return cur;
+};
 
 const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config, id));
 

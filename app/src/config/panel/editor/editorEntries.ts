@@ -3,8 +3,7 @@ import {Constants} from "../../../constants";
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
 /// #endif
-import type {SettingBindApi} from "../common/settingBindApi";
-import type {SettingSection} from "../common/settingPanelTypes";
+import type {SettingBindApi, SettingSection} from "../common/settingPanelTypes";
 
 /** 每次调用时重新构造，避免缓存住随语言/配置变化的文案与闭包。全量列表供 `filterSettingSections(..., searchQuery)` 使用。 */
 export function buildEditorSections(): SettingSection[] {

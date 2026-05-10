@@ -1,8 +1,7 @@
 import {confirmDialog} from "../../../dialog/confirmDialog";
 import {genNotebookOption} from "../../../menus/onGetnotebookconf";
 import {fetchPost} from "../../../util/fetch";
-import type {SettingBindApi} from "../common/settingBindApi";
-import type {SettingRow, SettingSection} from "../common/settingPanelTypes";
+import type {SettingBindApi, SettingRow, SettingSection} from "../common/settingPanelTypes";
 
 const isMobileKernelContainer = () =>
     ["android", "ios", "harmony"].includes(window.siyuan.config.system.container);

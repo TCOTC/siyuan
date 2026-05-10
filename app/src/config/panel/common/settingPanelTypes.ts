@@ -1,4 +1,9 @@
-import type {SettingBindApi} from "./settingBindApi";
+/** 设置面板内 `custom.bind` 与保存共用上下文（各 Tab 一致） */
+export type SettingBindApi = {
+    root: HTMLElement;
+    /** 传入本次变动的控件 `id`（完整配置路径，如 `editor.spellcheckLanguages` 或 `fileTree.maxOpenTabCount`） */
+    scheduleSave: (controlId: string) => void;
+};
 
 /**
  * 设置面板注册「行」：`id` 为控件 DOM id，且等于 **`window.siyuan.config` 上的点分路径**（不含字面量 `window.siyuan.config.` 前缀）。

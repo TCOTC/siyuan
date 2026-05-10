@@ -16,7 +16,7 @@ import {setStatusBar} from "./util/setStatusBar";
 import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Menu} from "../plugin/Menu";
 import {escapeAttr} from "../util/escape";
-import {applyEditorServerConfig} from "./panel/editor/applyEditorServerConfig";
+import {editor} from "./panel/editor";
 
 export const appearance = {
     element: undefined as Element,
@@ -343,7 +343,7 @@ export const appearance = {
             floatWindowMode,
             floatWindowDelay,
         }, response => {
-            applyEditorServerConfig(response.data);
+            editor.apply(response.data);
             if (fontFamilyElement) {
                 fontFamilyElement.dataset.family = response.data.fontFamily || "";
                 fontFamilyElement.dataset.weight = String(response.data.fontWeight ?? 0);
