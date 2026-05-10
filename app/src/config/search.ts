@@ -16,15 +16,6 @@ const getLang = (keys: string[]) => {
     return langArray;
 };
 
-let editorSearchDebounceTimer: number | undefined;
-
-const clearEditorSearchDebounce = () => {
-    if (editorSearchDebounceTimer !== undefined) {
-        window.clearTimeout(editorSearchDebounceTimer);
-        editorSearchDebounceTimer = undefined;
-    }
-};
-
 /** 标记由设置搜索临时隐藏的节点，清空搜索时需一并复原 */
 const CONFIG_SEARCH_MARK = "data-config-search";
 
@@ -317,9 +308,9 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
         (document.activeElement as HTMLElement)?.blur();
     }
     const updateTab = () => {
-        const query = inputElement.value.trim().toLowerCase();
-        if (!query) {
-            restoreConfigTabs(element);
+        const keywords = inputElement.value.trim().toLowerCase();
+        if (!keywords) {
+            restoreConfigTabs(element, app);
             return;
         }
 
@@ -332,15 +323,15 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
                 }
                 // TODO 在把所有设置项都改成注册式之后，把 .toLowerCase() 移到对应的收集文案的函数里只处理一次，而不是在这里反复处理
                 const subLower = subItem.toLowerCase();
-                if (query.indexOf(subLower) > -1 || subLower.indexOf(query) > -1) {
+                if (subLower.indexOf(keywords) > -1) {
                     matchedTabIds.add(id);
                     break;
                 }
             }
         });
 
-        // 尽量保持在当前聚焦的标签页
-        let currentTabElement: HTMLElement;
+        // 尽量保持在当前聚焦的标签页；若当前页已不在命中集合，则自动切到侧栏顺序中的第一个命中项（沿用原交互）。
+        let currentTabElement: HTMLElement | undefined;
         const focusedLi = element.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
         if (focusedLi && focusedLi.style.display !== "none") {
             const focusedTabId = focusedLi.getAttribute("data-name") as TConfigTab | null;
@@ -397,35 +388,36 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
     containerElement.classList.remove("fn__none");
     dialogElement.querySelector(`.config__side .b3-list-item.b3-list-item--focus:not([data-name="${type}"])`)?.classList.remove("b3-list-item--focus");
     dialogElement.querySelector(`.config__side .b3-list-item[data-name="${type}"]`)?.classList.add("b3-list-item--focus");
+    const searchInput = dialogElement.querySelector(".b3-form__icon input") as HTMLInputElement | null;
+    const keywords = (searchInput?.value ?? "").trim();
+
+    if (type === "editor" && keywords) {
+        void editor.mount(containerElement as HTMLElement, keywords);
+        return;
+    }
+
     if (containerElement.innerHTML === "") {
         mountConfigTab(type, containerElement, app);
     }
-    const searchInput = dialogElement.querySelector(".b3-form__icon input") as HTMLInputElement | null;
-    const query = (searchInput?.value ?? "").trim();
-    if (!query) {
-        return;
-    }
-    if (type === "editor") {
-        clearEditorSearchDebounce();
-        editorSearchDebounceTimer = window.setTimeout(() => {
-            editorSearchDebounceTimer = undefined;
-            void editor.mount(containerElement, query);
-        }, Constants.TIMEOUT_INPUT);
+    if (!keywords) {
         return;
     }
     if (type === "keymap") {
         const searchElement = keymap.element.querySelector("#keymapInput") as HTMLInputElement;
         const searchKeymapElement = keymap.element.querySelector("#searchByKey") as HTMLInputElement;
-        searchElement.value = query;
+        searchElement.value = keywords;
         searchKeymapElement.value = "";
         keymap.search(searchElement.value, searchKeymapElement.value);
         return;
     }
-    applySettingPanelSearch(containerElement, query);
+    applySettingPanelSearch(containerElement, keywords);
 };
 
-/** 清空设置搜索时：对已挂载的各 Tab 面板撤销 DOM 筛选（仅此一处集中恢复）。 */
-const restoreConfigTabs = (dialogElement: HTMLElement) => {
+/**
+ * 清空设置搜索时，对已挂载的各标签页面板撤销 DOM 筛选
+ * TODO 把筛选改成仅渲染匹配到的注册项，而不是操作 style.display，然后就不需要撤销筛选了。不过官方同步那里好像就会反复请求数据了，要考虑一下
+ */
+const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
     dialogElement.querySelectorAll(".config__side .b3-list-item").forEach((item: HTMLElement) => {
         item.style.display = "";
     });
@@ -433,11 +425,13 @@ const restoreConfigTabs = (dialogElement: HTMLElement) => {
         if (!container.innerHTML) {
             return;
         }
-        const t = container.getAttribute("data-name") as TConfigTab | null;
-        if (!t) {
+        const type = container.getAttribute("data-name") as TConfigTab | null;
+        if (!type) {
             return;
         }
-        if (t === "keymap") {
+        if (type === "editor") {
+            void editor.mount(container);
+        } else if (type === "keymap") {
             keymap.element = container;
             const searchElement = container.querySelector("#keymapInput") as HTMLInputElement | null;
             const searchKeymapElement = container.querySelector("#searchByKey") as HTMLInputElement | null;
@@ -446,11 +440,16 @@ const restoreConfigTabs = (dialogElement: HTMLElement) => {
                 searchKeymapElement.value = "";
                 keymap.search("", "");
             }
-        } else if (t === "editor") {
-            clearEditorSearchDebounce();
-            void editor.mount(container);
         } else {
             applySettingPanelSearch(container, "");
         }
     });
+    // 清空搜索后根据侧栏仍保留的焦点项重新渲染，避免中间区域空白
+    const focusLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
+    const tabFromFocus = focusLi?.getAttribute("data-name") as TConfigTab | undefined;
+    const tabToShow =
+        tabFromFocus && getConfigTabDefs().some((def) => def.id === tabFromFocus)
+            ? tabFromFocus
+            : "editor";
+    switchConfigTab(dialogElement, app, tabToShow);
 };

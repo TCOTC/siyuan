@@ -17,7 +17,8 @@ export const editor = {
      * @param searchQuery 搜索关键词
      */
     mount: async (root: HTMLElement, searchQuery?: string) => {
-        root.innerHTML = renderEditorTabHtmlFromSections(getEditorSections(searchQuery));
+        const sections = getEditorSections(searchQuery);
+        root.innerHTML = renderEditorTabHtmlFromSections(sections);
 
         const scheduleSave = (controlId: string) => {
             if (!controlId) {
@@ -27,7 +28,7 @@ export const editor = {
                 editor.onSetEditor(response.data);
             });
         };
-        for (const section of getEditorSections()) {
+        for (const section of sections) {
             for (const row of section.items) {
                 if (row.type === "custom" && row.bind) {
                     await row.bind({
