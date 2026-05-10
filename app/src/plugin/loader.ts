@@ -6,6 +6,7 @@ import {resizeTopBar, saveLayout} from "../layout/util";
 /// #endif
 import {API} from "./API";
 import {getFrontend, isMobile, isWindow} from "../util/functions";
+import {configTabToMenuId} from "../config/tabs";
 import {Constants} from "../constants";
 import {uninstall} from "./uninstall";
 import {setStorageVal} from "../protyle/util/compatibility";
@@ -151,7 +152,7 @@ export const afterLoadPlugin = (plugin: Plugin) => {
             }
             if (isMobile()) {
                 if (!window.siyuan.storage[Constants.LOCAL_PLUGINTOPUNPIN].includes(element.id)) {
-                    document.querySelector("#menuAbout").after(element);
+                    document.querySelector("#" + configTabToMenuId("about"))?.after(element);
                 }
             } else if (!isWindow()) {
                 if (window.siyuan.storage[Constants.LOCAL_PLUGINTOPUNPIN].includes(element.id)) {

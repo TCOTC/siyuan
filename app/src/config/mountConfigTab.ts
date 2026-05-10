@@ -17,6 +17,7 @@ import {flashcard} from "./flashcard";
 
 /** 将指定设置页面挂载到容器 */
 export const mountConfigTab = (type: TConfigTab, containerElement: Element, app: App) => {
+    // TODO containerElement 上不应该绑定事件，待检查
     switch (type) {
         case "editor":
             void editor.mount(containerElement as HTMLElement);

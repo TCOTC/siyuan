@@ -195,9 +195,10 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
 type TConfigTabLangKeys = Exclude<TConfigTab, "editor">;
 
 /**
- * 侧栏标签索引关键词：顺序必须与 CONFIG_TAB_DEFS / genConfigTabListHTML 一致；
- * 用于在未展开面板时匹配「应显示哪几个一级标签」。
+ * 侧栏标签索引关键词：按一级 Tab 的 `id` 与 `TAB_LANG_KEYS` 的键对应；
+ * 用于在未展开面板时匹配「应显示哪几个一级标签」（与侧栏 `li[data-name]` 对齐）。
  * 「编辑器」Tab 见 `getEditorTabSearchStrings()`，不由本表维护。
+ * TODO 最终要实现移除这个对象
  */
 const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
     file: [
@@ -304,56 +305,11 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
     ],
 };
 
-/**
- * 思路 A：仅在切换到某一设置标签时挂载该面板并套用当前搜索框中的筛选（不在搜索输入时为所有命中标签预挂载）。
- */
-export const applySettingSearchToTab = (
-    dialogElement: HTMLElement,
-    app: App,
-    type: TConfigTab
-) => {
-    const inputElement = dialogElement.querySelector(".b3-form__icon input") as HTMLInputElement | null;
-    const query = inputElement?.value ?? "";
-    const panelElement = dialogElement.querySelector(
-        `.config__tab-container[data-name="${type}"]`
-    ) as HTMLElement | null;
-    if (!panelElement) {
-        return;
-    }
-    if (panelElement.innerHTML === "") {
-        mountConfigTab(type, panelElement, app);
-    }
-    if (type === "editor") {
-        if (!query.trim()) {
-            clearEditorSearchDebounce();
-            return;
-        }
-        clearEditorSearchDebounce();
-        editorSearchDebounceTimer = window.setTimeout(() => {
-            editorSearchDebounceTimer = undefined;
-            void editor.mount(panelElement, query);
-        }, Constants.TIMEOUT_INPUT);
-        return;
-    }
-    if (type === "keymap") {
-        const searchElement = keymap.element.querySelector("#keymapInput") as HTMLInputElement;
-        const searchKeymapElement = keymap.element.querySelector("#searchByKey") as HTMLInputElement;
-        searchElement.value = query;
-        searchKeymapElement.value = "";
-        keymap.search(searchElement.value, searchKeymapElement.value);
-    } else {
-        applySettingPanelSearch(panelElement, query);
-    }
-};
-
-export const initConfigSearch = (
-    element: HTMLElement,
-    app: App,
-    switchConfigTab: (dialogElement: HTMLElement, app: App, type: TConfigTab) => void // 避免循环依赖
-) => {
-    const configIndex = CONFIG_TAB_DEFS.map((def) =>
-        def.id === "editor" ? getEditorTabSearchStrings() : getLang(TAB_LANG_KEYS[def.id])
-    );
+export const initConfigSearch = (element: HTMLElement, app: App) => {
+    const tabSearchStrings = CONFIG_TAB_DEFS.map((def) => ({
+        id: def.id,
+        strings: def.id === "editor" ? getEditorTabSearchStrings() : getLang(TAB_LANG_KEYS[def.id]),
+    }));
     const inputElement = element.querySelector(".b3-form__icon input") as HTMLInputElement;
     if (!isPhablet()) {
         inputElement.focus();
@@ -361,24 +317,40 @@ export const initConfigSearch = (
         (document.activeElement as HTMLElement)?.blur();
     }
     const updateTab = () => {
-        const indexList: number[] = [];
-        const inputValue = inputElement.value;
-        const inputLower = inputValue.toLowerCase();
-        configIndex.forEach((item, index) => {
-            item.forEach((subItem) => {
+        const query = inputElement.value.trim().toLowerCase();
+        if (!query) {
+            restoreConfigTabs(element);
+            return;
+        }
+
+        const matchedTabIds = new Set<TConfigTab>();
+        tabSearchStrings.forEach(({ id, strings }) => {
+            for (const subItem of strings) {
                 if (!subItem) {
-                    console.warn("Search config miss language: ", item, index);
+                    console.warn("Search config miss language: ", id, strings);
+                    continue;
                 }
-                const subLower = subItem ? subItem.toLowerCase() : "";
-                if (subLower && (inputLower.indexOf(subLower) > -1 || subLower.indexOf(inputLower) > -1)) {
-                    indexList.push(index);
+                // TODO 在把所有设置项都改成注册式之后，把 .toLowerCase() 移到对应的收集文案的函数里只处理一次，而不是在这里反复处理
+                const subLower = subItem.toLowerCase();
+                if (query.indexOf(subLower) > -1 || subLower.indexOf(query) > -1) {
+                    matchedTabIds.add(id);
+                    break;
                 }
-            });
+            }
         });
 
+        // 尽量保持在当前聚焦的标签页
         let currentTabElement: HTMLElement;
-        element.querySelectorAll(".config__tab-scroll li").forEach((item: HTMLElement, index) => {
-            if (indexList.includes(index)) {
+        const focusedLi = element.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
+        if (focusedLi && focusedLi.style.display !== "none") {
+            const focusedTabId = focusedLi.getAttribute("data-name") as TConfigTab | null;
+            if (focusedTabId && matchedTabIds.has(focusedTabId)) {
+                currentTabElement = focusedLi;
+            }
+        }
+        element.querySelectorAll(".config__side .b3-list-item").forEach((item: HTMLElement) => {
+            const tabId = item.getAttribute("data-name") as TConfigTab | null;
+            if (tabId && matchedTabIds.has(tabId)) {
                 if (!currentTabElement) {
                     currentTabElement = item;
                 }
@@ -388,54 +360,16 @@ export const initConfigSearch = (
             }
         });
 
-        const tabPanelElements = element.querySelectorAll(".config__tab-container");
-        const inputTrimmed = inputValue.trim();
-
-        if (!inputTrimmed) {
-            tabPanelElements.forEach((container) => {
-                const c = container as HTMLElement;
-                if (!c.innerHTML) {
-                    return;
-                }
-                const t = c.getAttribute("data-name") as TConfigTab | null;
-                if (!t) {
-                    return;
-                }
-                if (t === "keymap") {
-                    keymap.element = c;
-                    const searchElement = c.querySelector("#keymapInput") as HTMLInputElement | null;
-                    const searchKeymapElement = c.querySelector("#searchByKey") as HTMLInputElement | null;
-                    if (searchElement && searchKeymapElement) {
-                        searchElement.value = "";
-                        searchKeymapElement.value = "";
-                        keymap.search("", "");
-                    }
-                } else if (t === "editor") {
-                    clearEditorSearchDebounce();
-                    void editor.mount(c);
-                } else {
-                    applySettingPanelSearch(c, "");
-                }
-            });
-            if (currentTabElement) {
-                const tabType = currentTabElement.getAttribute("data-name") as TConfigTab;
-                if (tabType) {
-                    switchConfigTab(element, app, tabType);
-                }
-            }
-        } else if (currentTabElement) {
+        if (currentTabElement) {
             const tabType = currentTabElement.getAttribute("data-name") as TConfigTab;
             if (tabType) {
                 switchConfigTab(element, app, tabType);
-                applySettingSearchToTab(element, app, tabType);
             }
         } else {
-            tabPanelElements.forEach((item) => {
+            element.querySelectorAll(".config__tab-container").forEach((item) => {
                 item.classList.add("fn__none");
             });
         }
-
-        inputElement.focus();
     };
 
     inputElement.addEventListener("compositionend", () => {
@@ -446,5 +380,77 @@ export const initConfigSearch = (
             return;
         }
         updateTab();
+    });
+};
+
+/** 切换一级设置 Tab：挂载空面板（如需）；若搜索框有关键词则对当前 Tab 套用筛选。 */
+export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TConfigTab) => {
+    const containerElement = dialogElement.querySelector(`.config__tab-container[data-name="${type}"]`) as HTMLElement | null;
+    if (!containerElement) {
+        return;
+    }
+    dialogElement.querySelectorAll(".config__tab-container").forEach((container) => {
+        if (container !== containerElement) {
+            container.classList.add("fn__none");
+        }
+    });
+    containerElement.classList.remove("fn__none");
+    dialogElement.querySelector(`.config__side .b3-list-item.b3-list-item--focus:not([data-name="${type}"])`)?.classList.remove("b3-list-item--focus");
+    dialogElement.querySelector(`.config__side .b3-list-item[data-name="${type}"]`)?.classList.add("b3-list-item--focus");
+    if (containerElement.innerHTML === "") {
+        mountConfigTab(type, containerElement, app);
+    }
+    const searchInput = dialogElement.querySelector(".b3-form__icon input") as HTMLInputElement | null;
+    const query = (searchInput?.value ?? "").trim();
+    if (!query) {
+        return;
+    }
+    if (type === "editor") {
+        clearEditorSearchDebounce();
+        editorSearchDebounceTimer = window.setTimeout(() => {
+            editorSearchDebounceTimer = undefined;
+            void editor.mount(containerElement, query);
+        }, Constants.TIMEOUT_INPUT);
+        return;
+    }
+    if (type === "keymap") {
+        const searchElement = keymap.element.querySelector("#keymapInput") as HTMLInputElement;
+        const searchKeymapElement = keymap.element.querySelector("#searchByKey") as HTMLInputElement;
+        searchElement.value = query;
+        searchKeymapElement.value = "";
+        keymap.search(searchElement.value, searchKeymapElement.value);
+        return;
+    }
+    applySettingPanelSearch(containerElement, query);
+};
+
+/** 清空设置搜索时：对已挂载的各 Tab 面板撤销 DOM 筛选（仅此一处集中恢复）。 */
+const restoreConfigTabs = (dialogElement: HTMLElement) => {
+    dialogElement.querySelectorAll(".config__side .b3-list-item").forEach((item: HTMLElement) => {
+        item.style.display = "";
+    });
+    dialogElement.querySelectorAll(".config__tab-container").forEach((container: HTMLElement) => {
+        if (!container.innerHTML) {
+            return;
+        }
+        const t = container.getAttribute("data-name") as TConfigTab | null;
+        if (!t) {
+            return;
+        }
+        if (t === "keymap") {
+            keymap.element = container;
+            const searchElement = container.querySelector("#keymapInput") as HTMLInputElement | null;
+            const searchKeymapElement = container.querySelector("#searchByKey") as HTMLInputElement | null;
+            if (searchElement && searchKeymapElement) {
+                searchElement.value = "";
+                searchKeymapElement.value = "";
+                keymap.search("", "");
+            }
+        } else if (t === "editor") {
+            clearEditorSearchDebounce();
+            void editor.mount(container);
+        } else {
+            applySettingPanelSearch(container, "");
+        }
     });
 };

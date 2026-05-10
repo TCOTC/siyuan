@@ -15,10 +15,19 @@ import {newFile} from "../../util/newFile";
 import {afterLoadPlugin} from "../../plugin/loader";
 import {commandPanel} from "../../boot/globalEvent/command/panel";
 import {openTopBarMenu} from "../../plugin/openTopBarMenu";
-import {CONFIG_TAB_DEFS, getConfigTabTitle, isConfigTabMenuHidden} from "../../config/tabs";
+import {CONFIG_TAB_DEFS, configTabToMenuId, getConfigTabTitle, isConfigTabMenuHidden} from "../../config/tabs";
 import type {TConfigTab} from "../../config/types";
 import {openMobileConfigTab} from "./openConfigTab";
 import {getCurrentEditor} from "../editor";
+
+const CONFIG_MENU_ID_TO_TAB = new Map<string, TConfigTab>(
+    CONFIG_TAB_DEFS.map(def => [configTabToMenuId(def.id), def.id])
+);
+
+const getConfigTabFromMenuTarget = (target: HTMLElement): TConfigTab | undefined => {
+    const item = target.closest(".b3-menu__item") as HTMLElement | null;
+    return item?.id ? CONFIG_MENU_ID_TO_TAB.get(item.id) : undefined;
+};
 
 export const popMenu = () => {
     if (getCurrentEditor()?.protyle.toolbar.isMultiSelectMode()) {
@@ -31,7 +40,7 @@ export const popMenu = () => {
 export const initRightMenu = (app: App) => {
     const menuElement = document.getElementById("menu");
     const configSettingsMenuHTML = CONFIG_TAB_DEFS.filter(def => !isConfigTabMenuHidden(def.id)).map(def =>
-        `<div class="b3-menu__item" data-menu-config-tab="${def.id}"${def.id === "about" ? " id=\"menuAbout\"" : ""}>
+        `<div class="b3-menu__item" id="${configTabToMenuId(def.id)}">
         <svg class="b3-menu__icon"><use xlink:href="#${def.icon}"></use></svg>
         <span class="b3-menu__label">${getConfigTabTitle(def.id)}</span>
     </div>`).join("");
@@ -100,6 +109,7 @@ export const initRightMenu = (app: App) => {
     // 只能用 click，否则无法上下滚动 https://github.com/siyuan-note/siyuan/issues/6628
     menuElement.addEventListener("click", (event) => {
         let target = event.target as HTMLElement;
+        let configTab: TConfigTab | undefined;
         while (target && !target.isEqualNode(menuElement)) {
             if (target.classList.contains("b3-menu__title")) {
                 closePanel();
@@ -169,9 +179,8 @@ export const initRightMenu = (app: App) => {
                 event.stopPropagation();
                 exitSiYuan();
                 break;
-            } else if (target.closest("[data-menu-config-tab]")) {
-                const configTabEl = target.closest("[data-menu-config-tab]");
-                openMobileConfigTab(configTabEl.getAttribute("data-menu-config-tab") as TConfigTab, app);
+            } else if ((configTab = getConfigTabFromMenuTarget(target))) {
+                openMobileConfigTab(configTab, app);
                 event.preventDefault();
                 event.stopPropagation();
                 break;

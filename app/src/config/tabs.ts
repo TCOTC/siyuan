@@ -1,15 +1,18 @@
 import type {TConfigTab} from "./types";
 import {isHuawei, isInHarmony} from "../protyle/util/compatibility";
 
-/** 与桌面端设置侧栏顺序一致的一级标签定义 */
+/** 移动端侧栏中设置标签页菜单项的 DOM `id` */
+export const configTabToMenuId = (tabId: TConfigTab): string =>
+    "menuConfig" + tabId[0].toUpperCase() + tabId.slice(1);
+
 export interface IConfigTabDef {
     id: TConfigTab;
     icon: string;
-    /** 全局隐藏（与桌面侧栏一致：如华为隐藏集市） */
-    isGloballyHidden?: () => boolean;
-    /** 桌面设置面板中 `.config__tab-container` 的附加 class（如置顶、全高） */
+    /** 隐藏标签页 */
+    hidden?: boolean;
+    /** `.config__tab-container` 的附加类名 */
     panelExtraClass?: string;
-    /** 桌面设置面板中容器的行内 style */
+    /** `.config__tab-container` 的行内样式 */
     panelStyle?: string;
 }
 
@@ -17,7 +20,7 @@ export const CONFIG_TAB_DEFS: IConfigTabDef[] = [
     {id: "editor", icon: "iconEdit"},
     {id: "file", icon: "iconFiles"},
     {id: "appearance", icon: "iconTheme"},
-    {id: "bazaar", icon: "iconBazaar", isGloballyHidden: () => isHuawei() || isInHarmony(), panelExtraClass: "config__tab-container--top"},
+    {id: "bazaar", icon: "iconBazaar", hidden: !!(isHuawei() || isInHarmony()), panelExtraClass: "config__tab-container--top"},
     {id: "flashcard", icon: "iconRiffCard"},
     {id: "ai", icon: "iconSparkles"},
     {id: "assets", icon: "iconImage", panelExtraClass: "config__tab-container--top"},
@@ -72,5 +75,5 @@ export const isConfigTabMenuHidden = (type: TConfigTab): boolean => {
     if (!def) {
         return true;
     }
-    return !!def.isGloballyHidden?.();
+    return def.hidden;
 };

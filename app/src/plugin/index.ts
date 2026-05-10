@@ -18,6 +18,7 @@ import {hasClosestByAttribute} from "../protyle/util/hasClosest";
 import {BlockPanel} from "../block/Panel";
 import {Setting} from "./Setting";
 import {clearOBG} from "../layout/dock/util";
+import {configTabToMenuId} from "../config/tabs";
 import {Constants} from "../constants";
 import {uninstall} from "./uninstall";
 import {addPluginDock, afterLoadPlugin, loadPlugins} from "./loader";
@@ -245,7 +246,7 @@ export class Plugin {
         }
         if (isMobile() && window.siyuan.storage) {
             if (!window.siyuan.storage[Constants.LOCAL_PLUGINTOPUNPIN].includes(iconElement.id)) {
-                document.querySelector("#menuAbout")?.after(iconElement);
+                document.querySelector("#" + configTabToMenuId("about"))?.after(iconElement);
             }
         } else if (!isWindow() && window.siyuan.storage) {
             if (window.siyuan.storage[Constants.LOCAL_PLUGINTOPUNPIN].includes(iconElement.id)) {

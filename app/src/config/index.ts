@@ -1,7 +1,7 @@
 /// #if MOBILE
 import {popMenu} from "../mobile/menu";
 /// #else
-import {applySettingSearchToTab, initConfigSearch} from "./search";
+import {initConfigSearch, switchConfigTab} from "./search";
 import {Dialog} from "../dialog";
 import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";
@@ -10,25 +10,8 @@ import {CONFIG_TAB_DEFS, getConfigTabTitle, isConfigTabMenuHidden} from "./tabs"
 
 import type {TConfigTab} from "./types";
 import type {App} from "../index";
-import {mountConfigTab} from "./mountConfigTab";
 
 /// #if !MOBILE
-const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TConfigTab) => {
-    const containerElement = dialogElement.querySelector(`.config__tab-container[data-name="${type}"]`) as HTMLElement | null;
-    if (!containerElement) {
-        return;
-    }
-    dialogElement.querySelectorAll(".config__tab-container").forEach((container) => {
-        container.classList.add("fn__none");
-    });
-    dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus")?.classList.remove("b3-list-item--focus");
-    dialogElement.querySelector(`.config__side .b3-list-item[data-name="${type}"]`)?.classList.add("b3-list-item--focus");
-    containerElement.classList.remove("fn__none");
-    if (containerElement.innerHTML === "") {
-        mountConfigTab(type, containerElement, app);
-    }
-};
-
 const genConfigTabListHTML = (activeTab: TConfigTab) => CONFIG_TAB_DEFS.map(def => {
     const hidden = isConfigTabMenuHidden(def.id) ? " fn__none" : "";
     const focus = def.id === activeTab ? " b3-list-item--focus" : "";
@@ -90,17 +73,15 @@ const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
     });
     dialog.element.setAttribute("data-key", Constants.DIALOG_SETTING);
 
-    initConfigSearch(dialog.element, app, switchConfigTab);
+    initConfigSearch(dialog.element, app);
     (dialog.element.querySelector(".b3-dialog__container") as HTMLElement).style.maxWidth = "1280px";
     dialog.element.querySelectorAll(".config__side .b3-list-item").forEach(item => {
         item.addEventListener("click", () => {
             const type = item.getAttribute("data-name") as TConfigTab;
             switchConfigTab(dialog.element, app, type);
-            applySettingSearchToTab(dialog.element, app, type);
         });
     });
     switchConfigTab(dialog.element, app, initialTab);
-    applySettingSearchToTab(dialog.element, app, initialTab);
     return dialog;
 };
 /// #endif

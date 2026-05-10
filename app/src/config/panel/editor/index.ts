@@ -12,57 +12,45 @@ import {renderEditorTabHtmlFromSections} from "./renderEditorHtml";
 
 export const editor = {
     /**
-     * 挂载「设置 — 编辑器」面板：写入 HTML 并绑定事件。
-     * @param root 面板容器
-     * @param searchQuery 设置搜索关键词，见 `getEditorSections(searchQuery)`
+     * 挂载编辑器设置
+     * @param root 容器
+     * @param searchQuery 搜索关键词
      */
     mount: async (root: HTMLElement, searchQuery?: string) => {
         root.innerHTML = renderEditorTabHtmlFromSections(getEditorSections(searchQuery));
 
         const scheduleSave = (controlId: string) => {
+            if (!controlId) {
+                return;
+            }
             fetchPost("/api/setting/setEditor", mergeEditorFromControlId(root, controlId), (response) => {
                 editor.onSetEditor(response.data);
             });
         };
-        const api: EditorBindApi = {root, scheduleSave};
-
         for (const section of getEditorSections()) {
             for (const row of section.items) {
                 if (row.type === "custom" && row.bind) {
-                    await row.bind(api);
+                    await row.bind({
+                        root,
+                        scheduleSave
+                    } as EditorBindApi);
                 }
             }
         }
 
-        root.querySelectorAll("input.b3-switch, select.b3-select, input.b3-slider").forEach((item) => {
+        root.querySelectorAll("input.b3-switch, input.b3-slider, select.b3-select").forEach((item) => {
             item.addEventListener("change", () => {
-                const id = item.id;
-                if (!id) {
-                    return;
-                }
-                scheduleSave(id);
+                scheduleSave(item.id);
                 /// #if !BROWSER
-                if (id === "spellcheck") {
-                    root.querySelector("#spellcheckLanguages")?.classList.toggle("fn__none");
+                if (item.id === "spellcheck") {
+                    root.querySelector("#spellcheckLanguages")?.classList.toggle("fn__none", !(item as HTMLInputElement).checked);
                 }
                 /// #endif
             });
         });
-        root.querySelectorAll("textarea.b3-text-field, input.b3-text-field, input.b3-slider").forEach((item) => {
-            if (!item.getAttribute("readonly")) {
-                item.addEventListener("blur", () => {
-                    const id = item.id;
-                    if (!id) {
-                        return;
-                    }
-                    scheduleSave(id);
-                });
-            }
-        });
-        root.querySelectorAll("input.b3-slider").forEach((item) => {
-            item.addEventListener("input", (event) => {
-                const target = event.target as HTMLInputElement;
-                target.parentElement?.setAttribute("aria-label", target.value);
+        root.querySelectorAll("textarea.b3-text-field, input.b3-text-field").forEach((item) => {
+            item.addEventListener("blur", () => {
+                scheduleSave(item.id);
             });
         });
     },
