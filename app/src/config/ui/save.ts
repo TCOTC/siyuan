@@ -1,6 +1,6 @@
 import {editor} from "../editor";
 import {file} from "../file";
-import type {SettingBindApi, SettingSection} from "./settingPanelTypes";
+import type {SettingBindApi, SettingSection} from "./types";
 
 const routedNamespaces = new Set(["editor", "fileTree"]);
 

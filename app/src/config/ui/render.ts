@@ -1,17 +1,5 @@
-import type {SettingRow, SettingSection} from "./settingPanelTypes";
-
-/** 按实心点路径读取配置（与控件 `id` 约定一致） */
-const getAtPath = (root: unknown, dottedPath: string): unknown => {
-    const segments = dottedPath.split(".");
-    let cur: unknown = root;
-    for (const s of segments) {
-        if (cur === null || cur === undefined) {
-            return undefined;
-        }
-        cur = (cur as Record<string, unknown>)[s];
-    }
-    return cur;
-};
+import type {SettingRow, SettingSection} from "./types";
+import {getAtPath} from "./dotPath";
 
 const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config, id));
 

@@ -1,3 +1,16 @@
+/** 按实心点路径读取（与控件 `id` 点分约定一致） */
+export function getAtPath(root: unknown, dottedPath: string): unknown {
+    const segments = dottedPath.split(".");
+    let cur: unknown = root;
+    for (const s of segments) {
+        if (cur === null || cur === undefined) {
+            return undefined;
+        }
+        cur = (cur as Record<string, unknown>)[s];
+    }
+    return cur;
+}
+
 /**
  * 按点分路径将叶子值合并进配置对象（浅拷贝根后不可变下钻）。
  * 供各设置 Tab 按控件 id 合并单项；具体读 DOM 仍由各面板实现。

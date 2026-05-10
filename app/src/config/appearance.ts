@@ -16,7 +16,7 @@ import {setStatusBar} from "./util/setStatusBar";
 import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Menu} from "../plugin/Menu";
 import {escapeAttr} from "../util/escape";
-import {editor} from "./panel/editor";
+import {editor} from "./editor";
 
 export const appearance = {
     element: undefined as Element,

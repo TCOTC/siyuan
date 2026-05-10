@@ -1,9 +1,9 @@
 import {Constants} from "../constants";
 import type {TConfigTab} from "./types";
 import {getConfigTabDefs} from "./tabs";
-import {collectSettingTabSearchStrings} from "./panel/common/settingPanelSearch";
-import {buildEditorSections} from "./panel/editor/editorEntries";
-import {buildFileSections} from "./panel/file/fileEntries";
+import {collectSettingTabSearchStrings} from "./ui/search";
+import {buildEditorSections} from "./editor";
+import {buildFileSections} from "./file";
 import {mountConfigTab} from "./mountConfigTab";
 import {editor} from "./editor";
 import {file} from "./file";

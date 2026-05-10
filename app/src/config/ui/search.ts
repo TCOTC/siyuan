@@ -1,4 +1,4 @@
-import type {SettingRow} from "./settingPanelTypes";
+import type {SettingRow} from "./types";
 
 /** 设置面板内搜索：单条文案是否包含查询串（已 `trim` + `toLowerCase` 的 `queryLower`） */
 export const textMatchesConfigSearch = (text: string, queryLower: string): boolean => {
