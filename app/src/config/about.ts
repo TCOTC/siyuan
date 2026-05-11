@@ -51,7 +51,8 @@ export const about = {
         ${window.siyuan.languages.about1} ${"harmony" === window.siyuan.config.system.container ? " • " + window.siyuan.languages.feedback + " 845765@qq.com" : ""}
     </div>
     <div class="b3-label">
-        <div class="b3-label__text">${window.siyuan.languages.accountSupport1}</div><br>
+        <div class="b3-label__text">${window.siyuan.languages.accountSupport1}</div>
+        <div class="fn__hr"></div>
         <div class="b3-label__text">${window.siyuan.languages.accountSupport2}</div>
     </div>
 </div>`;

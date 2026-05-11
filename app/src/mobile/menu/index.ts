@@ -20,13 +20,12 @@ import type {TConfigTab} from "../../config/types";
 import {openMobileConfigTab} from "./openConfigTab";
 import {getCurrentEditor} from "../editor";
 
-const CONFIG_MENU_ID_TO_TAB = new Map<string, TConfigTab>(
-    getConfigTabDefs().map(def => [configTabToMenuId(def.id), def.id])
-);
-
 const getConfigTabFromMenuTarget = (target: HTMLElement): TConfigTab | undefined => {
     const item = target.closest(".b3-menu__item") as HTMLElement | null;
-    return item?.id ? CONFIG_MENU_ID_TO_TAB.get(item.id) : undefined;
+    if (!item?.id) {
+        return undefined;
+    }
+    return getConfigTabDefs().find(def => configTabToMenuId(def.id) === item.id)?.id;
 };
 
 export const popMenu = () => {
