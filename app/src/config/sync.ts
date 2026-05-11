@@ -2,14 +2,13 @@ import {showMessage} from "../dialog/message";
 import {Constants} from "../constants";
 import {fetchPost, fetchSyncPost} from "../util/fetch";
 import {confirmDialog} from "../dialog/confirmDialog";
-import {getEventName, isInIOS} from "../protyle/util/compatibility";
+import {getEventName, isInIOS, saveExportFile, writeText} from "../protyle/util/compatibility";
 import {processSync} from "../dialog/processSystem";
 import {isPaidUser, needSubscribe} from "../util/needSubscribe";
 import {bindSyncCloudListEvent, getSyncCloudList, setKey, syncGuide} from "../sync/syncGuide";
 import {hideElements} from "../protyle/ui/hideElements";
 import {getCloudURL, getIndexURL} from "./util/about";
 import {iOSPurchase} from "../util/iOSPurchase";
-import {openByMobile, writeText} from "../protyle/util/compatibility";
 import {bindLoginEvent, getLoginHTML} from "./mobileCloudAuth";
 import {Dialog} from "../dialog";
 
@@ -65,7 +64,7 @@ const bindSyncReposGroupDelegatedClick = (root: Element) => {
             }
             if (action === "exportData") {
                 fetchPost(target.getAttribute("data-type") === "s3" ? "/api/sync/exportSyncProviderS3" : "/api/sync/exportSyncProviderWebDAV", {}, response => {
-                    openByMobile(response.data.zip);
+                    saveExportFile(response.data.zip);
                 });
                 break;
             }

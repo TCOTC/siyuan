@@ -4,7 +4,6 @@ import {Constants} from "../constants";
 import {hasClosestByTag} from "../protyle/util/hasClosest";
 import {hasClosestByClassName} from "../protyle/util/hasClosest";
 import {isMobile} from "../util/functions";
-import {openByMobile} from "../protyle/util/compatibility";
 import {showMessage} from "../dialog/message";
 /// #if !BROWSER
 import {shell} from "electron";
@@ -13,7 +12,7 @@ import {useShell} from "../util/pathName";
 import {exportLayout} from "../layout/util";
 import {exitSiYuan} from "../dialog/processSystem";
 import {isBrowser} from "../util/functions";
-import {isInMobileApp, isIPad} from "../protyle/util/compatibility";
+import {isInMobileApp, isIPad, saveExportFile} from "../protyle/util/compatibility";
 export const access = {
     element: undefined as Element,
     genHTML: () => {
@@ -321,12 +320,12 @@ ${window.siyuan.languages.publishServiceAuthAccounts}
         }
         root.querySelector("#exportCACert")?.addEventListener("click", () => {
             fetchPost("/api/system/exportTLSCACert", {}, (response) => {
-                openByMobile(response.data.path);
+                saveExportFile(response.data.path);
             });
         });
         root.querySelector("#exportCABundle")?.addEventListener("click", () => {
             fetchPost("/api/system/exportTLSCABundle", {}, (response) => {
-                openByMobile(response.data.path);
+                saveExportFile(response.data.path);
             });
         });
         root.querySelector("#importCABundle")?.addEventListener("click", () => {

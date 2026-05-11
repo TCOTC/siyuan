@@ -9,7 +9,7 @@ import {exportLayout} from "../layout/util";
 import {exitSiYuan} from "../dialog/processSystem";
 import {showMessage} from "../dialog/message";
 import {isBrowser} from "../util/functions";
-import {isMac, openByMobile} from "../protyle/util/compatibility";
+import {isMac, saveExportFile} from "../protyle/util/compatibility";
 
 export const appConfig = {
     element: undefined as Element,
@@ -154,7 +154,7 @@ export const appConfig = {
         });
         root.querySelector("#exportLog")?.addEventListener("click", () => {
             fetchPost("/api/system/exportLog", {}, (response) => {
-                openByMobile(response.data.zip);
+                saveExportFile(response.data.zip);
             });
         });
         /// #if !BROWSER
@@ -216,7 +216,7 @@ export const appConfig = {
         root.querySelector("#exportData")?.addEventListener("click", async () => {
             /// #if BROWSER
             fetchPost("/api/export/exportData", {}, response => {
-                openByMobile(response.data.zip);
+                saveExportFile(response.data.zip);
             });
             /// #else
             const result = await ipcRenderer.invoke(Constants.SIYUAN_GET, {
@@ -237,7 +237,7 @@ export const appConfig = {
         });
         root.querySelector("#exportConf")?.addEventListener("click", async () => {
             fetchPost("/api/system/exportConf", {}, response => {
-                openByMobile(response.data.zip);
+                saveExportFile(response.data.zip);
             });
         });
     },
