@@ -20,29 +20,45 @@ export const file = {
         await mountScheduleSettingSave(root, sections);
     },
 
-    /** 从 DOM 合并本次控件 → `setFiletree` → 用响应写回 `window.siyuan.config.fileTree` */
-    send(root: HTMLElement, controlId: string) {
-        const prev = window.siyuan.config.fileTree;
-        let payload: Config.IFileTree = prev;
-        if (controlId.startsWith("fileTree.")) {
-            const rel = controlId.slice("fileTree.".length);
-            const el = root.querySelector<HTMLElement>(`[id="${CSS.escape(controlId)}"]`);
-            let value: unknown = undefined;
-            if (el) {
-                if (el instanceof HTMLSelectElement && /SaveBox$/.test(rel)) {
-                    value = el.value;
-                } else {
-                    value = readDomValueFromEl(el);
-                }
-            }
-            if (value !== undefined) {
-                payload = mergeRecordByDottedPath(
-                    {...prev} as unknown as Record<string, unknown>,
-                    rel,
-                    value
-                ) as unknown as Config.IFileTree;
-            }
+    /** 从 DOM 读出 `controlId` 对应值 → `send`；无有效值时不请求 */
+    set(root: HTMLElement, controlId: string) {
+        if (!controlId.startsWith("fileTree.")) {
+            return;
         }
+        const rel = controlId.slice("fileTree.".length);
+        const el = root.querySelector<HTMLElement>(`[id="${CSS.escape(controlId)}"]`);
+        if (!el) {
+            return;
+        }
+        let value: unknown;
+        if (el instanceof HTMLSelectElement && /SaveBox$/.test(rel)) {
+            value = el.value;
+        } else {
+            value = readDomValueFromEl(el);
+        }
+        if (value !== undefined) {
+            file.send(controlId, value);
+        }
+    },
+
+    /**
+     * 将 `value` 按点分路径合并进当前 `window.siyuan.config.fileTree` 后 POST；成功后 `apply`。
+     * `controlId` 与控件 `id` 一致，须为 `fileTree.` 前缀。
+     */
+    send(controlId: string, value: unknown) {
+        if (!controlId.startsWith("fileTree.")) {
+            return;
+        }
+        const rel = controlId.slice("fileTree.".length);
+        if (!rel) {
+            return;
+        }
+        const prev = window.siyuan.config.fileTree;
+        const payload = mergeRecordByDottedPath(
+            prev as unknown as Record<string, unknown>,
+            rel,
+            value
+        ) as unknown as Config.IFileTree;
         fetchPost("/api/setting/setFiletree", payload, (response) => {
             file.apply(response.data);
         });

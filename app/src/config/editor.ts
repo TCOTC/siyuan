@@ -10,7 +10,6 @@ import {getAllEditor} from "../layout/getAll";
 import {setInlineStyle} from "../util/assets";
 import {reloadProtyle} from "../protyle/util/reload";
 import {resize} from "../protyle/util/resize";
-import {setReadOnly} from "./util/setReadOnly";
 import {mountScheduleSettingSave} from "./ui/save";
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
@@ -29,43 +28,53 @@ export const editor = {
         await mountScheduleSettingSave(root, sections);
     },
 
-    /** 从 DOM 合并本次控件 → `setEditor` → 用响应写回 `window.siyuan.config.editor` 并刷新界面 */
-    send(root: HTMLElement, controlId: string) {
-        const prev = window.siyuan.config.editor;
-        let payload: Config.IEditor = prev;
-        if (controlId.startsWith("editor.")) {
-            let spellcheckLanguagesBranchDone = false;
-            /// #if !BROWSER
-            if (controlId === "editor.spellcheckLanguages") {
-                const spellcheckLanguagesElement = root.querySelector<HTMLElement>(
-                    `[id="${CSS.escape("editor.spellcheckLanguages")}"]`
-                );
-                payload = {
-                    ...prev,
-                    spellcheckLanguages: spellcheckLanguagesElement
-                        ? Array.from(spellcheckLanguagesElement.querySelectorAll(".b3-chip--current")).map(
-                              (item) => item.textContent || ""
-                          )
-                        : window.siyuan.config.editor.spellcheckLanguages,
-                };
-                spellcheckLanguagesBranchDone = true;
-            }
-            /// #endif
-            if (!spellcheckLanguagesBranchDone) {
-                const el = root.querySelector<HTMLElement>(`[id="${CSS.escape(controlId)}"]`);
-                if (el) {
-                    const value = readDomValueFromEl(el);
-                    if (value !== undefined) {
-                        const rel = controlId.slice("editor.".length);
-                        payload = mergeRecordByDottedPath(
-                            prev as unknown as Record<string, unknown>,
-                            rel,
-                            value
-                        ) as unknown as Config.IEditor;
-                    }
-                }
-            }
+    /** 从 DOM 读出 `controlId` 对应值 → `send`；无有效值时不请求 */
+    set(root: HTMLElement, controlId: string) {
+        if (!controlId.startsWith("editor.")) {
+            return;
         }
+        /// #if !BROWSER
+        if (controlId === "editor.spellcheckLanguages") {
+            const spellcheckLanguagesElement = root.querySelector<HTMLElement>(
+                `[id="${CSS.escape("editor.spellcheckLanguages")}"]`
+            );
+            const value = spellcheckLanguagesElement
+                ? Array.from(spellcheckLanguagesElement.querySelectorAll(".b3-chip--current")).map(
+                      (item) => item.textContent || ""
+                  )
+                : window.siyuan.config.editor.spellcheckLanguages;
+            editor.send(controlId, value);
+            return;
+        }
+        /// #endif
+        const el = root.querySelector<HTMLElement>(`[id="${CSS.escape(controlId)}"]`);
+        if (!el) {
+            return;
+        }
+        const value = readDomValueFromEl(el);
+        if (value !== undefined) {
+            editor.send(controlId, value);
+        }
+    },
+
+    /**
+     * 将 `value` 按点分路径合并进当前 `window.siyuan.config.editor` 后 POST；成功后 `apply`。
+     * `controlId` 与控件 `id`、全局配置点分路径一致（含 `editor.` 前缀），如 `editor.readOnly`、`editor.markdown.inlineAsterisk`。
+     */
+    send(controlId: string, value: unknown) {
+        if (!controlId.startsWith("editor.")) {
+            return;
+        }
+        const rel = controlId.slice("editor.".length);
+        if (!rel) {
+            return;
+        }
+        const prev = window.siyuan.config.editor;
+        const payload = mergeRecordByDottedPath(
+            prev as unknown as Record<string, unknown>,
+            rel,
+            value
+        ) as unknown as Config.IEditor;
         fetchPost("/api/setting/setEditor", payload, (response) => {
             editor.apply(response.data);
         });
@@ -73,10 +82,6 @@ export const editor = {
 
     /** 将服务端返回的 `IEditor` 写回全局配置并刷新各编辑器实例（外观页等也会调用） */
     apply(editorData: Config.IEditor) {
-        const changeReadonly = editorData.readOnly !== window.siyuan.config.editor.readOnly;
-        if (changeReadonly) {
-            setReadOnly(editorData.readOnly);
-        }
         window.siyuan.config.editor = editorData;
         getAllEditor().forEach((editorItem) => {
             const protyle = editorItem.protyle;

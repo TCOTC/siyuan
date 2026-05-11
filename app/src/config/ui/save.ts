@@ -21,9 +21,9 @@ export const scheduleSettingSave = (root: HTMLElement, controlId: string) => {
         return;
     }
     if (ns === "editor") {
-        editor.send(root, controlId);
+        editor.set(root, controlId);
     } else {
-        file.send(root, controlId);
+        file.set(root, controlId);
     }
 };
 
