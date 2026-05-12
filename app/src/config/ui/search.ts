@@ -1,4 +1,4 @@
-import type {SettingRow} from "./types";
+import type {SettingRow} from "./settingRows";
 
 /** 设置面板内搜索：单条文案是否包含查询串（已 `trim` + `toLowerCase` 的 `queryLower`） */
 export const textMatchesConfigSearch = (text: string, queryLower: string): boolean => {
@@ -12,7 +12,7 @@ export const textMatchesConfigSearch = (text: string, queryLower: string): boole
     return t.indexOf(queryLower) > -1;
 };
 
-/** 行是否命中设置面板搜索（工厂行看 title / desc 或 select 的选项文案；custom 看 keywords） */
+/** 行是否命中设置面板搜索（工厂行看 `title` / `desc`；`custom` 看 `keywords`；`select` 另含选项文案） */
 export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string): boolean => {
     switch (row.type) {
         case "custom":
@@ -25,20 +25,40 @@ export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string)
                 return true;
             }
             return row.options.some((o) => textMatchesConfigSearch(o.label, queryLower));
+        case "number":
+            if (
+                textMatchesConfigSearch(row.title, queryLower) ||
+                textMatchesConfigSearch(row.desc, queryLower)
+            ) {
+                return true;
+            }
+            if (row.unit && textMatchesConfigSearch(row.unit, queryLower)) {
+                return true;
+            }
+            return false;
         default:
-            return (
-                textMatchesConfigSearch(row.title, queryLower) || textMatchesConfigSearch(row.desc, queryLower)
-            );
+            if (
+                textMatchesConfigSearch(row.title, queryLower) ||
+                textMatchesConfigSearch(row.desc, queryLower)
+            ) {
+                return true;
+            }
+            return false;
     }
 };
 
-/** 从一行注册数据取出参与侧栏与内容区检索索引的字符串 */
+/** 从一行注册数据取出参与侧栏与内容区检索索引的字符串（`custom` 仅用 `keywords`；其余含 `title` / `desc` 的行用二者） */
 export const collectRowStringsForSearchIndex = (row: SettingRow): string[] => {
     switch (row.type) {
         case "custom":
             return [...row.keywords];
         case "select":
             return [row.title, row.desc, ...row.options.map((o) => o.label)];
+        case "number":
+            if (row.unit) {
+                return [row.title, row.desc, row.unit];
+            }
+            return [row.title, row.desc];
         default:
             return [row.title, row.desc];
     }

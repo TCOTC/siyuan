@@ -1,63 +1,63 @@
-/** 从设置面板表单控件读取值（与 `renderSettingTabHtmlFromSections` 生成的 DOM 一致） */
+import {getAtPath} from "./dotPath";
+import {type SettingRow} from "./settingRows";
 
-export function clampNumber(n: number, min?: number, max?: number, el?: HTMLInputElement): number {
-    let v = n;
-    if (min !== undefined && v < min) {
-        v = min;
-    }
-    if (max !== undefined && v > max) {
-        v = max;
-    }
-    if (el && String(v) !== el.value) {
-        el.value = String(v);
-    }
-    return v;
-}
-
-export function parseInputBound(el: HTMLInputElement, attr: "min" | "max"): number | undefined {
-    const s = el.getAttribute(attr);
-    if (s === null || s === "") {
-        return undefined;
-    }
-    const n = parseInt(s, 10);
-    return Number.isNaN(n) ? undefined : n;
-}
-
-export function readDomValueFromEl(el: HTMLElement): unknown {
+/**
+ * 从 DOM 读出控件值。
+ * @param row 当前 Tab 内与 `el.id` 对应的 `SettingRow`；`custom` 内控件通常无行定义，可省略。
+ */
+export function readDomValue(el: HTMLElement, row?: SettingRow): unknown {
     if (el instanceof HTMLSelectElement) {
-        return parseInt(el.value, 10);
+        if (!row) {
+            return parseInt(el.value, 10);
+        }
+        if (row.type === "select") {
+            // 约定同一个 options 里的 value 都是相同类型
+            return row.options.length > 0 && typeof row.options[0].value === "number"
+                ? parseInt(el.value, 10)
+                : el.value;
+        } else if (row.type === "notebookSavePath") {
+            return el.value;
+        } else {
+            return parseInt(el.value, 10);
+        }
     }
     if (el instanceof HTMLTextAreaElement) {
         return el.value;
     }
     if (el instanceof HTMLInputElement) {
-        if (el.type === "checkbox") {
-            return el.checked;
-        }
-        if (el.type === "number") {
-            const n = parseInt(el.value, 10);
-            if (Number.isNaN(n)) {
-                return undefined;
+        switch (el.type) {
+            case "checkbox":
+                return el.checked;
+            case "number":
+            case "range": {
+                let n = parseInt(el.value, 10);
+                const invalid = Number.isNaN(n);
+                if (invalid) {
+                    // 无效时回退原配置或默认值 0
+                    const raw = getAtPath(window.siyuan.config, el.id);
+                    n = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
+                }
+                const min = parseInt(el.getAttribute("min") ?? "", 10);
+                if (!Number.isNaN(min) && n < min) {
+                    n = min;
+                }
+                const max = parseInt(el.getAttribute("max") ?? "", 10);
+                if (!Number.isNaN(max) && n > max) {
+                    n = max;
+                }
+                // 写回控件
+                const valueStr = String(n);
+                if (el.value !== valueStr) {
+                    el.value = valueStr;
+                }
+                if (el.type === "range") {
+                    el.parentElement?.setAttribute("aria-label", valueStr);
+                }
+                return n;
             }
-            const minV = parseInputBound(el, "min");
-            const maxV = parseInputBound(el, "max");
-            return clampNumber(n, minV, maxV, el);
+            default:
+                return el.value;
         }
-        if (el.type === "range") {
-            let n = parseInt(el.value, 10);
-            if (Number.isNaN(n)) {
-                return undefined;
-            }
-            const minV = parseInputBound(el, "min");
-            const maxV = parseInputBound(el, "max");
-            n = clampNumber(n, minV, maxV, el);
-            const parent = el.parentElement;
-            if (parent) {
-                parent.setAttribute("aria-label", String(n));
-            }
-            return n;
-        }
-        return el.value;
     }
     return undefined;
 }

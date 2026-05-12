@@ -1,12 +1,20 @@
 import {confirmDialog} from "../dialog/confirmDialog";
 import {genNotebookOption} from "../menus/onGetnotebookconf";
 import {fetchPost} from "../util/fetch";
-import type {SettingBindApi, SettingRow, SettingSection} from "./ui/types";
+import {
+    customRow,
+    findSettingRowByControlId,
+    notebookSavePathRow,
+    numberRow,
+    switchRow,
+    type SettingBindApi,
+    type SettingSection,
+} from "./ui/settingRows";
 import {filterSettingSections} from "./ui/search";
 import {renderSettingTabHtmlFromSections} from "./ui/render";
-import {readDomValueFromEl} from "./ui/formValue";
+import {readDomValue} from "./ui/formValue";
 import {mergeRecordByDottedPath} from "./ui/dotPath";
-import {mountScheduleSettingSave} from "./ui/save";
+import {mountSettingSaveHandlers} from "./ui/save";
 
 export const file = {
     /**
@@ -17,25 +25,20 @@ export const file = {
     mount: async (root: HTMLElement, searchQuery?: string) => {
         const sections = filterSettingSections(buildFileSections(), searchQuery);
         root.innerHTML = renderSettingTabHtmlFromSections(sections);
-        await mountScheduleSettingSave(root, sections);
+        await mountSettingSaveHandlers(root, sections);
     },
 
     /** 从 DOM 读出 `controlId` 对应值 → `send`；无有效值时不请求 */
-    set(root: HTMLElement, controlId: string) {
+    set(root: HTMLElement, controlId: string, sections: SettingSection[]) {
         if (!controlId.startsWith("fileTree.")) {
             return;
         }
-        const rel = controlId.slice("fileTree.".length);
         const el = root.querySelector<HTMLElement>(`[id="${CSS.escape(controlId)}"]`);
         if (!el) {
             return;
         }
-        let value: unknown;
-        if (el instanceof HTMLSelectElement && /SaveBox$/.test(rel)) {
-            value = el.value;
-        } else {
-            value = readDomValueFromEl(el);
-        }
+        const row = findSettingRowByControlId(sections, controlId);
+        const value = readDomValue(el, row);
         if (value !== undefined) {
             file.send(controlId, value);
         }
@@ -80,129 +83,76 @@ export function buildFileSections(): SettingSection[] {
         {
             title: window.siyuan.languages.configGroupTabs,
             items: [
-                {
-                    type: "switch",
+                switchRow({
                     id: "fileTree.alwaysSelectOpenedFile",
                     title: window.siyuan.languages.selectOpen,
                     desc: window.siyuan.languages.fileTree2,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "fileTree.openFilesUseCurrentTab",
                     title: window.siyuan.languages.fileTree7,
                     desc: window.siyuan.languages.fileTree8,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "fileTree.noSplitScreenWhenOpenTab",
                     title: window.siyuan.languages.noSplitScreenWhenOpenTab,
                     desc: window.siyuan.languages.noSplitScreenWhenOpenTabTip,
-                },
-                {
-                    type: "number",
+                }),
+                numberRow({
                     id: "fileTree.maxOpenTabCount",
                     min: 1,
                     max: 32,
                     title: window.siyuan.languages.tabLimit,
                     desc: window.siyuan.languages.tabLimit1,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "fileTree.closeTabsOnStart",
                     title: window.siyuan.languages.fileTree9,
                     desc: window.siyuan.languages.fileTree10,
-                },
+                }),
             ],
         },
         {
             title: window.siyuan.languages.configGroupNewDocument,
             items: [
-                {
-                    type: "switch",
+                switchRow({
                     id: "fileTree.createDocAtTop",
                     title: window.siyuan.languages.fileTree24,
                     desc: window.siyuan.languages.fileTree25,
-                },
-                {
-                    type: "custom",
-                    keywords: [window.siyuan.languages.fileTree12, window.siyuan.languages.fileTree13],
-                    html: () => `<div class="b3-label config__item">
-    ${window.siyuan.languages.fileTree12}
-    <div class="b3-label__text">${window.siyuan.languages.fileTree13}</div>
-    <span class="fn__hr"></span>
-    <div class="fn__flex">
-        <select style="min-width: 200px" class="b3-select" id="fileTree.docCreateSaveBox">${genNotebookOption(window.siyuan.config.fileTree.docCreateSaveBox)}</select>
-        <div class="fn__space"></div>
-        <input class="b3-text-field fn__flex-1" id="fileTree.docCreateSavePath" value="">
-    </div>
-</div>`,
-                    bind: async (api: SettingBindApi) => {
-                        const el = api.root.querySelector<HTMLInputElement>(
-                            `[id="${CSS.escape("fileTree.docCreateSavePath")}"]`
-                        );
-                        if (el) {
-                            el.value = window.siyuan.config.fileTree.docCreateSavePath;
-                        }
-                    },
-                },
-                {
-                    type: "custom",
-                    keywords: [window.siyuan.languages.fileTree5, window.siyuan.languages.fileTree6],
-                    html: () => `<div class="b3-label config__item">
-    ${window.siyuan.languages.fileTree5}
-    <div class="b3-label__text">${window.siyuan.languages.fileTree6}</div>
-    <span class="fn__hr"></span>
-    <div class="fn__flex">
-        <select style="min-width: 200px" class="b3-select" id="fileTree.refCreateSaveBox">${genNotebookOption(window.siyuan.config.fileTree.refCreateSaveBox)}</select>
-        <div class="fn__space"></div>
-        <input class="b3-text-field fn__flex-1" id="fileTree.refCreateSavePath" value="${window.siyuan.config.fileTree.refCreateSavePath}">
-    </div>
-</div>`,
-                    bind: async (api: SettingBindApi) => {
-                        const el = api.root.querySelector<HTMLInputElement>(
-                            `[id="${CSS.escape("fileTree.refCreateSavePath")}"]`
-                        );
-                        if (el) {
-                            el.value = window.siyuan.config.fileTree.refCreateSavePath;
-                        }
-                    },
-                },
-                ...(isMobileKernelContainer()
-                    ? ([
-                        {
-                            type: "custom" as const,
-                            keywords: [
-                                window.siyuan.languages.fileTree26,
-                                window.siyuan.languages.fileTree27,
-                            ],
-                            html: () => `<div class="b3-label config__item">
-    ${window.siyuan.languages.fileTree26}
-    <div class="b3-label__text">${window.siyuan.languages.fileTree27}</div>
-    <span class="fn__hr"></span>
-    <div class="fn__flex">
-        <select style="min-width: 200px" class="b3-select" id="fileTree.shorthandSaveBox">${genNotebookOption(window.siyuan.config.fileTree.shorthandSaveBox, undefined, true)}</select>
-        <div class="fn__space"></div>
-        <input class="b3-text-field fn__flex-1" id="fileTree.shorthandSavePath" value="${window.siyuan.config.fileTree.shorthandSavePath}">
-    </div>
-</div>`,
-                            bind: async (api: SettingBindApi) => {
-                                const el = api.root.querySelector<HTMLInputElement>(
-                                    `[id="${CSS.escape("fileTree.shorthandSavePath")}"]`
-                                );
-                                if (el) {
-                                    el.value = window.siyuan.config.fileTree.shorthandSavePath;
-                                }
-                            },
-                        },
-                    ] as SettingRow[])
-                    : []),
+                }),
+                notebookSavePathRow({
+                    title: window.siyuan.languages.fileTree12,
+                    desc: window.siyuan.languages.fileTree13,
+                    selectId: "fileTree.docCreateSaveBox",
+                    pathId: "fileTree.docCreateSavePath",
+                    getOptionsHtml: () => genNotebookOption(window.siyuan.config.fileTree.docCreateSaveBox),
+                    getPathValue: () => window.siyuan.config.fileTree.docCreateSavePath,
+                }),
+                notebookSavePathRow({
+                    title: window.siyuan.languages.fileTree5,
+                    desc: window.siyuan.languages.fileTree6,
+                    selectId: "fileTree.refCreateSaveBox",
+                    pathId: "fileTree.refCreateSavePath",
+                    getOptionsHtml: () => genNotebookOption(window.siyuan.config.fileTree.refCreateSaveBox),
+                    getPathValue: () => window.siyuan.config.fileTree.refCreateSavePath,
+                }),
+                ...(isMobileKernelContainer() ? [] : [
+                    notebookSavePathRow({
+                        title: window.siyuan.languages.fileTree26,
+                        desc: window.siyuan.languages.fileTree27,
+                        selectId: "fileTree.shorthandSaveBox",
+                        pathId: "fileTree.shorthandSavePath",
+                        getOptionsHtml: () =>
+                            genNotebookOption(window.siyuan.config.fileTree.shorthandSaveBox, undefined, true),
+                        getPathValue: () => window.siyuan.config.fileTree.shorthandSavePath,
+                    })
+                ]),
             ],
         },
         {
             title: window.siyuan.languages.configGroupFileManagement,
             items: [
-                {
-                    type: "custom",
+                customRow({
                     keywords: [
                         window.siyuan.languages.generateHistory,
                         window.siyuan.languages.generateHistoryInterval,
@@ -251,62 +201,49 @@ export function buildFileSections(): SettingSection[] {
                             );
                         });
                     },
-                },
-                {
-                    type: "number",
+                }),
+                numberRow({
                     id: "fileTree.maxListCount",
                     min: 1,
                     max: 10240,
                     title: window.siyuan.languages.fileTree16,
                     desc: window.siyuan.languages.fileTree17,
-                },
-                {
-                    type: "custom",
-                    keywords: [window.siyuan.languages.fileTree22, window.siyuan.languages.fileTree23],
-                    html: () => `<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.fileTree22}
-        <div class="b3-label__text">${window.siyuan.languages.fileTree23}</div>
-    </div>
-    <span class="fn__space"></span>
-    <div class="fn__size200 fn__flex-center fn__flex">
-        <input class="b3-text-field fn__flex-1" id="fileTree.largeFileWarningSize" type="number" min="2" max="10240" value="${window.siyuan.config.fileTree.largeFileWarningSize}">
-        <span class="fn__space"></span>
-        <span class="ft__on-surface fn__flex-center">MB</span>
-    </div>
-</div>`,
-                },
-                {
-                    type: "switch",
+                }),
+                numberRow({
+                    id: "fileTree.largeFileWarningSize",
+                    min: 2,
+                    max: 10240,
+                    unit: "MB",
+                    title: window.siyuan.languages.fileTree22,
+                    desc: window.siyuan.languages.fileTree23,
+                }),
+                switchRow({
                     id: "fileTree.allowCreateDeeper",
                     title: window.siyuan.languages.fileTree18,
                     desc: window.siyuan.languages.fileTree19,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "fileTree.useSingleLineSave",
                     title: window.siyuan.languages.fileTree20,
                     desc: window.siyuan.languages.fileTree21,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "fileTree.removeDocWithoutConfirm",
                     title: window.siyuan.languages.fileTree3,
                     desc: window.siyuan.languages.fileTree4,
-                },
+                }),
             ],
         },
         {
             title: window.siyuan.languages.configGroupOthers,
             items: [
-                {
-                    type: "number",
+                numberRow({
                     id: "fileTree.recentDocsMaxListCount",
                     min: 32,
                     max: 256,
                     title: window.siyuan.languages.recentDocsMaxListCount,
                     desc: window.siyuan.languages.recentDocsMaxListCountTip,
-                },
+                }),
             ],
         },
     ];

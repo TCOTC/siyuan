@@ -1,20 +1,30 @@
 ﻿import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Constants} from "../constants";
-import type {SettingBindApi, SettingSection} from "./ui/types";
+import {
+    blockTextareaRow,
+    customRow,
+    findSettingRowByControlId,
+    numberRow,
+    rangeRow,
+    selectRow,
+    switchRow,
+    textRow,
+    type SettingBindApi,
+    type SettingSection,
+} from "./ui/settingRows";
 import {filterSettingSections} from "./ui/search";
 import {renderSettingTabHtmlFromSections} from "./ui/render";
-import {readDomValueFromEl} from "./ui/formValue";
+import {readDomValue} from "./ui/formValue";
 import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {fetchPost} from "../util/fetch";
 import {getAllEditor} from "../layout/getAll";
 import {setInlineStyle} from "../util/assets";
 import {reloadProtyle} from "../protyle/util/reload";
 import {resize} from "../protyle/util/resize";
-import {mountScheduleSettingSave} from "./ui/save";
+import {mountSettingSaveHandlers} from "./ui/save";
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
 /// #endif
-
 
 export const editor = {
     /**
@@ -25,33 +35,20 @@ export const editor = {
     mount: async (root: HTMLElement, searchQuery?: string) => {
         const sections = filterSettingSections(buildEditorSections(), searchQuery);
         root.innerHTML = renderSettingTabHtmlFromSections(sections);
-        await mountScheduleSettingSave(root, sections);
+        await mountSettingSaveHandlers(root, sections);
     },
 
     /** 从 DOM 读出 `controlId` 对应值 → `send`；无有效值时不请求 */
-    set(root: HTMLElement, controlId: string) {
+    set(root: HTMLElement, controlId: string, sections: SettingSection[]) {
         if (!controlId.startsWith("editor.")) {
             return;
         }
-        /// #if !BROWSER
-        if (controlId === "editor.spellcheckLanguages") {
-            const spellcheckLanguagesElement = root.querySelector<HTMLElement>(
-                `[id="${CSS.escape("editor.spellcheckLanguages")}"]`
-            );
-            const value = spellcheckLanguagesElement
-                ? Array.from(spellcheckLanguagesElement.querySelectorAll(".b3-chip--current")).map(
-                      (item) => item.textContent || ""
-                  )
-                : window.siyuan.config.editor.spellcheckLanguages;
-            editor.send(controlId, value);
-            return;
-        }
-        /// #endif
         const el = root.querySelector<HTMLElement>(`[id="${CSS.escape(controlId)}"]`);
         if (!el) {
             return;
         }
-        const value = readDomValueFromEl(el);
+        const row = findSettingRowByControlId(sections, controlId);
+        const value = readDomValue(el, row);
         if (value !== undefined) {
             editor.send(controlId, value);
         }
@@ -111,8 +108,7 @@ export function buildEditorSections(): SettingSection[] {
         {
             title: window.siyuan.languages.configGroupBehavior,
             items: [
-                {
-                    type: "custom",
+                customRow({
                     keywords: [window.siyuan.languages.editReadonly, window.siyuan.languages.editReadonlyTip],
                     html: () => {
                         const cfg = window.siyuan.config;
@@ -126,9 +122,8 @@ export function buildEditorSections(): SettingSection[] {
     <input class="b3-switch fn__flex-center" id="editor.readOnly" type="checkbox"${cfg.editor.readOnly ? " checked" : ""}/>
 </label>`;
                     },
-                },
-                {
-                    type: "custom",
+                }),
+                customRow({
                     keywords: [
                         window.siyuan.languages.spellcheck,
                         window.siyuan.languages.spellcheckTip,
@@ -155,7 +150,7 @@ export function buildEditorSections(): SettingSection[] {
                     },
                     bind: async (api: SettingBindApi) => {
                         /// #if !BROWSER
-                        const {root, scheduleSave} = api;
+                        const {root} = api;
                         const spellcheckSwitch = root.querySelector<HTMLInputElement>(`[id="${CSS.escape("editor.spellcheck")}"]`);
                         const spellcheckLanguagesElement = root.querySelector<HTMLDivElement>(`[id="${CSS.escape("editor.spellcheckLanguages")}"]`);
                         if (!spellcheckSwitch || !spellcheckLanguagesElement) {
@@ -180,75 +175,69 @@ export function buildEditorSections(): SettingSection[] {
                             const target = event.target as Element;
                             if (target.classList.contains("b3-chip")) {
                                 target.classList.toggle("b3-chip--current");
+                                const selectedLanguages = Array.from(
+                                    spellcheckLanguagesElement.querySelectorAll(".b3-chip--current")
+                                ).map((item) => item.textContent || "");
                                 ipcRenderer.send(Constants.SIYUAN_CMD, {
                                     cmd: "setSpellCheckerLanguages",
-                                    languages: Array.from(spellcheckLanguagesElement.querySelectorAll(".b3-chip--current")).map((item) => item.textContent),
+                                    languages: selectedLanguages,
                                 });
-                                scheduleSave("editor.spellcheckLanguages");
+                                editor.send("editor.spellcheckLanguages", selectedLanguages);
                             }
                         });
                         /// #endif
                     },
-                },
-                {
-                    type: "range",
+                }),
+                rangeRow({
                     id: "editor.codeTabSpaces",
                     min: 0,
                     max: 8,
                     step: 2,
                     title: window.siyuan.languages.md29,
                     desc: window.siyuan.languages.md30,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.listLogicalOutdent",
                     title: window.siyuan.languages.outlineOutdent,
                     desc: window.siyuan.languages.outlineOutdentTip,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.listItemDotNumberClickFocus",
                     title: window.siyuan.languages.listItemDotNumberClickFocus,
                     desc: window.siyuan.languages.listItemDotNumberClickFocusTip,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.pasteURLAutoConvert",
                     title: window.siyuan.languages.pasteURLAutoConvert,
                     desc: window.siyuan.languages.pasteURLAutoConvertTip,
-                },
-                {
-                    type: "number",
+                }),
+                numberRow({
                     id: "editor.dynamicLoadBlocks",
                     min: 48,
                     title: window.siyuan.languages.dynamicLoadBlocks,
                     desc: window.siyuan.languages.dynamicLoadBlocksTip,
-                },
+                }),
             ],
         },
         {
             title: window.siyuan.languages.configGroupBlockFeatures,
             items: [
-                {
-                    type: "switch",
+                switchRow({
                     id: "editor.displayNetImgMark",
                     title: window.siyuan.languages.md7,
                     desc: window.siyuan.languages.md8,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.displayBookmarkIcon",
                     title: window.siyuan.languages.md12,
                     desc: window.siyuan.languages.md16,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.embedBlockBreadcrumb",
                     title: window.siyuan.languages.embedBlockBreadcrumb,
                     desc: window.siyuan.languages.embedBlockBreadcrumbTip,
-                },
-                {
-                    type: "select",
+                }),
+                selectRow({
                     id: "editor.headingEmbedMode",
                     options: [
                         {value: 0, label: window.siyuan.languages.showHeadingWithBlocks},
@@ -257,185 +246,146 @@ export function buildEditorSections(): SettingSection[] {
                     ],
                     title: window.siyuan.languages.headingEmbedMode,
                     desc: window.siyuan.languages.headingEmbedModeTip,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.codeLineWrap",
                     title: window.siyuan.languages.md31,
                     desc: window.siyuan.languages.md32,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.codeLigatures",
                     title: window.siyuan.languages.md2,
                     desc: window.siyuan.languages.md3,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.codeSyntaxHighlightLineNum",
                     title: window.siyuan.languages.md27,
                     desc: window.siyuan.languages.md28,
-                },
+                }),
             ],
         },
         {
             title: window.siyuan.languages.configGroupBidirectionalLinks,
             items: [
-                {
-                    type: "switch",
+                switchRow({
                     id: "editor.onlySearchForDoc",
                     title: window.siyuan.languages.onlySearchForDoc,
                     desc: window.siyuan.languages.onlySearchForDocTip,
-                },
-                {
-                    type: "number",
+                }),
+                numberRow({
                     id: "editor.blockRefDynamicAnchorTextMaxLen",
                     min: 1,
                     max: 5120,
                     title: window.siyuan.languages.md37,
                     desc: window.siyuan.languages.md38,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.virtualBlockRef",
                     title: window.siyuan.languages.md33,
                     desc: window.siyuan.languages.md34,
-                },
-                {
-                    type: "custom",
-                    keywords: [window.siyuan.languages.md9, window.siyuan.languages.md36],
-                    html: () => `<div class="b3-label">
-    <div class="fn__block">
-        ${window.siyuan.languages.md9}
-        <div class="b3-label__text">${window.siyuan.languages.md36}</div>
-        <div class="fn__hr"></div>
-        <textarea class="b3-text-field fn__block" id="editor.virtualBlockRefInclude">${window.siyuan.config.editor.virtualBlockRefInclude}</textarea>
-    </div>
-</div>`,
-                },
-                {
-                    type: "custom",
-                    keywords: [window.siyuan.languages.md35, window.siyuan.languages.md36, window.siyuan.languages.md41],
-                    html: () => `<div class="b3-label">
-    <div class="fn__block">
-        ${window.siyuan.languages.md35}
-        <div class="b3-label__text">${window.siyuan.languages.md36}</div>
-        <div class="b3-label__text">${window.siyuan.languages.md41}</div>
-        <div class="fn__hr"></div>
-        <textarea class="b3-text-field fn__block" id="editor.virtualBlockRefExclude">${window.siyuan.config.editor.virtualBlockRefExclude}</textarea>
-    </div>
-</div>`,
-                },
-                {
-                    type: "switch",
+                }),
+                blockTextareaRow({
+                    title: window.siyuan.languages.md9,
+                    desc: window.siyuan.languages.md36,
+                    id: "editor.virtualBlockRefInclude",
+                    getTextValue: () => window.siyuan.config.editor.virtualBlockRefInclude,
+                }),
+                blockTextareaRow({
+                    title: window.siyuan.languages.md35,
+                    desc: window.siyuan.languages.md41,
+                    id: "editor.virtualBlockRefExclude",
+                    getTextValue: () => window.siyuan.config.editor.virtualBlockRefExclude,
+                }),
+                switchRow({
                     id: "editor.backlinkContainChildren",
                     title: window.siyuan.languages.backlinkContainChildren,
                     desc: window.siyuan.languages.backlinkContainChildrenTip,
-                },
-                {
-                    type: "number",
+                }),
+                numberRow({
                     id: "editor.backlinkExpandCount",
                     min: 0,
                     max: 512,
                     title: window.siyuan.languages.backlinkExpand,
                     desc: window.siyuan.languages.backlinkExpandTip,
-                },
-                {
-                    type: "number",
+                }),
+                numberRow({
                     id: "editor.backmentionExpandCount",
                     min: -1,
                     max: 512,
                     title: window.siyuan.languages.backmentionExpand,
                     desc: window.siyuan.languages.backmentionExpandTip,
-                },
+                }),
             ],
         },
         {
             title: window.siyuan.languages.configGroupMarkdownInlineSyntax,
             items: [
-                {
-                    type: "switch",
+                switchRow({
                     id: "editor.markdown.inlineAsterisk",
                     title: window.siyuan.languages.editorMarkdownInlineAsterisk,
                     desc: window.siyuan.languages.editorMarkdownInlineAsteriskTip,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.markdown.inlineUnderscore",
                     title: window.siyuan.languages.editorMarkdownInlineUnderscore,
                     desc: window.siyuan.languages.editorMarkdownInlineUnderscoreTip,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.markdown.inlineSup",
                     title: window.siyuan.languages.editorMarkdownInlineSup,
                     desc: window.siyuan.languages.editorMarkdownInlineSupTip,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.markdown.inlineSub",
                     title: window.siyuan.languages.editorMarkdownInlineSub,
                     desc: window.siyuan.languages.editorMarkdownInlineSubTip,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.markdown.inlineTag",
                     title: window.siyuan.languages.editorMarkdownInlineTag,
                     desc: window.siyuan.languages.editorMarkdownInlineTagTip,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.markdown.inlineMath",
                     title: window.siyuan.languages.editorMarkdownInlineMath,
                     desc: window.siyuan.languages.editorMarkdownInlineMathTip,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.markdown.inlineStrikethrough",
                     title: window.siyuan.languages.editorMarkdownInlineStrikethrough,
                     desc: window.siyuan.languages.editorMarkdownInlineStrikethroughTip,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.markdown.inlineMark",
                     title: window.siyuan.languages.editorMarkdownInlineMark,
                     desc: window.siyuan.languages.editorMarkdownInlineMarkTip,
-                },
+                }),
             ],
         },
         {
             title: window.siyuan.languages.configGroupAdvanced,
             items: [
-                {
-                    type: "text",
+                textRow({
                     id: "editor.plantUMLServePath",
                     title: window.siyuan.languages.md39,
                     desc: window.siyuan.languages.md40,
-                },
-                {
-                    type: "custom",
-                    keywords: [window.siyuan.languages.katexMacros, window.siyuan.languages.katexMacrosTip],
-                    html: () => `<div class="b3-label">
-    <div class="fn__block">
-        ${window.siyuan.languages.katexMacros}
-        <div class="b3-label__text">${window.siyuan.languages.katexMacrosTip}</div>
-        <div class="fn__hr"></div>
-        <textarea class="b3-text-field fn__block" id="editor.katexMacros" spellcheck="false">${window.siyuan.config.editor.katexMacros}</textarea>
-    </div>
-</div>`,
-                },
-                {
-                    type: "switch",
+                }),
+                blockTextareaRow({
+                    title: window.siyuan.languages.katexMacros,
+                    desc: window.siyuan.languages.katexMacrosTip,
+                    id: "editor.katexMacros",
+                    getTextValue: () => window.siyuan.config.editor.katexMacros,
+                }),
+                switchRow({
                     id: "editor.allowSVGScript",
                     title: window.siyuan.languages.allowSVGScript,
                     desc: window.siyuan.languages.allowSVGScriptTip,
-                },
-                {
-                    type: "switch",
+                }),
+                switchRow({
                     id: "editor.allowHTMLBLockScript",
                     title: window.siyuan.languages.allowHTMLBLockScript,
                     desc: window.siyuan.languages.allowHTMLBLockScriptTip,
-                },
+                }),
             ],
         },
     ];

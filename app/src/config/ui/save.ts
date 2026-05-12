@@ -1,14 +1,14 @@
 import {editor} from "../editor";
 import {file} from "../file";
-import type {SettingBindApi, SettingSection} from "./types";
+import type {SettingBindApi, SettingSection} from "./settingRows";
 
 const routedNamespaces = new Set(["editor", "fileTree"]);
 
-/**
- * 按控件 `id` 的首段命名空间分发保存；仅处理带 `.` 且为已知命名空间的 `id`。
- * 未匹配的 `id` 不执行任何操作（其它 Tab 仍用各自 `scheduleSave` 直至迁完）。
- */
-export const scheduleSettingSave = (root: HTMLElement, controlId: string) => {
+export const routeSettingSave = (
+    root: HTMLElement,
+    controlId: string,
+    sections: SettingSection[]
+) => {
     if (!controlId) {
         return;
     }
@@ -20,28 +20,31 @@ export const scheduleSettingSave = (root: HTMLElement, controlId: string) => {
     if (!routedNamespaces.has(ns)) {
         return;
     }
+    // 同一个接口的配置放在不同的标签页中，要派发给不同的方法来处理
     if (ns === "editor") {
-        editor.set(root, controlId);
+        editor.set(root, controlId, sections);
     } else {
-        file.set(root, controlId);
+        file.set(root, controlId, sections);
     }
 };
 
-/**
- * 设置 Tab 在写入 `innerHTML` 之后：为 `custom.bind` 提供 `scheduleSave`，并为 `input` / `select` 挂上 `change` → `scheduleSettingSave`。
- */
-export const mountScheduleSettingSave = async (root: HTMLElement, sections: SettingSection[]): Promise<void> => {
-    const scheduleSave = (controlId: string) => scheduleSettingSave(root, controlId);
+export const mountSettingSaveHandlers = async (root: HTMLElement, sections: SettingSection[]): Promise<void> => {
+    const routeSave = (controlId: string) => routeSettingSave(root, controlId, sections);
     for (const section of sections) {
         for (const row of section.items) {
             if (row.type === "custom" && row.bind) {
-                await row.bind({root, scheduleSave} satisfies SettingBindApi);
+                await row.bind({root, routeSave} satisfies SettingBindApi);
+            } else if (row.type === "notebookSavePath") {
+                const el = root.querySelector<HTMLInputElement>(`[id="${CSS.escape(row.pathId)}"]`);
+                if (el) {
+                    el.value = row.getPathValue();
+                }
             }
         }
     }
     root.querySelectorAll("input, select").forEach((item) => {
         item.addEventListener("change", () => {
-            scheduleSave(item.id);
+            routeSave(item.id);
         });
     });
 };
