@@ -63,7 +63,7 @@ export const init = (app: App) => {
     /// #if !BROWSER
     initNativeDialogOverride();
     /// #endif
-    appearance.onSetAppearance(window.siyuan.config.appearance);
+    appearance.apply(window.siyuan.config.appearance);
     initAssets();
     setInlineStyle();
     renderSnippet();

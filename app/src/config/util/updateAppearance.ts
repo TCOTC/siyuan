@@ -39,5 +39,5 @@ export const updateAppearance = async (data: IAppearance) => {
         window.siyuan.config.appearance.hideStatusBar = data.hideStatusBar;
         adjustDockPadding();
     }
-    appearance.onSetAppearance(data);
+    appearance.apply(data);
 };

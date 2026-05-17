@@ -2,12 +2,11 @@ import {confirmDialog} from "../dialog/confirmDialog";
 import {genNotebookOption} from "../menus/onGetnotebookconf";
 import {fetchPost} from "../util/fetch";
 import {
-    customRow,
     findSettingRowByControlId,
     notebookSavePathRow,
     numberRow,
+    stackRow,
     switchRow,
-    type SettingBindApi,
     type SettingSection,
 } from "./ui/settingRows";
 import {filterSettingSections} from "./ui/search";
@@ -141,55 +140,49 @@ export function buildFileSections(): SettingSection[] {
         {
             title: window.siyuan.languages.configGroupFileManagement,
             items: [
-                customRow({
-                    keywords: [
-                        window.siyuan.languages.generateHistory,
-                        window.siyuan.languages.generateHistoryInterval,
-                        window.siyuan.languages.historyRetentionDaysTip,
-                        window.siyuan.languages.clearHistory,
-                        window.siyuan.languages.purge,
-                        window.siyuan.languages.historyRetentionDays,
-                        window.siyuan.languages.confirmClearHistory,
+                numberRow({
+                    id: "editor.generateHistoryInterval",
+                    title: window.siyuan.languages.generateHistory,
+                    desc: window.siyuan.languages.generateHistoryInterval,
+                    min: 0,
+                    max: 120,
+                }),
+                stackRow({
+                    lines: [
+                        {
+                            left: {kind: "title", text: window.siyuan.languages.historyRetentionDaysTip},
+                        },
+                        {
+                            left: {kind: "desc", text: window.siyuan.languages.clearHistory},
+                            right: {
+                                kind: "button",
+                                id: "clearHistory",
+                                label: window.siyuan.languages.purge,
+                                icon: "iconTrashcan",
+                                bind: async (api) => {
+                                    api.root.querySelector("#clearHistory")?.addEventListener("click", () => {
+                                        confirmDialog(
+                                            window.siyuan.languages.clearHistory,
+                                            window.siyuan.languages.confirmClearHistory,
+                                            () => {
+                                                fetchPost("/api/history/clearWorkspaceHistory", {});
+                                            }
+                                        );
+                                    });
+                                },
+                            },
+                        },
+                        {
+                            left: {kind: "desc", text: window.siyuan.languages.historyRetentionDays},
+                            right: {
+                                kind: "number",
+                                id: "editor.historyRetentionDays",
+                                value: window.siyuan.config.editor.historyRetentionDays,
+                                min: 1,
+                                max: 3650,
+                            },
+                        },
                     ],
-                    html: () => `<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.generateHistory}
-        <div class="b3-label__text">${window.siyuan.languages.generateHistoryInterval}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size200" id="editor.generateHistoryInterval" type="number" min="0" max="120" value="${window.siyuan.config.editor.generateHistoryInterval}"/>
-</div>
-<div class="b3-label">
-    <div>
-        ${window.siyuan.languages.historyRetentionDaysTip}
-    </div>
-    <div class="fn__hr"></div>
-    <div class="fn__flex config__item">
-        <div class="fn__flex-center fn__flex-1 ft__on-surface">${window.siyuan.languages.clearHistory}</div>
-        <span class="fn__space"></span>
-        <button type="button" id="clearHistory" class="b3-button b3-button--outline fn__size200 fn__flex-center">
-            <svg><use xlink:href="#iconTrashcan"></use></svg>${window.siyuan.languages.purge}
-        </button>
-    </div>
-    <div class="fn__hr"></div>
-    <div class="fn__flex config__item">
-        <div class="fn__flex-center fn__flex-1 ft__on-surface">${window.siyuan.languages.historyRetentionDays}</div>
-        <span class="fn__space"></span>
-        <input class="b3-text-field fn__flex-center fn__size200" id="editor.historyRetentionDays" type="number" min="1" max="3650" value="${window.siyuan.config.editor.historyRetentionDays}"/>
-    </div>
-</div>`,
-                    bind: async (api: SettingBindApi) => {
-                        const btn = api.root.querySelector("#clearHistory");
-                        btn?.addEventListener("click", () => {
-                            confirmDialog(
-                                window.siyuan.languages.clearHistory,
-                                window.siyuan.languages.confirmClearHistory,
-                                () => {
-                                    fetchPost("/api/history/clearWorkspaceHistory", {});
-                                }
-                            );
-                        });
-                    },
                 }),
                 numberRow({
                     id: "fileTree.maxListCount",

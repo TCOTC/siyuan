@@ -4,6 +4,7 @@ import {getConfigTabDefs} from "./tabs";
 import {collectSettingTabSearchStrings} from "./ui/search";
 import {buildEditorSections} from "./editor";
 import {buildFileSections} from "./file";
+import {buildAppearanceSections, appearance} from "./appearance";
 import {mountConfigTab} from "./mountConfigTab";
 import {editor} from "./editor";
 import {file} from "./file";
@@ -186,26 +187,15 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
     }
 };
 
-type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file">;
+type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance">;
 
 /**
  * 侧栏标签索引关键词：按一级 Tab 的 `id` 与 `TAB_LANG_KEYS` 的键对应；
  * 用于在未展开面板时匹配「应显示哪几个一级标签」（与侧栏 `li[data-name]` 对齐）。
- * 「编辑器」与「文档」由 `collectSettingTabSearchStrings` + `buildEditorSections` / `buildFileSections` 从注册表推导，不由本表维护。
+ * 「编辑器」「文档」与「外观」由 `collectSettingTabSearchStrings` + `buildEditorSections` / `buildFileSections` / `buildAppearanceSections` 从注册表推导，不由本表维护。
  * TODO 最终要实现移除这个对象
  */
 const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
-    appearance: [
-        "appearance", "configGroupContent", "configGroupInterface", "configGroupControls", "configGroupPersonalization",
-        "font", "font1", "editorFontSize", "fontSizeTip", "fontSizeScrollZoom", "fontSizeScrollZoomTip",
-        "fullWidth", "fullWidthTip", "justify", "justifyTip", "rtl", "rtlTip", "default",
-        "language", "language1", "appearance4", "appearance5", "themeLight", "themeDark", "themeOS", "theme", "appearance9",
-        "theme11", "theme12", "icon", "appearance8", "theme2", "appearance1", "appearance2", "appearance3",
-        "floatWindowMode", "floatWindowModeTip", "floatWindowMode0", "floatWindowMode1", "floatWindowMode2",
-        "floatWindowDelay", "floatWindowDelayTip", "appearance10", "appearance11", "appearance16", "appearance17", "appearance18",
-        "resetLayout", "appearance6", "reset", "customEmoji", "customEmojiTip", "showInFolder", "codeSnippet", "visitCommunityShare",
-        "codeSnippetTip", "desktopMode", "mobileModeTip",
-    ],
     bazaar: [
         "bazaar", "theme", "template", "icon", "widget", "plugin", "downloaded", "search", "enterKey", "total",
         "sortByUpdateTimeDesc", "sortByUpdateTimeAsc", "sortByDownloadsDesc", "sortByDownloadsAsc", "all", "themeLight", "themeDark",
@@ -297,6 +287,9 @@ const getTabSearchStrings = (tabId: TConfigTab): string[] => {
     if (tabId === "file") {
         return collectSettingTabSearchStrings(window.siyuan.languages.fileTree, buildFileSections());
     }
+    if (tabId === "appearance") {
+        return collectSettingTabSearchStrings(window.siyuan.languages.appearance, buildAppearanceSections());
+    }
     return getLang(TAB_LANG_KEYS[tabId]);
 };
 
@@ -326,6 +319,7 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
                     continue;
                 }
                 // TODO 在把所有设置项都改成注册式之后，把 .toLowerCase() 移到对应的收集文案的函数里只处理一次，而不是在这里反复处理
+                // TODO 预先将含 HTML 的文案转为纯文本（比如 innerText 或 textContent），避免命中 HTML 标签中的文本（例如搜索 "code" 会命中包含 <code> 标签的文案）
                 const subLower = subItem.toLowerCase();
                 if (subLower.indexOf(keywords) > -1) {
                     matchedTabIds.add(id);
@@ -405,6 +399,11 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
         return;
     }
 
+    if (type === "appearance" && keywords) {
+        void appearance.mount(containerElement as HTMLElement, keywords);
+        return;
+    }
+
     if (containerElement.innerHTML === "") {
         mountConfigTab(type, containerElement, app);
     }
@@ -442,6 +441,8 @@ const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
             void editor.mount(container);
         } else if (type === "file") {
             void file.mount(container as HTMLElement);
+        } else if (type === "appearance") {
+            void appearance.mount(container as HTMLElement);
         } else if (type === "keymap") {
             keymap.element = container;
             const searchElement = container.querySelector("#keymapInput") as HTMLInputElement | null;

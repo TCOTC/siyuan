@@ -3,7 +3,7 @@ import {isMobile, objEquals} from "../../util/functions";
 import {fetchPost} from "../../util/fetch";
 
 export const setStatusBar = (element: HTMLElement) => {
-    element.addEventListener("click", () => {
+    element?.addEventListener("click", () => {
         const dialog = new Dialog({
             height: "80vh",
             width: isMobile() ? "92vw" : "360px",

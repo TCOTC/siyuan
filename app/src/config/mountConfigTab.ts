@@ -26,9 +26,7 @@ export const mountConfigTab = (type: TConfigTab, containerElement: Element, app:
             void file.mount(containerElement as HTMLElement);
             break;
         case "appearance":
-            appearance.element = containerElement;
-            containerElement.innerHTML = appearance.genHTML();
-            appearance.bindEvent();
+            void appearance.mount(containerElement as HTMLElement);
             break;
         case "bazaar":
             bazaar.element = containerElement;

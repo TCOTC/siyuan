@@ -1,5 +1,5 @@
 import {getAtPath} from "./dotPath";
-import {type SettingRow} from "./settingRows";
+import {type SettingRow, findStackRightByControlId} from "./settingRows";
 
 /**
  * 从 DOM 读出控件值。
@@ -15,11 +15,19 @@ export function readDomValue(el: HTMLElement, row?: SettingRow): unknown {
             return row.options.length > 0 && typeof row.options[0].value === "number"
                 ? parseInt(el.value, 10)
                 : el.value;
-        } else if (row.type === "notebookSavePath") {
-            return el.value;
-        } else {
-            return parseInt(el.value, 10);
         }
+        if (row.type === "stack") {
+            const sub = findStackRightByControlId(row, el.id);
+            if (sub?.kind === "select") {
+                return sub.options.length > 0 && typeof sub.options[0].value === "number"
+                    ? parseInt(el.value, 10)
+                    : el.value;
+            }
+        }
+        if (row.type === "notebookSavePath") {
+            return el.value;
+        }
+        return parseInt(el.value, 10);
     }
     if (el instanceof HTMLTextAreaElement) {
         return el.value;

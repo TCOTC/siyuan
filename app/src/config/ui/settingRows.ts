@@ -20,6 +20,7 @@ export interface SettingRowRange {
     min: number;
     max: number;
     step: number;
+    bind?: (api: SettingBindApi) => void | Promise<void>;
 }
 
 /** 数字输入 */
@@ -34,6 +35,17 @@ export interface SettingRowNumber {
     unit?: string;
 }
 
+/** 按钮 */
+export interface SettingRowButton {
+    type: "button";
+    id: string;
+    title: string;
+    desc: string;
+    label: string;
+    icon: string;
+    bind: (api: SettingBindApi) => void | Promise<void>;
+}
+
 /** 下拉选择 */
 export interface SettingRowSelect {
     type: "select";
@@ -42,6 +54,7 @@ export interface SettingRowSelect {
     desc: string;
     options: { value: number | string; label: string }[];
     value: number | string;
+    bind?: (api: SettingBindApi) => void | Promise<void>;
 }
 
 /** 单行文本 */
@@ -74,23 +87,71 @@ export interface SettingRowNotebookSavePath {
 }
 
 /** 大块文本编辑 */
-export interface SettingRowBlockTextarea {
-    type: "blockTextarea";
+export interface SettingRowTextBlock {
+    type: "textBlock";
     id: string;
     title: string;
     desc: string;
     getTextValue: () => string;
 }
 
+/** `stack` 行内右侧控件（整行仅左列时可省略 `right`） */
+export type StackRight =
+    | {
+          kind: "button";
+          id: string;
+          label: string;
+          icon: string;
+          bind: (api: SettingBindApi) => void | Promise<void>;
+      }
+    | {
+          kind: "select";
+          id: string;
+          options: {value: number | string; label: string}[];
+          value: number | string;
+      }
+    | {
+          kind: "number";
+          id: string;
+          value: number;
+          min?: number;
+          max?: number;
+      }
+    | {
+          kind: "switch";
+          id: string;
+      };
+
+/** `stack` 行内左列：主标题或次级说明（对应原 `b3-label` 主文案与 `ft__on-surface` 说明） */
+export type StackLeft =
+    | {kind: "title"; text: string}
+    | {kind: "desc"; text: string};
+
+/**
+ * 一节内纵向堆叠：横幅行 / 分栏行等。
+ * 用于「左列为标题或描述、右列可选为按钮 / 下拉 / 输入」的重复版式；最外层固定为 `b3-label`，相邻 `lines` 之间由渲染层自动插入 `fn__hr`。
+ * 有 `right` 时行容器为 `fn__flex config__item`，仅左列时为 `fn__flex`。
+ * 设置搜索侧栏索引由 `lines` 中左列与右侧控件可见文案自动汇总。
+ */
+export interface SettingRowStack {
+    type: "stack";
+    lines: {
+        left: StackLeft;
+        right?: StackRight;
+    }[];
+}
+
 export type SettingRow =
     | SettingRowSwitch
-    | SettingRowRange
-    | SettingRowNumber
-    | SettingRowSelect
     | SettingRowText
+    | SettingRowTextBlock
+    | SettingRowNumber
+    | SettingRowRange
+    | SettingRowSelect
+    | SettingRowButton
     | SettingRowCustom
+    | SettingRowStack
     | SettingRowNotebookSavePath
-    | SettingRowBlockTextarea;
 
 export interface SettingSection {
     title?: string;
@@ -114,6 +175,12 @@ export const rangeRow = (row: Omit<SettingRowRange, "type">): SettingRowRange =>
 /** 注册 `number` 行 */
 export const numberRow = (row: Omit<SettingRowNumber, "type">): SettingRowNumber => ({
     type: "number",
+    ...row,
+});
+
+/** 注册 `button` 行 */
+export const buttonRow = (row: Omit<SettingRowButton, "type">): SettingRowButton => ({
+    type: "button",
     ...row,
 });
 
@@ -143,13 +210,31 @@ export const notebookSavePathRow = (
     ...row,
 });
 
-/** 注册 `blockTextarea` 行 */
-export const blockTextareaRow = (row: Omit<SettingRowBlockTextarea, "type">): SettingRowBlockTextarea => ({
-    type: "blockTextarea",
+/** 注册 `textBlock` 行 */
+export const textBlockRow = (row: Omit<SettingRowTextBlock, "type">): SettingRowTextBlock => ({
+    type: "textBlock",
+    ...row,
+});
+
+/** 注册 `stack` 节（多行分栏堆叠） */
+export const stackRow = (row: Omit<SettingRowStack, "type">): SettingRowStack => ({
+    type: "stack",
     ...row,
 });
 
 // --- 行数据工具（`controlId` 匹配、DOM 读值） ---
+
+/** 在 `stack` 行内查找与 `controlId` 匹配的右侧控件定义 */
+export function findStackRightByControlId(row: SettingRowStack, controlId: string): StackRight | undefined {
+    for (const line of row.lines) {
+        const r = line.right;
+        if (!r || !("id" in r) || r.id !== controlId) {
+            continue;
+        }
+        return r;
+    }
+    return undefined;
+}
 
 /** 在节列表中查找 `controlId` 对应的行定义 */
 export function findSettingRowByControlId(
@@ -159,7 +244,11 @@ export function findSettingRowByControlId(
     for (const section of sections) {
         for (const row of section.items) {
             if (row.type === "custom") {
-                continue;
+                /* empty */
+            } else if (row.type === "stack") {
+                if (findStackRightByControlId(row, controlId)) {
+                    return row;
+                }
             } else if (row.type === "notebookSavePath") {
                 if (row.selectId === controlId || row.pathId === controlId) {
                     return row;

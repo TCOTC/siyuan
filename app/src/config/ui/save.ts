@@ -1,8 +1,9 @@
+import {appearance} from "../appearance";
 import {editor} from "../editor";
 import {file} from "../file";
 import type {SettingBindApi, SettingSection} from "./settingRows";
 
-const routedNamespaces = new Set(["editor", "fileTree"]);
+const routedNamespaces = new Set(["editor", "fileTree", "appearance"]);
 
 export const routeSettingSave = (
     root: HTMLElement,
@@ -23,8 +24,10 @@ export const routeSettingSave = (
     // 同一个接口的配置放在不同的标签页中，要派发给不同的方法来处理
     if (ns === "editor") {
         editor.set(root, controlId, sections);
-    } else {
+    } else if (ns === "fileTree") {
         file.set(root, controlId, sections);
+    } else {
+        appearance.set(root, controlId, sections);
     }
 };
 
@@ -32,8 +35,15 @@ export const mountSettingSaveHandlers = async (root: HTMLElement, sections: Sett
     const routeSave = (controlId: string) => routeSettingSave(root, controlId, sections);
     for (const section of sections) {
         for (const row of section.items) {
-            if (row.type === "custom" && row.bind) {
-                await row.bind({root, routeSave} satisfies SettingBindApi);
+            if ("bind" in row && row.bind) {
+                await row.bind({root, routeSave} as SettingBindApi);
+            } else if (row.type === "stack") {
+                for (const line of row.lines) {
+                    const {right} = line;
+                    if (right && "bind" in right && right.bind) {
+                        await right.bind({root, routeSave} as SettingBindApi);
+                    }
+                }
             } else if (row.type === "notebookSavePath") {
                 const el = root.querySelector<HTMLInputElement>(`[id="${CSS.escape(row.pathId)}"]`);
                 if (el) {

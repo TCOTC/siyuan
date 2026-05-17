@@ -1,16 +1,60 @@
-import type {SettingRow, SettingRowSelect, SettingSection} from "./settingRows";
+import type {
+    SettingRow,
+    SettingRowStack,
+    SettingSection,
+    StackLeft,
+    StackRight,
+} from "./settingRows";
 import {getAtPath} from "./dotPath";
 
 const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config, id));
 
-const renderSwitchRow = (id: string, title: string, desc: string, checked: boolean): string =>
+const buildButtonHtml = (id: string, label: string, icon: string): string =>
+    `<button class="b3-button b3-button--outline fn__flex-center fn__size200" id="${id}">
+        <svg><use xlink:href="#${icon}"></use></svg>
+        ${label}
+    </button>`;
+
+const buildNumberInputHtml = (
+    id: string,
+    value: number,
+    min?: number,
+    max?: number,
+    unit?: string
+): string => {
+    const minAttr = min ?? "";
+    const maxAttr = max ?? "";
+    const fieldClass = unit ? "fn__flex-1" : "fn__flex-center fn__size200";
+    const input = `<input class="b3-text-field ${fieldClass}" id="${id}" type="number" min="${minAttr}" max="${maxAttr}" value="${value}"/>`;
+    if (unit) {
+        return `<div class="fn__size200 fn__flex-center fn__flex">${input}<span class="fn__space"></span><span class="ft__on-surface fn__flex-center">${unit}</span></div>`;
+    }
+    return input;
+};
+
+const buildSwitchInputHtml = (id: string, checked: boolean): string =>
+    `<input class="b3-switch fn__flex-center" id="${id}" type="checkbox"${checked ? " checked" : ""}/>`;
+
+const buildSelectOptionsHtml = <T extends number | string>(
+    id: string,
+    options: {value: T; label: string}[],
+    current: T
+): string =>
+    `<select class="b3-select fn__flex-center fn__size200" id="${id}">
+    ${options
+        .map((o) => `<option value="${o.value}" ${current === o.value ? "selected" : ""}>${o.label}</option>`)
+        .join("")
+    }
+</select>`;
+
+export const renderSwitchRow = (id: string, title: string, desc: string, checked: boolean): string =>
     `<label class="fn__flex b3-label">
     <div class="fn__flex-1">
         ${title}
         <div class="b3-label__text">${desc}</div>
     </div>
     <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="${id}" type="checkbox"${checked ? " checked" : ""}/>
+    ${buildSwitchInputHtml(id, checked)}
 </label>`;
 
 const renderRangeRow = (
@@ -41,22 +85,25 @@ const renderNumberRow = (
     min?: number,
     max?: number,
     unit?: string
-): string => {
-    const minAttr = min ?? "";
-    const maxAttr = max ?? "";
-    const input = `<input class="b3-text-field ${unit ? "fn__flex-1" : "fn__flex-center fn__size200"}" id="${id}" type="number" min="${minAttr}" max="${maxAttr}" value="${value}"/>`;
-    const control = unit
-        ? `<div class="fn__size200 fn__flex-center fn__flex">${input}<span class="fn__space"></span><span class="ft__on-surface fn__flex-center">${unit}</span></div>`
-        : input;
-    return `<div class="fn__flex b3-label config__item">
+): string =>
+    `<div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
         ${title}
         <div class="b3-label__text">${desc}</div>
     </div>
     <span class="fn__space"></span>
-    ${control}
+    ${buildNumberInputHtml(id, value, min, max, unit)}
 </div>`;
-};
+
+const renderButtonRow = (id: string, title: string, desc: string, label: string, icon: string): string =>
+    `<div class="fn__flex b3-label config__item">
+    <div class="fn__flex-1">
+        ${title}
+        <div class="b3-label__text">${desc}</div>
+    </div>
+    <span class="fn__space"></span>
+    ${buildButtonHtml(id, label, icon)}
+</div>`;
 
 /** 同一组 options 与 current 的 value 须同型（泛型 T 约束） */
 const renderSelectRow = <T extends number | string>(
@@ -65,21 +112,15 @@ const renderSelectRow = <T extends number | string>(
     desc: string,
     options: {value: T; label: string}[],
     current: T
-): string => {
-    const optionsHtml = options
-        .map((o) => `<option value="${o.value}" ${current === o.value ? "selected" : ""}>${o.label}</option>`)
-        .join("");
-    return `<div class="fn__flex b3-label config__item">
+): string =>
+    `<div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
         ${title}
         <div class="b3-label__text">${desc}</div>
     </div>
     <span class="fn__space"></span>
-    <select class="b3-select fn__flex-center fn__size200" id="${id}">
-      ${optionsHtml}
-    </select>
+    ${buildSelectOptionsHtml(id, options, current)}
 </div>`;
-};
 
 const renderTextRow = (id: string, title: string, desc: string, value: string): string =>
     `<div class="fn__flex b3-label config__item">
@@ -109,7 +150,7 @@ const renderNotebookSavePathRow = (
     </div>
 </div>`;
 
-const renderBlockTextareaRow = (title: string, desc: string, id: string, value: string): string =>
+const renderTextBlockRow = (title: string, desc: string, id: string, value: string): string =>
     `<div class="b3-label">
     <div class="fn__block">
         ${title}
@@ -119,79 +160,120 @@ const renderBlockTextareaRow = (title: string, desc: string, id: string, value: 
     </div>
 </div>`;
 
-const renderOne = (entry: SettingRow): string => {
-    const cfg = window.siyuan.config;
-    switch (entry.type) {
-        case "custom":
-            return entry.html();
+const renderStackRight = (r: StackRight): string => {
+    switch (r.kind) {
+        case "button":
+            return buildButtonHtml(r.id, r.label, r.icon);
+        case "select":
+            return buildSelectOptionsHtml(r.id, r.options, r.value);
+        case "number":
+            return buildNumberInputHtml(r.id, r.value, r.min, r.max);
         case "switch":
-            return renderSwitchRow(entry.id, entry.title, entry.desc, getSwitchChecked(entry.id));
+            return buildSwitchInputHtml(r.id, getSwitchChecked(r.id));
+    }
+};
+
+const renderStackLeft = (left: StackLeft): string =>
+    `<div class="fn__flex-center fn__flex-1${left.kind === "desc" ? " ft__on-surface" : ""}">${left.text}</div>`;
+
+const renderStack = (entry: SettingRowStack): string => {
+    const parts: string[] = [];
+    entry.lines.forEach((line, index) => {
+        if (index > 0) {
+            parts.push('<div class="fn__hr"></div>');
+        }
+        const {left, right} = line;
+        if (!right) {
+            parts.push(`<div class="fn__flex">${renderStackLeft(left)}</div>`);
+        } else {
+            const tag = right.kind === "switch" ? "label" : "div";
+            parts.push(`<${tag} class="fn__flex config__item">
+    ${renderStackLeft(left)}
+    <span class="fn__space"></span>
+    ${renderStackRight(right)}
+</${tag}>`);
+        }
+    });
+    return `<div class="b3-label">${parts.join("")}</div>`;
+};
+
+const renderRow = (row: SettingRow): string => {
+    const cfg = window.siyuan.config;
+    switch (row.type) {
+        case "custom":
+            return row.html();
+        case "stack":
+            return renderStack(row);
+        case "switch":
+            return renderSwitchRow(row.id, row.title, row.desc, getSwitchChecked(row.id));
         case "range": {
-            const v = getAtPath(cfg, entry.id);
-            const num = typeof v === "number" && !Number.isNaN(v) ? v : entry.min;
+            const v = getAtPath(cfg, row.id);
+            const num = typeof v === "number" && !Number.isNaN(v) ? v : row.min;
             return renderRangeRow(
-                entry.id,
-                entry.title,
-                entry.desc,
-                entry.min,
-                entry.max,
-                entry.step,
+                row.id,
+                row.title,
+                row.desc,
+                row.min,
+                row.max,
+                row.step,
                 num
             );
         }
         case "number": {
-            const raw = getAtPath(cfg, entry.id);
+            const raw = getAtPath(cfg, row.id);
             const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
             return renderNumberRow(
-                entry.id,
-                entry.title,
-                entry.desc,
+                row.id,
+                row.title,
+                row.desc,
                 value,
-                entry.min,
-                entry.max,
-                entry.unit
+                row.min,
+                row.max,
+                row.unit
             );
         }
+        case "button":
+            return renderButtonRow(row.id, row.title, row.desc, row.label, row.icon);
         case "select": {
-            const firstVal = entry.options[0]?.value;
-            const numericSelect = entry.options.length > 0 && typeof firstVal === "number";
+            const firstVal = row.options[0]?.value;
+            const numericSelect = row.options.length > 0 && typeof firstVal === "number";
             let current: number | string;
             if (numericSelect) {
                 current = 0;
-                if (typeof entry.value === "number" && !Number.isNaN(entry.value)) {
-                    current = entry.value;
+                if (typeof row.value === "number" && !Number.isNaN(row.value)) {
+                    current = row.value;
                 } else if (typeof firstVal === "number" && !Number.isNaN(firstVal)) {
                     current = firstVal;
                 }
             } else {
                 current = "";
-                if (typeof entry.value === "string") {
-                    current = entry.value;
+                if (typeof row.value === "string") {
+                    current = row.value;
                 } else if (typeof firstVal === "string") {
                     current = firstVal;
                 }
             }
-            return renderSelectRow(entry.id, entry.title, entry.desc, entry.options, current);
+            return renderSelectRow(row.id, row.title, row.desc, row.options, current);
         }
         case "text": {
-            const val = getAtPath(cfg, entry.id);
+            const val = getAtPath(cfg, row.id);
             const str = typeof val === "string" ? val : "";
-            return renderTextRow(entry.id, entry.title, entry.desc, str);
+            return renderTextRow(row.id, row.title, row.desc, str);
         }
         case "notebookSavePath":
             return renderNotebookSavePathRow(
-                entry.title,
-                entry.desc,
-                entry.selectId,
-                entry.pathId,
-                entry.getOptionsHtml()
+                row.title,
+                row.desc,
+                row.selectId,
+                row.pathId,
+                row.getOptionsHtml()
             );
-        case "blockTextarea":
-            return renderBlockTextareaRow(entry.title, entry.desc, entry.id, entry.getTextValue());
+        case "textBlock":
+            return renderTextBlockRow(row.title, row.desc, row.id, row.getTextValue());
     }
 };
 
-/** 按节列表生成设置 Tab HTML（编辑器 / 文档等共用；通常传入 `filterSettingSections(build*Sections(), query)` 的结果） */
+/** 按节列表生成设置页面 HTML */
 export const renderSettingTabHtmlFromSections = (sections: SettingSection[]): string => {
     const parts: string[] = [];
     sections.forEach((section) => {
@@ -200,7 +282,7 @@ export const renderSettingTabHtmlFromSections = (sections: SettingSection[]): st
         }
         parts.push('<div class="config-group">');
         section.items.forEach((row) => {
-            parts.push(renderOne(row));
+            parts.push(renderRow(row));
         });
         parts.push("</div>");
     });

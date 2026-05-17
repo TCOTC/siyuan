@@ -1,7 +1,7 @@
 ﻿import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Constants} from "../constants";
 import {
-    blockTextareaRow,
+    textBlockRow,
     customRow,
     findSettingRowByControlId,
     numberRow,
@@ -13,7 +13,7 @@ import {
     type SettingSection,
 } from "./ui/settingRows";
 import {filterSettingSections} from "./ui/search";
-import {renderSettingTabHtmlFromSections} from "./ui/render";
+import {renderSettingTabHtmlFromSections, renderSwitchRow} from "./ui/render";
 import {readDomValue} from "./ui/formValue";
 import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {fetchPost} from "../util/fetch";
@@ -24,6 +24,7 @@ import {resize} from "../protyle/util/resize";
 import {mountSettingSaveHandlers} from "./ui/save";
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
+import { isBrowser } from "../util/functions";
 /// #endif
 
 export const editor = {
@@ -93,47 +94,32 @@ export const editor = {
 
 /** 每次调用时重新构造，避免缓存住随语言/配置变化的文案与闭包。全量列表供 `filterSettingSections(..., searchQuery)` 使用。 */
 export function buildEditorSections(): SettingSection[] {
+    const browser = isBrowser();
     return [
         {
             title: window.siyuan.languages.configGroupBehavior,
             items: [
-                customRow({
-                    keywords: [window.siyuan.languages.editReadonly, window.siyuan.languages.editReadonlyTip],
-                    html: () => {
-                        const cfg = window.siyuan.config;
-                        return `<label class="fn__flex b3-label">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.editReadonly} 
-        <code class="fn__code${cfg.keymap.general.editReadonly.custom ? "" : " fn__none"}">${updateHotkeyTip(cfg.keymap.general.editReadonly.custom)}</code>
-        <div class="b3-label__text">${window.siyuan.languages.editReadonlyTip}</div>
-    </div>
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="editor.readOnly" type="checkbox"${cfg.editor.readOnly ? " checked" : ""}/>
-</label>`;
-                    },
+                switchRow({
+                    id: "editor.readOnly",
+                    title: (() => {
+                        const keymap = window.siyuan.config.keymap.general.editReadonly.custom;
+                        return `${window.siyuan.languages.editReadonly} <code class="fn__code${keymap ? "" : " fn__none"}">${updateHotkeyTip(keymap)}</code>`;
+                    })(),
+                    desc: window.siyuan.languages.editReadonlyTip,
                 }),
                 customRow({
                     keywords: [
                         window.siyuan.languages.spellcheck,
-                        window.siyuan.languages.spellcheckTip,
-                        window.siyuan.languages.spellcheckTip2,
+                        browser ? window.siyuan.languages.spellcheckTip : window.siyuan.languages.spellcheckTip2,
                     ],
                     html: () => {
-                        let spellcheckTip = "";
-                        /// #if !BROWSER
-                        spellcheckTip = window.siyuan.languages.spellcheckTip2;
-                        /// #else
-                        spellcheckTip = window.siyuan.languages.spellcheckTip;
-                        /// #endif
                         return `<div class="b3-label">
-    <label class="fn__flex">
-        <div class="fn__flex-1">
-            ${window.siyuan.languages.spellcheck}
-            <div class="b3-label__text">${spellcheckTip}</div>
-        </div>
-        <span class="fn__space"></span>
-        <input class="b3-switch fn__flex-center" id="editor.spellcheck" type="checkbox"${window.siyuan.config.editor.spellcheck ? " checked" : ""}/>
-    </label>
+    ${renderSwitchRow(
+        "editor.spellcheck",
+        window.siyuan.languages.spellcheck,
+        browser ? window.siyuan.languages.spellcheckTip : window.siyuan.languages.spellcheckTip2,
+        window.siyuan.config.editor.spellcheck
+    )}
     <div class="b3-chips fn__none" id="editor.spellcheckLanguages"></div>
 </div>`;
                     },
@@ -274,13 +260,13 @@ export function buildEditorSections(): SettingSection[] {
                     title: window.siyuan.languages.md33,
                     desc: window.siyuan.languages.md34,
                 }),
-                blockTextareaRow({
+                textBlockRow({
                     id: "editor.virtualBlockRefInclude",
                     title: window.siyuan.languages.md9,
                     desc: window.siyuan.languages.md36,
                     getTextValue: () => window.siyuan.config.editor.virtualBlockRefInclude,
                 }),
-                blockTextareaRow({
+                textBlockRow({
                     id: "editor.virtualBlockRefExclude",
                     title: window.siyuan.languages.md35,
                     desc: window.siyuan.languages.md41,
@@ -360,7 +346,7 @@ export function buildEditorSections(): SettingSection[] {
                     title: window.siyuan.languages.md39,
                     desc: window.siyuan.languages.md40,
                 }),
-                blockTextareaRow({
+                textBlockRow({
                     id: "editor.katexMacros",
                     title: window.siyuan.languages.katexMacros,
                     desc: window.siyuan.languages.katexMacrosTip,

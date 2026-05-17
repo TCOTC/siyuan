@@ -1,4 +1,19 @@
-import type {SettingRow} from "./settingRows";
+import type {SettingRow, SettingRowStack} from "./settingRows";
+
+/** `stack` 参与设置搜索的文案：各行左列 `text`、`select` 选项 `label`、`button` 的 `label` */
+const stackExtraSearchStrings = (row: SettingRowStack): string[] => {
+    const out: string[] = [];
+    for (const line of row.lines) {
+        out.push(line.left.text);
+        const right = line.right;
+        if (right?.kind === "select") {
+            out.push(...right.options.map((o) => o.label));
+        } else if (right?.kind === "button") {
+            out.push(right.label);
+        }
+    }
+    return out;
+};
 
 /** 设置面板内搜索：单条文案是否包含查询串（已 `trim` + `toLowerCase` 的 `queryLower`） */
 export const textMatchesConfigSearch = (text: string, queryLower: string): boolean => {
@@ -12,11 +27,13 @@ export const textMatchesConfigSearch = (text: string, queryLower: string): boole
     return t.indexOf(queryLower) > -1;
 };
 
-/** 行是否命中设置面板搜索（工厂行看 `title` / `desc`；`custom` 看 `keywords`；`select` 另含选项文案） */
+/** 行是否命中设置面板搜索（工厂行看 `title` / `desc`；`custom` 看 `keywords`；`stack` 由各行左列与右侧控件文案推导；`select` 另含选项文案） */
 export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string): boolean => {
     switch (row.type) {
         case "custom":
             return row.keywords.some((k) => textMatchesConfigSearch(k, queryLower));
+        case "stack":
+            return stackExtraSearchStrings(row).some((s) => textMatchesConfigSearch(s, queryLower));
         case "select":
             if (
                 textMatchesConfigSearch(row.title, queryLower) ||
@@ -36,6 +53,12 @@ export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string)
                 return true;
             }
             return false;
+        case "button":
+            return (
+                textMatchesConfigSearch(row.title, queryLower) ||
+                textMatchesConfigSearch(row.desc, queryLower) ||
+                textMatchesConfigSearch(row.label, queryLower)
+            );
         default:
             if (
                 textMatchesConfigSearch(row.title, queryLower) ||
@@ -47,11 +70,13 @@ export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string)
     }
 };
 
-/** 从一行注册数据取出参与侧栏与内容区检索索引的字符串（`custom` 仅用 `keywords`；其余含 `title` / `desc` 的行用二者） */
+/** 从一行注册数据取出参与侧栏与内容区检索索引的字符串（`custom` 仅用 `keywords`；`stack` 由各行推导；其余含 `title` / `desc` 的行用二者） */
 export const collectRowStringsForSearchIndex = (row: SettingRow): string[] => {
     switch (row.type) {
         case "custom":
             return [...row.keywords];
+        case "stack":
+            return stackExtraSearchStrings(row);
         case "select":
             return [row.title, row.desc, ...row.options.map((o) => o.label)];
         case "number":
@@ -59,6 +84,8 @@ export const collectRowStringsForSearchIndex = (row: SettingRow): string[] => {
                 return [row.title, row.desc, row.unit];
             }
             return [row.title, row.desc];
+        case "button":
+            return [row.title, row.desc, row.label];
         default:
             return [row.title, row.desc];
     }

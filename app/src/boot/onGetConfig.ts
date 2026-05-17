@@ -84,7 +84,7 @@ export const onGetConfig = (isStart: boolean, app: App) => {
             /// #if !MOBILE
             // 临时：启动后直接打开设置
             window.setTimeout(() => {
-                openSetting(app, "editor");
+                openSetting(app, "appearance");
             }, 0);
             /// #endif
         } catch (e) {
@@ -97,7 +97,7 @@ export const onGetConfig = (isStart: boolean, app: App) => {
     /// #if !BROWSER
     initNativeDialogOverride();
     /// #endif
-    appearance.onSetAppearance(window.siyuan.config.appearance);
+    appearance.apply(window.siyuan.config.appearance);
     initAssets();
     setInlineStyle();
     renderSnippet();
