@@ -13,7 +13,7 @@ import {readDomValue} from "./ui/formValue";
 import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {mountSettingSaveHandlers} from "./ui/save";
 
-export const ai = {
+export const aiSettings = {
     mount: async (root: HTMLElement, searchQuery?: string) => {
         const sections = filterSettingSections(buildAiSections(), searchQuery);
         root.innerHTML = renderSettingTabHtmlFromSections(sections);
@@ -31,7 +31,7 @@ export const ai = {
         const row = findSettingRowByControlId(sections, controlId);
         const value = readDomValue(el, row);
         if (value !== undefined) {
-            ai.send(controlId, value);
+            aiSettings.send(controlId, value);
         }
     },
 
@@ -47,7 +47,7 @@ export const ai = {
         const payload = mergeRecordByDottedPath(prev, rel, value) as unknown as Config.IAI;
         fetchPost("/api/setting/setAI", payload, (response) => {
             // 当前修改 AI 设置之后内核不推送到所有前端实例，需要手动 apply
-            ai.apply(response.data);
+            aiSettings.apply(response.data);
         });
     },
 

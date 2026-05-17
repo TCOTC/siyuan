@@ -15,7 +15,7 @@ import {readDomValue} from "./ui/formValue";
 import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {mountSettingSaveHandlers} from "./ui/save";
 
-export const file = {
+export const fileSettings = {
     mount: async (root: HTMLElement, searchQuery?: string) => {
         const sections = filterSettingSections(buildFileSections(), searchQuery);
         root.innerHTML = renderSettingTabHtmlFromSections(sections);
@@ -33,7 +33,7 @@ export const file = {
         const row = findSettingRowByControlId(sections, controlId);
         const value = readDomValue(el, row);
         if (value !== undefined) {
-            file.send(controlId, value);
+            fileSettings.send(controlId, value);
         }
     },
 
@@ -49,7 +49,7 @@ export const file = {
         const payload = mergeRecordByDottedPath(prev, rel, value) as unknown as Config.IFileTree;
         fetchPost("/api/setting/setFiletree", payload, (response) => {
             // 当前修改文档设置之后内核不推送到所有前端实例，需要手动 apply
-            file.apply(response.data);
+            fileSettings.apply(response.data);
         });
     },
 

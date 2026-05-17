@@ -33,7 +33,7 @@ import {ipcRenderer} from "electron";
 /// #endif
 import {App} from "../../../index";
 import {Constants} from "../../../constants";
-import {editor} from "../../../config/editor";
+import {editorSettings} from "../../../config/editor";
 import {lockScreen} from "../../../dialog/processSystem";
 import {newFile} from "../../../util/newFile";
 import {openCard} from "../../../card/openCard";
@@ -429,7 +429,7 @@ export const globalCommand = (command: string, app: App) => {
             openHistory(app);
             return true;
         case "editReadonly":
-            editor.send("editor.readOnly", !window.siyuan.config.editor.readOnly);
+            editorSettings.send("editor.readOnly", !window.siyuan.config.editor.readOnly);
             return true;
         case "lockScreen":
             lockScreen(app);

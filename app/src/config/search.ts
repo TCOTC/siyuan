@@ -2,14 +2,12 @@ import {Constants} from "../constants";
 import type {TConfigTab} from "./types";
 import {getConfigTabDefs} from "./tabs";
 import {collectSettingTabSearchStrings} from "./ui/search";
-import {buildEditorSections} from "./editor";
-import {buildFileSections} from "./file";
-import {buildAppearanceSections, appearance} from "./appearance";
-import {buildFlashcardSections, flashcard} from "./flashcard";
-import {buildAiSections, ai} from "./ai";
+import {buildEditorSections, editorSettings} from "./editor";
+import {buildFileSections, fileSettings} from "./file";
+import {buildAppearanceSections, appearanceSettings} from "./appearance";
+import {buildFlashcardSections, flashcardSettings} from "./flashcard";
+import {buildAiSections, aiSettings} from "./ai";
 import {mountConfigTab} from "./mountConfigTab";
-import {editor} from "./editor";
-import {file} from "./file";
 import {keymap} from "./keymap";
 import {App} from "../index";
 import {isPhablet} from "../protyle/util/compatibility";
@@ -194,7 +192,6 @@ type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" |
 /**
  * 侧栏标签索引关键词：按一级 Tab 的 `id` 与 `TAB_LANG_KEYS` 的键对应；
  * 用于在未展开面板时匹配「应显示哪几个一级标签」（与侧栏 `li[data-name]` 对齐）。
- * 「编辑器」「文档」「外观」「闪卡」与「人工智能」由 `collectSettingTabSearchStrings` + `buildEditorSections` / `buildFileSections` / `buildAppearanceSections` / `buildFlashcardSections` / `buildAiSections` 从注册表推导，不由本表维护。
  * TODO 最终要实现移除这个对象
  */
 const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
@@ -269,20 +266,17 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
 };
 
 const getTabSearchStrings = (tabId: TConfigTab): string[] => {
-    if (tabId === "editor") {
-        return collectSettingTabSearchStrings(window.siyuan.languages.editor, buildEditorSections());
-    }
-    if (tabId === "file") {
-        return collectSettingTabSearchStrings(window.siyuan.languages.fileTree, buildFileSections());
-    }
-    if (tabId === "appearance") {
-        return collectSettingTabSearchStrings(window.siyuan.languages.appearance, buildAppearanceSections());
-    }
-    if (tabId === "flashcard") {
-        return collectSettingTabSearchStrings(window.siyuan.languages.riffCard, buildFlashcardSections());
-    }
-    if (tabId === "ai") {
-        return collectSettingTabSearchStrings(window.siyuan.languages.ai, buildAiSections());
+    switch (tabId) {
+        case "editor":
+            return collectSettingTabSearchStrings(window.siyuan.languages.editor, buildEditorSections());
+        case "file":
+            return collectSettingTabSearchStrings(window.siyuan.languages.fileTree, buildFileSections());
+        case "appearance":
+            return collectSettingTabSearchStrings(window.siyuan.languages.appearance, buildAppearanceSections());
+        case "flashcard":
+            return collectSettingTabSearchStrings(window.siyuan.languages.riffCard, buildFlashcardSections());
+        case "ai":
+            return collectSettingTabSearchStrings(window.siyuan.languages.ai, buildAiSections());
     }
     return getLang(TAB_LANG_KEYS[tabId]);
 };
@@ -387,19 +381,19 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
         const el = containerElement as HTMLElement;
         switch (type) {
             case "editor":
-                void editor.mount(el, keywords);
+                void editorSettings.mount(el, keywords);
                 return;
             case "file":
-                void file.mount(el, keywords);
+                void fileSettings.mount(el, keywords);
                 return;
             case "appearance":
-                void appearance.mount(el, keywords);
+                void appearanceSettings.mount(el, keywords);
                 return;
             case "flashcard":
-                void flashcard.mount(el, keywords);
+                void flashcardSettings.mount(el, keywords);
                 return;
             case "ai":
-                void ai.mount(el, keywords);
+                void aiSettings.mount(el, keywords);
                 return;
         }
     }
@@ -439,19 +433,19 @@ const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
         }
         switch (type) {
             case "editor":
-                void editor.mount(container);
+                void editorSettings.mount(container);
                 break;
             case "file":
-                void file.mount(container as HTMLElement);
+                void fileSettings.mount(container as HTMLElement);
                 break;
             case "appearance":
-                void appearance.mount(container as HTMLElement);
+                void appearanceSettings.mount(container as HTMLElement);
                 break;
             case "flashcard":
-                void flashcard.mount(container as HTMLElement);
+                void flashcardSettings.mount(container as HTMLElement);
                 break;
             case "ai":
-                void ai.mount(container as HTMLElement);
+                void aiSettings.mount(container as HTMLElement);
                 break;
             case "keymap": {
                 keymap.element = container;

@@ -1,32 +1,32 @@
 import type {App} from "../index";
 import type {TConfigTab} from "./types";
-import {editor} from "./editor";
-import {about} from "./about";
-import {appearance} from "./appearance";
+import {editorSettings} from "./editor";
+import {fileSettings} from "./file";
+import {appearanceSettings} from "./appearance";
+import {flashcardSettings} from "./flashcard";
+import {aiSettings} from "./ai";
 import {assets} from "./assets";
 import {exportConfig} from "./exportConfig";
-import {file} from "./file";
 import {keymap} from "./keymap";
 import {bazaar} from "./bazaar";
 import {searchConfig} from "./searchConfig";
 import {sync} from "./sync";
 import {access} from "./access";
 import {appConfig} from "./appConfig";
-import {ai} from "./ai";
-import {flashcard} from "./flashcard";
+import {about} from "./about";
 
 /** 将指定设置页面挂载到容器 */
 export const mountConfigTab = (type: TConfigTab, containerElement: Element, app: App) => {
     // TODO containerElement 上不应该绑定事件，待检查
     switch (type) {
         case "editor":
-            void editor.mount(containerElement as HTMLElement);
+            void editorSettings.mount(containerElement as HTMLElement);
             break;
         case "file":
-            void file.mount(containerElement as HTMLElement);
+            void fileSettings.mount(containerElement as HTMLElement);
             break;
         case "appearance":
-            void appearance.mount(containerElement as HTMLElement);
+            void appearanceSettings.mount(containerElement as HTMLElement);
             break;
         case "bazaar":
             bazaar.element = containerElement;
@@ -34,10 +34,10 @@ export const mountConfigTab = (type: TConfigTab, containerElement: Element, app:
             bazaar.bindEvent(app);
             break;
         case "flashcard":
-            void flashcard.mount(containerElement as HTMLElement);
+            void flashcardSettings.mount(containerElement as HTMLElement);
             break;
         case "ai":
-            void ai.mount(containerElement as HTMLElement);
+            void aiSettings.mount(containerElement as HTMLElement);
             break;
         case "assets":
             assets.element = containerElement;

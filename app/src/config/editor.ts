@@ -27,7 +27,7 @@ import {isBrowser} from "../util/functions";
 import {ipcRenderer} from "electron";
 /// #endif
 
-export const editor = {
+export const editorSettings = {
     mount: async (root: HTMLElement, searchQuery?: string) => {
         const sections = filterSettingSections(buildEditorSections(), searchQuery);
         root.innerHTML = renderSettingTabHtmlFromSections(sections);
@@ -45,7 +45,7 @@ export const editor = {
         const row = findSettingRowByControlId(sections, controlId);
         const value = readDomValue(el, row);
         if (value !== undefined) {
-            editor.send(controlId, value);
+            editorSettings.send(controlId, value);
         }
     },
 
@@ -61,7 +61,7 @@ export const editor = {
         const payload = mergeRecordByDottedPath(prev, rel, value) as unknown as Config.IEditor;
         fetchPost("/api/setting/setEditor", payload, (response) => {
             // 当前修改编辑器设置之后内核不推送到所有前端实例，需要手动 apply
-            editor.apply(response.data);
+            editorSettings.apply(response.data);
         });
     },
 
@@ -156,7 +156,7 @@ export function buildEditorSections(): SettingSection[] {
                                     cmd: "setSpellCheckerLanguages",
                                     languages: selectedLanguages,
                                 });
-                                editor.send("editor.spellcheckLanguages", selectedLanguages);
+                                editorSettings.send("editor.spellcheckLanguages", selectedLanguages);
                             }
                         });
                         /// #endif

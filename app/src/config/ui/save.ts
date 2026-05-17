@@ -1,8 +1,8 @@
-import {appearance} from "../appearance";
-import {editor} from "../editor";
-import {file} from "../file";
-import {flashcard} from "../flashcard";
-import {ai} from "../ai";
+import {editorSettings} from "../editor";
+import {fileSettings} from "../file";
+import {appearanceSettings} from "../appearance";
+import {flashcardSettings} from "../flashcard";
+import {aiSettings} from "../ai";
 import type {SettingBindApi, SettingSection} from "./settingRows";
 import {bindPasswordIconaToggle} from "./render";
 
@@ -27,19 +27,19 @@ export const routeSettingSave = (
     // 同一个接口的配置放在不同的标签页中，要派发给不同的方法来处理
     switch (ns) {
         case "editor":
-            editor.set(root, controlId, sections);
+            editorSettings.set(root, controlId, sections);
             break;
         case "fileTree":
-            file.set(root, controlId, sections);
+            fileSettings.set(root, controlId, sections);
             break;
         case "appearance":
-            appearance.set(root, controlId, sections);
+            appearanceSettings.set(root, controlId, sections);
             break;
         case "flashcard":
-            flashcard.set(root, controlId, sections);
+            flashcardSettings.set(root, controlId, sections);
             break;
         case "ai":
-            ai.set(root, controlId, sections);
+            aiSettings.set(root, controlId, sections);
             break;
     }
 };

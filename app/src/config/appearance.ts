@@ -31,12 +31,12 @@ import {renderSettingTabHtmlFromSections, renderSwitchRow} from "./ui/render";
 import {readDomValue} from "./ui/formValue";
 import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {mountSettingSaveHandlers} from "./ui/save";
-import {editor} from "./editor";
+import {editorSettings} from "./editor";
 
 /** mode 和 modeOS 两项配置的合并控件 ID */
 const APPEARANCE_THEME_MODE_ID = "appearance.ThemeMode";
 
-export const appearance = {
+export const appearanceSettings = {
     mount: async (root: HTMLElement, searchQuery?: string) => {
         const sections = filterSettingSections(buildAppearanceSections(), searchQuery);
         root.innerHTML = renderSettingTabHtmlFromSections(sections);
@@ -65,7 +65,7 @@ export const appearance = {
         const row = findSettingRowByControlId(sections, controlId);
         const value = readDomValue(el, row);
         if (value !== undefined) {
-            appearance.send(controlId, value);
+            appearanceSettings.send(controlId, value);
         }
     },
 
@@ -198,7 +198,7 @@ export function buildAppearanceSections(): SettingSection[] {
                                 (response) => {
                                     const data = response.data as Config.IEditor;
                                     // 当前修改编辑器设置之后内核不推送到所有前端实例，需要手动 apply
-                                    editor.apply(data);
+                                    editorSettings.apply(data);
                                     fontFamilyEl.value = data.fontFamilyDisplay || data.fontFamily || window.siyuan.languages.default;
                                     fontFamilyEl.dataset.family = data.fontFamily;
                                     fontFamilyEl.dataset.weight = String(data.fontWeight);

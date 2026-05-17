@@ -4,7 +4,7 @@ import {fetchPost} from "../util/fetch";
 import {adjustLayout, getInstanceById, JSONToCenter} from "../layout/util";
 import {resizeTabs, setTabPosition} from "../layout/tabUtil";
 import {initStatus} from "../layout/status";
-import {appearance} from "../config/appearance";
+import {appearanceSettings} from "../config/appearance";
 import {initAssets, setInlineStyle} from "../util/assets";
 import {renderSnippet} from "../config/util/snippets";
 import {getSearch} from "../util/functions";
@@ -63,7 +63,7 @@ export const init = (app: App) => {
     /// #if !BROWSER
     initNativeDialogOverride();
     /// #endif
-    appearance.apply(window.siyuan.config.appearance);
+    appearanceSettings.apply(window.siyuan.config.appearance);
     initAssets();
     setInlineStyle();
     renderSnippet();

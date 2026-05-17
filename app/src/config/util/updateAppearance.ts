@@ -1,6 +1,6 @@
 import IAppearance = Config.IAppearance;
 import {exportLayout} from "../../layout/util";
-import {appearance} from "../appearance";
+import {appearanceSettings} from "../appearance";
 import {adjustDockPadding} from "../../layout/dock/util";
 
 export const updateAppearance = async (data: IAppearance) => {
@@ -39,5 +39,5 @@ export const updateAppearance = async (data: IAppearance) => {
         window.siyuan.config.appearance.hideStatusBar = data.hideStatusBar;
         adjustDockPadding();
     }
-    appearance.apply(data);
+    appearanceSettings.apply(data);
 };

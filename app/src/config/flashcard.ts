@@ -13,7 +13,7 @@ import {readDomValue} from "./ui/formValue";
 import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {mountSettingSaveHandlers} from "./ui/save";
 
-export const flashcard = {
+export const flashcardSettings = {
     mount: async (root: HTMLElement, searchQuery?: string) => {
         const sections = filterSettingSections(buildFlashcardSections(), searchQuery);
         root.innerHTML = renderSettingTabHtmlFromSections(sections);
@@ -31,7 +31,7 @@ export const flashcard = {
         const row = findSettingRowByControlId(sections, controlId);
         const value = readDomValue(el, row);
         if (value !== undefined) {
-            flashcard.send(controlId, value);
+            flashcardSettings.send(controlId, value);
         }
     },
 
@@ -47,7 +47,7 @@ export const flashcard = {
         const payload = mergeRecordByDottedPath(prev, rel, value) as unknown as Config.IFlashCard;
         fetchPost("/api/setting/setFlashcard", payload, (response) => {
             // 当前修改闪卡设置之后内核不推送到所有前端实例，需要手动 apply
-            flashcard.apply(response.data);
+            flashcardSettings.apply(response.data);
         });
     },
 
