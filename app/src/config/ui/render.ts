@@ -1,7 +1,9 @@
 import type {
     SettingRow,
-    SettingRowStack,
     SettingSection,
+    SettingRowButton,
+    SettingRowTextBlock,
+    SettingRowStack,
     StackLeft,
     StackRight,
 } from "./settingRows";
@@ -20,12 +22,11 @@ const buildNumberInputHtml = (
     value: number,
     min?: number,
     max?: number,
-    unit?: string
+    step?: string,
+    unit?: string,
 ): string => {
-    const minAttr = min ?? "";
-    const maxAttr = max ?? "";
     const fieldClass = unit ? "fn__flex-1" : "fn__flex-center fn__size200";
-    const input = `<input class="b3-text-field ${fieldClass}" id="${id}" type="number" min="${minAttr}" max="${maxAttr}" value="${value}"/>`;
+    const input = `<input class="b3-text-field ${fieldClass}" id="${id}" type="number" min="${min ?? ""}" max="${max ?? ""}" step="${step ?? ""}" value="${value}"/>`;
     if (unit) {
         return `<div class="fn__size200 fn__flex-center fn__flex">${input}<span class="fn__space"></span><span class="ft__on-surface fn__flex-center">${unit}</span></div>`;
     }
@@ -37,12 +38,12 @@ const buildSwitchInputHtml = (id: string, checked: boolean): string =>
 
 const buildSelectOptionsHtml = <T extends number | string>(
     id: string,
-    options: {value: T; label: string}[],
-    current: T
+    options: {value: T; label?: string}[],
+    current: T,
 ): string =>
     `<select class="b3-select fn__flex-center fn__size200" id="${id}">
     ${options
-        .map((o) => `<option value="${o.value}" ${current === o.value ? "selected" : ""}>${o.label}</option>`)
+        .map((o) => `<option value="${o.value}" ${current === o.value ? "selected" : ""}>${o.label ?? String(o.value)}</option>`)
         .join("")
     }
 </select>`;
@@ -64,7 +65,7 @@ const renderRangeRow = (
     min: number,
     max: number,
     step: number,
-    value: number
+    value: number,
 ): string =>
     `<div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
@@ -84,7 +85,8 @@ const renderNumberRow = (
     value: number,
     min?: number,
     max?: number,
-    unit?: string
+    step?: string,
+    unit?: string,
 ): string =>
     `<div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
@@ -92,11 +94,12 @@ const renderNumberRow = (
         <div class="b3-label__text">${desc}</div>
     </div>
     <span class="fn__space"></span>
-    ${buildNumberInputHtml(id, value, min, max, unit)}
+    ${buildNumberInputHtml(id, value, min, max, step, unit)}
 </div>`;
 
-const renderButtonRow = (id: string, title: string, desc: string, label: string, icon: string): string =>
-    `<div class="fn__flex b3-label config__item">
+const renderButtonRow = (row: Pick<SettingRowButton, "id" | "title" | "desc" | "label" | "icon">): string => {
+    const {id, title, desc, label, icon} = row;
+    return `<div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
         ${title}
         <div class="b3-label__text">${desc}</div>
@@ -104,14 +107,15 @@ const renderButtonRow = (id: string, title: string, desc: string, label: string,
     <span class="fn__space"></span>
     ${buildButtonHtml(id, label, icon)}
 </div>`;
+};
 
 /** 同一组 options 与 current 的 value 须同型（泛型 T 约束） */
 const renderSelectRow = <T extends number | string>(
     id: string,
     title: string,
     desc: string,
-    options: {value: T; label: string}[],
-    current: T
+    options: {value: T; label?: string}[],
+    current: T,
 ): string =>
     `<div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
@@ -137,7 +141,7 @@ const renderNotebookSavePathRow = (
     desc: string,
     selectId: string,
     pathId: string,
-    selectOptionsHtml: string
+    selectOptionsHtml: string,
 ): string =>
     `<div class="b3-label config__item">
     ${title}
@@ -150,15 +154,44 @@ const renderNotebookSavePathRow = (
     </div>
 </div>`;
 
-const renderTextBlockRow = (title: string, desc: string, id: string, value: string): string =>
-    `<div class="b3-label">
+const renderTextBlockRow = (row: Pick<SettingRowTextBlock, "id" | "title" | "desc" | "mode" | "value">): string => {
+    const {id, title, desc, mode, value} = row;
+    const spellcheck = window.siyuan.config.editor.spellcheck ? "true" : "false";
+    let field: string;
+    if (mode === "textarea") {
+        field = `<textarea class="b3-text-field fn__block" id="${id}" spellcheck="${spellcheck}">${value}</textarea>`;
+    } else if (mode === "input-password") {
+        field = `<div class="b3-form__icona fn__block">
+    <input id="${id}" type="password" class="b3-text-field b3-form__icona-input" value="${Lute.EscapeHTMLStr(value)}">
+    <svg class="b3-form__icona-icon" data-action="togglePassword" style="user-select: none;"><use xlink:href="#iconEye"></use></svg>
+</div>`;
+    } else {
+        field = `<input class="b3-text-field fn__block" id="${id}" type="text" spellcheck="${spellcheck}" value="${Lute.EscapeHTMLStr(value)}"/>`;
+    }
+    return `<div class="b3-label">
     <div class="fn__block">
         ${title}
         <div class="b3-label__text">${desc}</div>
         <div class="fn__hr"></div>
-        <textarea class="b3-text-field fn__block" id="${id}" spellcheck="${window.siyuan.config.editor.spellcheck ? "true" : "false"}">${value}</textarea>
+        ${field}
     </div>
 </div>`;
+};
+
+/** 为指定 `id` 的密码框绑定显隐图标（与 `renderTextBlockRow` 中 `input-password` 分支的 DOM 结构配套） */
+export const bindPasswordIconaToggle = (root: HTMLElement, inputId: string): void => {
+    root.querySelector<HTMLElement>(`#${CSS.escape(inputId)} + .b3-form__icona-icon[data-action="togglePassword"]`)?.addEventListener("click", (event) => {
+        const svg = event.currentTarget as SVGSVGElement;
+        const icon = svg.firstElementChild as SVGUseElement;
+        const field = svg.previousElementSibling as HTMLInputElement;
+        if (!icon || !field) {
+            return;
+        }
+        const isEye = icon.getAttribute("xlink:href") === "#iconEye";
+        icon.setAttribute("xlink:href", isEye ? "#iconEyeoff" : "#iconEye");
+        field.setAttribute("type", isEye ? "text" : "password");
+    });
+};
 
 const renderStackRight = (r: StackRight): string => {
     switch (r.kind) {
@@ -167,7 +200,7 @@ const renderStackRight = (r: StackRight): string => {
         case "select":
             return buildSelectOptionsHtml(r.id, r.options, r.value);
         case "number":
-            return buildNumberInputHtml(r.id, r.value, r.min, r.max);
+            return buildNumberInputHtml(r.id, r.value, r.min, r.max, undefined, undefined);
         case "switch":
             return buildSwitchInputHtml(r.id, getSwitchChecked(r.id));
     }
@@ -208,7 +241,7 @@ const renderRow = (row: SettingRow): string => {
             return renderTextRow(row.id, row.title, row.desc, str);
         }
         case "textBlock":
-            return renderTextBlockRow(row.title, row.desc, row.id, row.getTextValue());
+            return renderTextBlockRow(row);
         case "number": {
             const raw = getAtPath(cfg, row.id);
             const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
@@ -219,7 +252,8 @@ const renderRow = (row: SettingRow): string => {
                 value,
                 row.min,
                 row.max,
-                row.unit
+                row.step,
+                row.unit,
             );
         }
         case "range": {
@@ -232,7 +266,7 @@ const renderRow = (row: SettingRow): string => {
                 row.min,
                 row.max,
                 row.step,
-                num
+                num,
             );
         }
         case "select": {
@@ -257,7 +291,7 @@ const renderRow = (row: SettingRow): string => {
             return renderSelectRow(row.id, row.title, row.desc, row.options, current);
         }
         case "button":
-            return renderButtonRow(row.id, row.title, row.desc, row.label, row.icon);
+            return renderButtonRow(row);
         case "custom":
             return row.html();
         case "stack":
@@ -268,7 +302,7 @@ const renderRow = (row: SettingRow): string => {
                 row.desc,
                 row.selectId,
                 row.pathId,
-                row.getOptionsHtml()
+                row.getOptionsHtml(),
             );
     }
 };

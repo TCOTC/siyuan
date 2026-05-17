@@ -1,4 +1,4 @@
-import {updateHotkeyTip} from "../protyle/util/compatibility";
+﻿import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Constants} from "../constants";
 import {
     type SettingBindApi,
@@ -13,7 +13,7 @@ import {
     findSettingRowByControlId,
 } from "./ui/settingRows";
 import {filterSettingSections} from "./ui/search";
-import {renderSettingTabHtmlFromSections, renderSwitchRow} from "./ui/render";
+import {renderSettingTabHtmlFromSections} from "./ui/render";
 import {readDomValue} from "./ui/formValue";
 import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {fetchPost} from "../util/fetch";
@@ -22,9 +22,9 @@ import {setInlineStyle} from "../util/assets";
 import {reloadProtyle} from "../protyle/util/reload";
 import {resize} from "../protyle/util/resize";
 import {mountSettingSaveHandlers} from "./ui/save";
+import {isBrowser} from "../util/functions";
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
-import { isBrowser } from "../util/functions";
 /// #endif
 
 export const editor = {
@@ -104,52 +104,54 @@ export function buildEditorSections(): SettingSection[] {
                     })(),
                     desc: window.siyuan.languages.editReadonlyTip,
                 }),
+                switchRow({
+                    id: "editor.spellcheck",
+                    title: window.siyuan.languages.spellcheck,
+                    desc: browser ? window.siyuan.languages.spellcheckTip : window.siyuan.languages.spellcheckTip2,
+                    bind: async (api: SettingBindApi) => {
+                        /// #if !BROWSER
+                        const spellcheckSwitch = api.root.querySelector<HTMLInputElement>(`#${CSS.escape("editor.spellcheck")}`);
+                        if (!spellcheckSwitch) {
+                            return;
+                        }
+                        const toggleSpellcheckLanguagesWrap = () => {
+                            api.root.querySelector(`#${CSS.escape("editor.spellcheckLanguages")}`)?.closest(".b3-label")?.classList.toggle("fn__none", !spellcheckSwitch.checked);
+                        };
+                        spellcheckSwitch.addEventListener("change", toggleSpellcheckLanguagesWrap);
+                        toggleSpellcheckLanguagesWrap();
+                        /// #endif
+                    },
+                }),
                 customRow({
                     keywords: [
+                        // 使用跟前面一样的关键词，搜索时就能同时匹配到
                         window.siyuan.languages.spellcheck,
                         browser ? window.siyuan.languages.spellcheckTip : window.siyuan.languages.spellcheckTip2,
                     ],
-                    html: () => {
-                        return `<div class="b3-label">
-    ${renderSwitchRow(
-        "editor.spellcheck",
-        window.siyuan.languages.spellcheck,
-        browser ? window.siyuan.languages.spellcheckTip : window.siyuan.languages.spellcheckTip2,
-        window.siyuan.config.editor.spellcheck
-    )}
-    <div class="b3-chips fn__none" id="editor.spellcheckLanguages"></div>
-</div>`;
-                    },
+                    html: () => `<div class="fn__flex b3-label fn__none">
+    <div class="b3-chips" id="editor.spellcheckLanguages"></div>
+</div>`,
                     bind: async (api: SettingBindApi) => {
                         /// #if !BROWSER
-                        const {root} = api;
-                        const spellcheckSwitch = root.querySelector<HTMLInputElement>(`#${CSS.escape("editor.spellcheck")}`);
-                        const spellcheckLanguagesElement = root.querySelector<HTMLDivElement>(`#${CSS.escape("editor.spellcheckLanguages")}`);
-                        if (!spellcheckSwitch || !spellcheckLanguagesElement) {
+                        const spellcheckLanguagesEl = api.root.querySelector<HTMLDivElement>(`#${CSS.escape("editor.spellcheckLanguages")}`);
+                        if (!spellcheckLanguagesEl) {
                             return;
                         }
-
-                        const syncSpellcheckLanguagesVisibility = () => {
-                            spellcheckLanguagesElement.classList.toggle("fn__none", !spellcheckSwitch.checked);
-                        };
-                        spellcheckSwitch.addEventListener("change", syncSpellcheckLanguagesVisibility);
-                        syncSpellcheckLanguagesVisibility();
-
                         const languages: string[] = await ipcRenderer.invoke(Constants.SIYUAN_GET, {
                             cmd: "availableSpellCheckerLanguages",
                         });
-                        let spellcheckLanguagesHTML = "";
-                        languages.forEach((item) => {
-                            spellcheckLanguagesHTML += `<div class="fn__pointer b3-chip b3-chip--middle${window.siyuan.config.editor.spellcheckLanguages.includes(item) ? " b3-chip--current" : ""}">${item}</div>`;
-                        });
-                        spellcheckLanguagesElement.innerHTML = spellcheckLanguagesHTML;
-                        spellcheckLanguagesElement.addEventListener("click", (event) => {
+                        const spellcheckLanguagesHTMLArr: string[] = [];
+                        for (const item of languages) {
+                            spellcheckLanguagesHTMLArr.push(
+                                `<div class="fn__pointer b3-chip b3-chip--middle${window.siyuan.config.editor.spellcheckLanguages.includes(item) ? " b3-chip--current" : ""}">${item}</div>`
+                            );
+                        }
+                        spellcheckLanguagesEl.innerHTML = spellcheckLanguagesHTMLArr.join("");
+                        spellcheckLanguagesEl.addEventListener("click", (event) => {
                             const target = event.target as Element;
                             if (target.classList.contains("b3-chip")) {
                                 target.classList.toggle("b3-chip--current");
-                                const selectedLanguages = Array.from(
-                                    spellcheckLanguagesElement.querySelectorAll(".b3-chip--current")
-                                ).map((item) => item.textContent || "");
+                                const selectedLanguages = Array.from(spellcheckLanguagesEl.querySelectorAll(".b3-chip--current")).map((el) => el.textContent || "");
                                 ipcRenderer.send(Constants.SIYUAN_CMD, {
                                     cmd: "setSpellCheckerLanguages",
                                     languages: selectedLanguages,
@@ -261,13 +263,15 @@ export function buildEditorSections(): SettingSection[] {
                     id: "editor.virtualBlockRefInclude",
                     title: window.siyuan.languages.md9,
                     desc: window.siyuan.languages.md36,
-                    getTextValue: () => window.siyuan.config.editor.virtualBlockRefInclude,
+                    mode: "textarea",
+                    value: window.siyuan.config.editor.virtualBlockRefInclude,
                 }),
                 textBlockRow({
                     id: "editor.virtualBlockRefExclude",
                     title: window.siyuan.languages.md35,
                     desc: window.siyuan.languages.md41,
-                    getTextValue: () => window.siyuan.config.editor.virtualBlockRefExclude,
+                    mode: "textarea",
+                    value: window.siyuan.config.editor.virtualBlockRefExclude,
                 }),
                 switchRow({
                     id: "editor.backlinkContainChildren",
@@ -347,7 +351,8 @@ export function buildEditorSections(): SettingSection[] {
                     id: "editor.katexMacros",
                     title: window.siyuan.languages.katexMacros,
                     desc: window.siyuan.languages.katexMacrosTip,
-                    getTextValue: () => window.siyuan.config.editor.katexMacros,
+                    mode: "textarea",
+                    value: window.siyuan.config.editor.katexMacros,
                 }),
                 switchRow({
                     id: "editor.allowSVGScript",

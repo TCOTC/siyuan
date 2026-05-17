@@ -1,13 +1,13 @@
 import type {SettingRow, SettingRowStack} from "./settingRows";
 
-/** `stack` 参与设置搜索的文案：各行左列 `text`、`select` 选项 `label`、`button` 的 `label` */
+/** `stack` 参与设置搜索的文案：各行左列 `text`、`select` 选项（`label` 或回退 `value`）、`button` 的 `label` */
 const stackExtraSearchStrings = (row: SettingRowStack): string[] => {
     const out: string[] = [];
     for (const line of row.lines) {
         out.push(line.left.text);
         const right = line.right;
         if (right?.kind === "select") {
-            out.push(...right.options.map((o) => o.label));
+            out.push(...right.options.map((o) => o.label ?? String(o.value)));
         } else if (right?.kind === "button") {
             out.push(right.label);
         }
@@ -57,7 +57,7 @@ export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string)
             ) {
                 return true;
             }
-            return row.options.some((o) => textMatchesConfigSearch(o.label, queryLower));
+            return row.options.some((o) => textMatchesConfigSearch(o.label ?? String(o.value), queryLower));
         case "button":
             return (
                 textMatchesConfigSearch(row.title, queryLower) ||
@@ -86,7 +86,7 @@ export const collectRowStringsForSearchIndex = (row: SettingRow): string[] => {
             }
             return [row.title, row.desc];
         case "select":
-            return [row.title, row.desc, ...row.options.map((o) => o.label)];
+            return [row.title, row.desc, ...row.options.map((o) => o.label ?? String(o.value))];
         case "button":
             return [row.title, row.desc, row.label];
         case "custom":

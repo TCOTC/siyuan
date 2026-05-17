@@ -9,6 +9,7 @@ export interface SettingRowSwitch {
     id: string;
     title: string;
     desc: string;
+    bind?: (api: SettingBindApi) => void | Promise<void>;
 }
 
 /** 单行文本 */
@@ -25,7 +26,8 @@ export interface SettingRowTextBlock {
     id: string;
     title: string;
     desc: string;
-    getTextValue: () => string;
+    mode: "input-text" | "input-password" | "textarea";
+    value: string;
 }
 
 /** 数字输入 */
@@ -36,7 +38,9 @@ export interface SettingRowNumber {
     desc: string;
     min?: number;
     max?: number;
-    /** 显示在数字框右侧的单位文案（可选） */
+    /** 含小数或 `any` 时 `readDomValue` 按浮点数解析，否则按整数解析 */
+    step?: string;
+    /** 显示在数字框右侧的单位文案 */
     unit?: string;
 }
 
@@ -58,7 +62,8 @@ export interface SettingRowSelect {
     id: string;
     title: string;
     desc: string;
-    options: { value: number | string; label: string }[];
+    /** 省略 `label` 时回退为 `value` 的字符串形式 */
+    options: {value: number | string; label?: string}[];
     value: number | string;
     bind?: (api: SettingBindApi) => void | Promise<void>;
 }
@@ -96,7 +101,7 @@ export type StackRight =
     | {
           kind: "select";
           id: string;
-          options: {value: number | string; label: string}[];
+          options: {value: number | string; label?: string}[];
           value: number | string;
       }
     | {

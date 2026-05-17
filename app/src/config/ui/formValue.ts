@@ -38,30 +38,35 @@ export function readDomValue(el: HTMLElement, row?: SettingRow): unknown {
                 return el.checked;
             case "number":
             case "range": {
-                let n = parseInt(el.value, 10);
-                const invalid = Number.isNaN(n);
+                const step = el.getAttribute("step")?.trim().toLowerCase() ?? "";
+                const useFloat = step === "any" || step.includes(".");
+                const parseNum = (s: string) => (useFloat ? parseFloat(s) : parseInt(s, 10));
+                let number = useFloat ? parseFloat(el.value) : parseInt(el.value, 10);
+                const invalid = Number.isNaN(number);
                 if (invalid) {
                     // 无效时回退原配置或默认值 0
                     const raw = getAtPath(window.siyuan.config, el.id);
-                    n = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
+                    number = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
                 }
-                const min = parseInt(el.getAttribute("min") ?? "", 10);
-                if (!Number.isNaN(min) && n < min) {
-                    n = min;
+                const minRaw = el.getAttribute("min") ?? "";
+                const maxRaw = el.getAttribute("max") ?? "";
+                const min = minRaw === "" ? NaN : parseNum(minRaw);
+                const max = maxRaw === "" ? NaN : parseNum(maxRaw);
+                if (!Number.isNaN(min)) {
+                    number = Math.max(min, number);
                 }
-                const max = parseInt(el.getAttribute("max") ?? "", 10);
-                if (!Number.isNaN(max) && n > max) {
-                    n = max;
+                if (!Number.isNaN(max)) {
+                    number = Math.min(max, number);
                 }
                 // 写回控件
-                const valueStr = String(n);
+                const valueStr = String(number);
                 if (el.value !== valueStr) {
                     el.value = valueStr;
                 }
                 if (el.type === "range") {
                     el.parentElement?.setAttribute("aria-label", valueStr);
                 }
-                return n;
+                return number;
             }
             default:
                 return el.value;

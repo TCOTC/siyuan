@@ -49,10 +49,12 @@ export const mountSettingSaveHandlers = async (root: HTMLElement, sections: Sett
                 if (el) {
                     el.value = row.getPathValue();
                 }
+            } else if (row.type === "textBlock" && row.mode === "input-password") {
+                bindPasswordIconaToggle(root, row.id);
             }
         }
     }
-    root.querySelectorAll("input, select").forEach((item) => {
+    root.querySelectorAll("input, select, textarea").forEach((item) => {
         item.addEventListener("change", () => {
             routeSave(item.id);
         });

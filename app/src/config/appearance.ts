@@ -133,7 +133,10 @@ export function buildAppearanceSections(): SettingSection[] {
 </div>`,
                     bind: (api: SettingBindApi) => {
                         const fontFamilyEl = api.root.querySelector<HTMLInputElement>(`#${CSS.escape("editor.fontFamily")}`);
-                        fontFamilyEl?.addEventListener("click", () => {
+                        if (!fontFamilyEl) {
+                            return;
+                        }
+                        fontFamilyEl.addEventListener("click", () => {
                             fetchPost("/api/system/getSysFonts", {}, (response) => {
                                 const curFamily = fontFamilyEl.dataset.family || "";
                                 const curWeight = parseInt(fontFamilyEl.dataset.weight || "0", 10);
@@ -290,10 +293,7 @@ export function buildAppearanceSections(): SettingSection[] {
                             right: {
                                 kind: "select",
                                 id: "appearance.themeLight",
-                                options: window.siyuan.config.appearance.lightThemes.map((item) => ({
-                                    value: item,
-                                    label: item,
-                                })),
+                                options: window.siyuan.config.appearance.lightThemes.map(value => ({value})),
                                 value: window.siyuan.config.appearance.themeLight,
                             },
                         },
@@ -302,10 +302,7 @@ export function buildAppearanceSections(): SettingSection[] {
                             right: {
                                 kind: "select",
                                 id: "appearance.themeDark",
-                                options: window.siyuan.config.appearance.darkThemes.map((item) => ({
-                                    value: item,
-                                    label: item,
-                                })),
+                                options: window.siyuan.config.appearance.darkThemes.map(value => ({value})),
                                 value: window.siyuan.config.appearance.themeDark,
                             },
                         },
@@ -353,10 +350,7 @@ export function buildAppearanceSections(): SettingSection[] {
                             right: {
                                 kind: "select",
                                 id: "appearance.codeBlockThemeLight",
-                                options: Constants.SIYUAN_CONFIG_APPEARANCE_LIGHT_CODE.map((item) => ({
-                                    value: item,
-                                    label: item,
-                                })),
+                                options: Constants.SIYUAN_CONFIG_APPEARANCE_LIGHT_CODE.map(value => ({value})),
                                 value: window.siyuan.config.appearance.codeBlockThemeLight,
                             },
                         },
@@ -365,10 +359,7 @@ export function buildAppearanceSections(): SettingSection[] {
                             right: {
                                 kind: "select",
                                 id: "appearance.codeBlockThemeDark",
-                                options: Constants.SIYUAN_CONFIG_APPEARANCE_DARK_CODE.map((item) => ({
-                                    value: item,
-                                    label: item,
-                                })),
+                                options: Constants.SIYUAN_CONFIG_APPEARANCE_DARK_CODE.map(value => ({value})),
                                 value: window.siyuan.config.appearance.codeBlockThemeDark,
                             },
                         },
@@ -522,7 +513,7 @@ export function buildAppearanceSections(): SettingSection[] {
                             "desktopMode",
                             window.siyuan.languages.desktopMode,
                             window.siyuan.languages.mobileModeTip,
-                            raw === "true" || (raw !== "false" && !mobile)
+                            raw === "true" || (raw !== "false" && !mobile),
                         );
                     },
                     bind: (api: SettingBindApi) => {
