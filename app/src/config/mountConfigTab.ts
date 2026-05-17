@@ -34,14 +34,10 @@ export const mountConfigTab = (type: TConfigTab, containerElement: Element, app:
             bazaar.bindEvent(app);
             break;
         case "flashcard":
-            flashcard.element = containerElement;
-            containerElement.innerHTML = flashcard.genHTML();
-            flashcard.bindEvent();
+            void flashcard.mount(containerElement as HTMLElement);
             break;
         case "ai":
-            ai.element = containerElement;
-            containerElement.innerHTML = ai.genHTML();
-            ai.bindEvent();
+            void ai.mount(containerElement as HTMLElement);
             break;
         case "assets":
             assets.element = containerElement;

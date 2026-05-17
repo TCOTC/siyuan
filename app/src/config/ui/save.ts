@@ -1,9 +1,12 @@
 import {appearance} from "../appearance";
 import {editor} from "../editor";
 import {file} from "../file";
+import {flashcard} from "../flashcard";
+import {ai} from "../ai";
 import type {SettingBindApi, SettingSection} from "./settingRows";
+import {bindPasswordIconaToggle} from "./render";
 
-const routedNamespaces = new Set(["editor", "fileTree", "appearance"]);
+const routedNamespaces = new Set(["editor", "fileTree", "appearance", "flashcard", "ai"]);
 
 export const routeSettingSave = (
     root: HTMLElement,
@@ -22,12 +25,22 @@ export const routeSettingSave = (
         return;
     }
     // 同一个接口的配置放在不同的标签页中，要派发给不同的方法来处理
-    if (ns === "editor") {
-        editor.set(root, controlId, sections);
-    } else if (ns === "fileTree") {
-        file.set(root, controlId, sections);
-    } else {
-        appearance.set(root, controlId, sections);
+    switch (ns) {
+        case "editor":
+            editor.set(root, controlId, sections);
+            break;
+        case "fileTree":
+            file.set(root, controlId, sections);
+            break;
+        case "appearance":
+            appearance.set(root, controlId, sections);
+            break;
+        case "flashcard":
+            flashcard.set(root, controlId, sections);
+            break;
+        case "ai":
+            ai.set(root, controlId, sections);
+            break;
     }
 };
 

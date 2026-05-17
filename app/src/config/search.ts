@@ -5,6 +5,8 @@ import {collectSettingTabSearchStrings} from "./ui/search";
 import {buildEditorSections} from "./editor";
 import {buildFileSections} from "./file";
 import {buildAppearanceSections, appearance} from "./appearance";
+import {buildFlashcardSections, flashcard} from "./flashcard";
+import {buildAiSections, ai} from "./ai";
 import {mountConfigTab} from "./mountConfigTab";
 import {editor} from "./editor";
 import {file} from "./file";
@@ -187,32 +189,18 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
     }
 };
 
-type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance">;
+type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai">;
 
 /**
  * 侧栏标签索引关键词：按一级 Tab 的 `id` 与 `TAB_LANG_KEYS` 的键对应；
  * 用于在未展开面板时匹配「应显示哪几个一级标签」（与侧栏 `li[data-name]` 对齐）。
- * 「编辑器」「文档」与「外观」由 `collectSettingTabSearchStrings` + `buildEditorSections` / `buildFileSections` / `buildAppearanceSections` 从注册表推导，不由本表维护。
+ * 「编辑器」「文档」「外观」「闪卡」与「人工智能」由 `collectSettingTabSearchStrings` + `buildEditorSections` / `buildFileSections` / `buildAppearanceSections` / `buildFlashcardSections` / `buildAiSections` 从注册表推导，不由本表维护。
  * TODO 最终要实现移除这个对象
  */
 const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
     bazaar: [
         "bazaar", "theme", "template", "icon", "widget", "plugin", "downloaded", "search", "enterKey", "total",
         "sortByUpdateTimeDesc", "sortByUpdateTimeAsc", "sortByDownloadsDesc", "sortByDownloadsAsc", "all", "themeLight", "themeDark",
-    ],
-    flashcard: [
-        "riffCard", "configGroupCardCreation", "configGroupReview", "configGroupOthers",
-        "flashcardNewCardLimit", "flashcardNewCardLimitTip", "flashcardReviewCardLimit", "flashcardReviewCardLimitTip",
-        "flashcardMark", "flashcardMarkTip", "flashcardList", "flashcardSuperBlock", "flashcardHeading", "flashcardDeck", "flashcardDeckTip",
-        "flashcardFSRSParamRequestRetention", "flashcardFSRSParamRequestRetentionTip",
-        "flashcardFSRSParamMaximumInterval", "flashcardFSRSParamMaximumIntervalTip",
-        "flashcardFSRSParamWeights", "flashcardFSRSParamWeightsTip", "reviewMode", "reviewModeTip",
-    ],
-    ai: [
-        "ai", "configGroupServiceConnection", "configGroupModelParameters",
-        "apiTimeout", "apiTimeoutTip", "apiMaxTokens", "apiMaxTokensTip", "apiKey", "apiKeyTip", "apiProxy", "apiProxyTip",
-        "apiBaseURL", "apiBaseURLTip", "apiUserAgentTip", "apiVersion", "apiVersionTip",
-        "apiProvider", "apiProviderTip", "apiTemperature", "apiTemperatureTip", "apiMaxContexts", "apiMaxContextsTip",
     ],
     assets: [
         "assets", "unreferencedAssets", "unreferencedAV", "missingAssets", "delete", "clearAll", "clearAllAV", "emptyContent",
@@ -289,6 +277,12 @@ const getTabSearchStrings = (tabId: TConfigTab): string[] => {
     }
     if (tabId === "appearance") {
         return collectSettingTabSearchStrings(window.siyuan.languages.appearance, buildAppearanceSections());
+    }
+    if (tabId === "flashcard") {
+        return collectSettingTabSearchStrings(window.siyuan.languages.riffCard, buildFlashcardSections());
+    }
+    if (tabId === "ai") {
+        return collectSettingTabSearchStrings(window.siyuan.languages.ai, buildAiSections());
     }
     return getLang(TAB_LANG_KEYS[tabId]);
 };
@@ -389,19 +383,25 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
     const searchInput = dialogElement.querySelector(".b3-form__icon input") as HTMLInputElement | null;
     const keywords = (searchInput?.value ?? "").trim();
 
-    if (type === "editor" && keywords) {
-        void editor.mount(containerElement as HTMLElement, keywords);
-        return;
-    }
-
-    if (type === "file" && keywords) {
-        void file.mount(containerElement as HTMLElement, keywords);
-        return;
-    }
-
-    if (type === "appearance" && keywords) {
-        void appearance.mount(containerElement as HTMLElement, keywords);
-        return;
+    if (keywords) {
+        const el = containerElement as HTMLElement;
+        switch (type) {
+            case "editor":
+                void editor.mount(el, keywords);
+                return;
+            case "file":
+                void file.mount(el, keywords);
+                return;
+            case "appearance":
+                void appearance.mount(el, keywords);
+                return;
+            case "flashcard":
+                void flashcard.mount(el, keywords);
+                return;
+            case "ai":
+                void ai.mount(el, keywords);
+                return;
+        }
     }
 
     if (containerElement.innerHTML === "") {
@@ -437,23 +437,36 @@ const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
         if (!type) {
             return;
         }
-        if (type === "editor") {
-            void editor.mount(container);
-        } else if (type === "file") {
-            void file.mount(container as HTMLElement);
-        } else if (type === "appearance") {
-            void appearance.mount(container as HTMLElement);
-        } else if (type === "keymap") {
-            keymap.element = container;
-            const searchElement = container.querySelector("#keymapInput") as HTMLInputElement | null;
-            const searchKeymapElement = container.querySelector("#searchByKey") as HTMLInputElement | null;
-            if (searchElement && searchKeymapElement) {
-                searchElement.value = "";
-                searchKeymapElement.value = "";
-                keymap.search("", "");
+        switch (type) {
+            case "editor":
+                void editor.mount(container);
+                break;
+            case "file":
+                void file.mount(container as HTMLElement);
+                break;
+            case "appearance":
+                void appearance.mount(container as HTMLElement);
+                break;
+            case "flashcard":
+                void flashcard.mount(container as HTMLElement);
+                break;
+            case "ai":
+                void ai.mount(container as HTMLElement);
+                break;
+            case "keymap": {
+                keymap.element = container;
+                const searchElement = container.querySelector("#keymapInput") as HTMLInputElement | null;
+                const searchKeymapElement = container.querySelector("#searchByKey") as HTMLInputElement | null;
+                if (searchElement && searchKeymapElement) {
+                    searchElement.value = "";
+                    searchKeymapElement.value = "";
+                    keymap.search("", "");
+                }
+                break;
             }
-        } else {
-            applySettingPanelSearch(container, "");
+            default:
+                applySettingPanelSearch(container, "");
+                break;
         }
     });
     // 清空搜索后根据侧栏仍保留的焦点项重新渲染，避免中间区域空白
