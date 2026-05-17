@@ -45,7 +45,7 @@ export const mountSettingSaveHandlers = async (root: HTMLElement, sections: Sett
                     }
                 }
             } else if (row.type === "notebookSavePath") {
-                const el = root.querySelector<HTMLInputElement>(`[id="${CSS.escape(row.pathId)}"]`);
+                const el = root.querySelector<HTMLInputElement>(`#${CSS.escape(row.pathId)}`);
                 if (el) {
                     el.value = row.getPathValue();
                 }

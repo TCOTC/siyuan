@@ -26,7 +26,7 @@ export const file = {
         if (!controlId.startsWith("fileTree.")) {
             return;
         }
-        const el = root.querySelector<HTMLElement>(`[id="${CSS.escape(controlId)}"]`);
+        const el = root.querySelector<HTMLElement>(`#${CSS.escape(controlId)}`);
         if (!el) {
             return;
         }
@@ -45,19 +45,16 @@ export const file = {
         if (!rel) {
             return;
         }
-        const prev = window.siyuan.config.fileTree;
-        const payload = mergeRecordByDottedPath(
-            prev as unknown as Record<string, unknown>,
-            rel,
-            value
-        ) as unknown as Config.IFileTree;
+        const prev = window.siyuan.config.fileTree as unknown as Record<string, unknown>;
+        const payload = mergeRecordByDottedPath(prev, rel, value) as unknown as Config.IFileTree;
         fetchPost("/api/setting/setFiletree", payload, (response) => {
+            // 当前修改文档设置之后内核不推送到所有前端实例，需要手动 apply
             file.apply(response.data);
         });
     },
 
-    apply(fileTreeData: Config.IFileTree) {
-        window.siyuan.config.fileTree = fileTreeData;
+    apply(data: Config.IFileTree) {
+        window.siyuan.config.fileTree = data;
     },
 };
 

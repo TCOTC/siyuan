@@ -8,7 +8,6 @@ import {isBrowser, isMobile} from "../util/functions";
 import {fetchPost} from "../util/fetch";
 import {openSnippets} from "./util/snippets";
 import {loadAssets} from "../util/assets";
-import {resetFloatDockSize} from "../layout/dock/util";
 import {confirmDialog} from "../dialog/confirmDialog";
 import {useShell} from "../util/pathName";
 import {setStatusBar} from "./util/setStatusBar";
@@ -34,7 +33,7 @@ import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {mountSettingSaveHandlers} from "./ui/save";
 import {editor} from "./editor";
 
-/** 外观「明亮 / 暗黑 / 跟随系统」合并控件，对应 DOM id，非配置树单一路径 */
+/** mode 和 modeOS 两项配置的合并控件 ID */
 const APPEARANCE_THEME_MODE_ID = "appearanceThemeMode";
 
 export const appearance = {
@@ -46,10 +45,20 @@ export const appearance = {
 
     set(root: HTMLElement, controlId: string, sections: SettingSection[]) {
         if (controlId === APPEARANCE_THEME_MODE_ID) {
-            sendAppearanceModeFromSelect(root);
+            const modeEl = root.querySelector(`#${CSS.escape(APPEARANCE_THEME_MODE_ID)}`) as HTMLSelectElement | null;
+            if (!modeEl) {
+                return;
+            }
+            const value = parseInt(modeEl.value, 10); // 0: light, 1: dark, 2: system
+            const OSThemeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? 1 : 0;
+            fetchPost("/api/setting/setAppearance", {
+                ...window.siyuan.config.appearance,
+                mode: value === 2 ? OSThemeMode : value,
+                modeOS: value === 2,
+            });
             return;
         }
-        const el = root.querySelector<HTMLElement>(`[id="${CSS.escape(controlId)}"]`);
+        const el = root.querySelector<HTMLElement>(`#${CSS.escape(controlId)}`);
         if (!el) {
             return;
         }
@@ -70,9 +79,8 @@ export const appearance = {
         }
         const prev = window.siyuan.config.appearance as unknown as Record<string, unknown>;
         const payload = mergeRecordByDottedPath(prev, rel, value) as unknown as Config.IAppearance;
-        fetchPost("/api/setting/setAppearance", payload, () => {
-            resetFloatDockSize();
-        });
+        // 当前修改外观设置之后内核会推送到所有前端实例，无需手动 apply
+        fetchPost("/api/setting/setAppearance", payload);
     },
 
     apply(data: Config.IAppearance) {
@@ -93,26 +101,6 @@ export const appearance = {
             `#icon${window.siyuan.config.appearance.modeOS ? "Mode" : window.siyuan.config.appearance.mode === 0 ? "Light" : "Dark"}`
         );
     },
-};
-
-const sendAppearanceModeFromSelect = (root: HTMLElement) => {
-    const modeEl = root.querySelector(`[id="${CSS.escape(APPEARANCE_THEME_MODE_ID)}"]`) as HTMLSelectElement | null;
-    if (!modeEl) {
-        return;
-    }
-    const modeElementValue = parseInt(modeEl.value, 10);
-    const OSTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    fetchPost(
-        "/api/setting/setAppearance",
-        {
-            ...window.siyuan.config.appearance,
-            mode: modeElementValue === 2 ? (OSTheme === "light" ? 0 : 1) : modeElementValue,
-            modeOS: modeElementValue === 2,
-        },
-        () => {
-            resetFloatDockSize();
-        }
-    );
 };
 
 export function buildAppearanceSections(): SettingSection[] {
@@ -206,6 +194,7 @@ export function buildAppearanceSections(): SettingSection[] {
                                 },
                                 (response) => {
                                     const data = response.data as Config.IEditor;
+                                    // 当前修改编辑器设置之后内核不推送到所有前端实例，需要手动 apply
                                     editor.apply(data);
                                     fontFamilyEl.value = data.fontFamilyDisplay || data.fontFamily || window.siyuan.languages.default;
                                     fontFamilyEl.dataset.family = data.fontFamily;

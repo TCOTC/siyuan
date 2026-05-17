@@ -1,4 +1,4 @@
-﻿import {updateHotkeyTip} from "../protyle/util/compatibility";
+import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Constants} from "../constants";
 import {
     type SettingBindApi,
@@ -38,7 +38,7 @@ export const editor = {
         if (!controlId.startsWith("editor.")) {
             return;
         }
-        const el = root.querySelector<HTMLElement>(`[id="${CSS.escape(controlId)}"]`);
+        const el = root.querySelector<HTMLElement>(`#${CSS.escape(controlId)}`);
         if (!el) {
             return;
         }
@@ -57,19 +57,16 @@ export const editor = {
         if (!rel) {
             return;
         }
-        const prev = window.siyuan.config.editor;
-        const payload = mergeRecordByDottedPath(
-            prev as unknown as Record<string, unknown>,
-            rel,
-            value
-        ) as unknown as Config.IEditor;
+        const prev = window.siyuan.config.editor as unknown as Record<string, unknown>;
+        const payload = mergeRecordByDottedPath(prev, rel, value) as unknown as Config.IEditor;
         fetchPost("/api/setting/setEditor", payload, (response) => {
+            // 当前修改编辑器设置之后内核不推送到所有前端实例，需要手动 apply
             editor.apply(response.data);
         });
     },
 
-    apply(editorData: Config.IEditor) {
-        window.siyuan.config.editor = editorData;
+    apply(data: Config.IEditor) {
+        window.siyuan.config.editor = data;
         getAllEditor().forEach((editorItem) => {
             const protyle = editorItem.protyle;
             reloadProtyle(protyle, false);
@@ -126,8 +123,8 @@ export function buildEditorSections(): SettingSection[] {
                     bind: async (api: SettingBindApi) => {
                         /// #if !BROWSER
                         const {root} = api;
-                        const spellcheckSwitch = root.querySelector<HTMLInputElement>(`[id="${CSS.escape("editor.spellcheck")}"]`);
-                        const spellcheckLanguagesElement = root.querySelector<HTMLDivElement>(`[id="${CSS.escape("editor.spellcheckLanguages")}"]`);
+                        const spellcheckSwitch = root.querySelector<HTMLInputElement>(`#${CSS.escape("editor.spellcheck")}`);
+                        const spellcheckLanguagesElement = root.querySelector<HTMLDivElement>(`#${CSS.escape("editor.spellcheckLanguages")}`);
                         if (!spellcheckSwitch || !spellcheckLanguagesElement) {
                             return;
                         }
