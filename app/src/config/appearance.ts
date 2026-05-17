@@ -34,7 +34,7 @@ import {mountSettingSaveHandlers} from "./ui/save";
 import {editor} from "./editor";
 
 /** mode 和 modeOS 两项配置的合并控件 ID */
-const APPEARANCE_THEME_MODE_ID = "appearanceThemeMode";
+const APPEARANCE_THEME_MODE_ID = "appearance.ThemeMode";
 
 export const appearance = {
     mount: async (root: HTMLElement, searchQuery?: string) => {
