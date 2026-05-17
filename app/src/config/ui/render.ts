@@ -153,21 +153,20 @@ const renderOne = (entry: SettingRow): string => {
             );
         }
         case "select": {
-            const cur = getAtPath(cfg, entry.id);
             const firstVal = entry.options[0]?.value;
             const numericSelect = entry.options.length > 0 && typeof firstVal === "number";
             let current: number | string;
             if (numericSelect) {
                 current = 0;
-                if (typeof cur === "number" && !Number.isNaN(cur)) {
-                    current = cur;
+                if (typeof entry.value === "number" && !Number.isNaN(entry.value)) {
+                    current = entry.value;
                 } else if (typeof firstVal === "number" && !Number.isNaN(firstVal)) {
                     current = firstVal;
                 }
             } else {
                 current = "";
-                if (typeof cur === "string") {
-                    current = cur;
+                if (typeof entry.value === "string") {
+                    current = entry.value;
                 } else if (typeof firstVal === "string") {
                     current = firstVal;
                 }

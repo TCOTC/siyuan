@@ -100,10 +100,10 @@ export function buildFileSections(): SettingSection[] {
                 }),
                 numberRow({
                     id: "fileTree.maxOpenTabCount",
-                    min: 1,
-                    max: 32,
                     title: window.siyuan.languages.tabLimit,
                     desc: window.siyuan.languages.tabLimit1,
+                    min: 1,
+                    max: 32,
                 }),
                 switchRow({
                     id: "fileTree.closeTabsOnStart",
@@ -204,18 +204,18 @@ export function buildFileSections(): SettingSection[] {
                 }),
                 numberRow({
                     id: "fileTree.maxListCount",
-                    min: 1,
-                    max: 10240,
                     title: window.siyuan.languages.fileTree16,
                     desc: window.siyuan.languages.fileTree17,
+                    min: 1,
+                    max: 10240,
                 }),
                 numberRow({
                     id: "fileTree.largeFileWarningSize",
+                    title: window.siyuan.languages.fileTree22,
+                    desc: window.siyuan.languages.fileTree23,
                     min: 2,
                     max: 10240,
                     unit: "MB",
-                    title: window.siyuan.languages.fileTree22,
-                    desc: window.siyuan.languages.fileTree23,
                 }),
                 switchRow({
                     id: "fileTree.allowCreateDeeper",
@@ -239,10 +239,10 @@ export function buildFileSections(): SettingSection[] {
             items: [
                 numberRow({
                     id: "fileTree.recentDocsMaxListCount",
-                    min: 32,
-                    max: 256,
                     title: window.siyuan.languages.recentDocsMaxListCount,
                     desc: window.siyuan.languages.recentDocsMaxListCountTip,
+                    min: 32,
+                    max: 256,
                 }),
             ],
         },

@@ -190,11 +190,11 @@ export function buildEditorSections(): SettingSection[] {
                 }),
                 rangeRow({
                     id: "editor.codeTabSpaces",
+                    title: window.siyuan.languages.md29,
+                    desc: window.siyuan.languages.md30,
                     min: 0,
                     max: 8,
                     step: 2,
-                    title: window.siyuan.languages.md29,
-                    desc: window.siyuan.languages.md30,
                 }),
                 switchRow({
                     id: "editor.listLogicalOutdent",
@@ -213,9 +213,9 @@ export function buildEditorSections(): SettingSection[] {
                 }),
                 numberRow({
                     id: "editor.dynamicLoadBlocks",
-                    min: 48,
                     title: window.siyuan.languages.dynamicLoadBlocks,
                     desc: window.siyuan.languages.dynamicLoadBlocksTip,
+                    min: 48,
                 }),
             ],
         },
@@ -244,6 +244,7 @@ export function buildEditorSections(): SettingSection[] {
                         {value: 1, label: window.siyuan.languages.showHeadingOnlyTitle},
                         {value: 2, label: window.siyuan.languages.showHeadingOnlyBlocks},
                     ],
+                    value: window.siyuan.config.editor.headingEmbedMode,
                     title: window.siyuan.languages.headingEmbedMode,
                     desc: window.siyuan.languages.headingEmbedModeTip,
                 }),
@@ -274,10 +275,10 @@ export function buildEditorSections(): SettingSection[] {
                 }),
                 numberRow({
                     id: "editor.blockRefDynamicAnchorTextMaxLen",
-                    min: 1,
-                    max: 5120,
                     title: window.siyuan.languages.md37,
                     desc: window.siyuan.languages.md38,
+                    min: 1,
+                    max: 5120,
                 }),
                 switchRow({
                     id: "editor.virtualBlockRef",
@@ -285,15 +286,15 @@ export function buildEditorSections(): SettingSection[] {
                     desc: window.siyuan.languages.md34,
                 }),
                 blockTextareaRow({
+                    id: "editor.virtualBlockRefInclude",
                     title: window.siyuan.languages.md9,
                     desc: window.siyuan.languages.md36,
-                    id: "editor.virtualBlockRefInclude",
                     getTextValue: () => window.siyuan.config.editor.virtualBlockRefInclude,
                 }),
                 blockTextareaRow({
+                    id: "editor.virtualBlockRefExclude",
                     title: window.siyuan.languages.md35,
                     desc: window.siyuan.languages.md41,
-                    id: "editor.virtualBlockRefExclude",
                     getTextValue: () => window.siyuan.config.editor.virtualBlockRefExclude,
                 }),
                 switchRow({
@@ -303,17 +304,17 @@ export function buildEditorSections(): SettingSection[] {
                 }),
                 numberRow({
                     id: "editor.backlinkExpandCount",
-                    min: 0,
-                    max: 512,
                     title: window.siyuan.languages.backlinkExpand,
                     desc: window.siyuan.languages.backlinkExpandTip,
+                    min: 0,
+                    max: 512,
                 }),
                 numberRow({
                     id: "editor.backmentionExpandCount",
-                    min: -1,
-                    max: 512,
                     title: window.siyuan.languages.backmentionExpand,
                     desc: window.siyuan.languages.backmentionExpandTip,
+                    min: -1,
+                    max: 512,
                 }),
             ],
         },
@@ -371,9 +372,9 @@ export function buildEditorSections(): SettingSection[] {
                     desc: window.siyuan.languages.md40,
                 }),
                 blockTextareaRow({
+                    id: "editor.katexMacros",
                     title: window.siyuan.languages.katexMacros,
                     desc: window.siyuan.languages.katexMacrosTip,
-                    id: "editor.katexMacros",
                     getTextValue: () => window.siyuan.config.editor.katexMacros,
                 }),
                 switchRow({

@@ -15,32 +15,33 @@ export interface SettingRowSwitch {
 export interface SettingRowRange {
     type: "range";
     id: string;
+    title: string;
+    desc: string;
     min: number;
     max: number;
     step: number;
-    title: string;
-    desc: string;
 }
 
 /** 数字输入 */
 export interface SettingRowNumber {
     type: "number";
     id: string;
+    title: string;
+    desc: string;
     min?: number;
     max?: number;
     /** 显示在数字框右侧的单位文案（可选） */
     unit?: string;
-    title: string;
-    desc: string;
 }
 
 /** 下拉选择 */
 export interface SettingRowSelect {
     type: "select";
     id: string;
-    options: { value: number | string; label: string }[];
     title: string;
     desc: string;
+    options: { value: number | string; label: string }[];
+    value: number | string;
 }
 
 /** 单行文本 */
@@ -75,9 +76,9 @@ export interface SettingRowNotebookSavePath {
 /** 大块文本编辑 */
 export interface SettingRowBlockTextarea {
     type: "blockTextarea";
+    id: string;
     title: string;
     desc: string;
-    id: string;
     getTextValue: () => string;
 }
 
