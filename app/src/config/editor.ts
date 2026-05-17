@@ -1,16 +1,16 @@
 ﻿import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Constants} from "../constants";
 import {
+    type SettingBindApi,
+    type SettingSection,
+    switchRow,
+    textRow,
     textBlockRow,
-    customRow,
-    findSettingRowByControlId,
     numberRow,
     rangeRow,
     selectRow,
-    switchRow,
-    textRow,
-    type SettingBindApi,
-    type SettingSection,
+    customRow,
+    findSettingRowByControlId,
 } from "./ui/settingRows";
 import {filterSettingSections} from "./ui/search";
 import {renderSettingTabHtmlFromSections, renderSwitchRow} from "./ui/render";

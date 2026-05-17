@@ -16,16 +16,16 @@ import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Menu} from "../plugin/Menu";
 import {escapeAttr} from "../util/escape";
 import {
-    buttonRow,
-    customRow,
-    findSettingRowByControlId,
-    rangeRow,
-    numberRow,
-    selectRow,
-    stackRow,
-    switchRow,
     type SettingBindApi,
     type SettingSection,
+    switchRow,
+    numberRow,
+    rangeRow,
+    selectRow,
+    buttonRow,
+    customRow,
+    stackRow,
+    findSettingRowByControlId,
 } from "./ui/settingRows";
 import {filterSettingSections} from "./ui/search";
 import {renderSettingTabHtmlFromSections, renderSwitchRow} from "./ui/render";

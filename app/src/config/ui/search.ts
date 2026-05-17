@@ -30,18 +30,15 @@ export const textMatchesConfigSearch = (text: string, queryLower: string): boole
 /** 行是否命中设置面板搜索（工厂行看 `title` / `desc`；`custom` 看 `keywords`；`stack` 由各行左列与右侧控件文案推导；`select` 另含选项文案） */
 export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string): boolean => {
     switch (row.type) {
-        case "custom":
-            return row.keywords.some((k) => textMatchesConfigSearch(k, queryLower));
-        case "stack":
-            return stackExtraSearchStrings(row).some((s) => textMatchesConfigSearch(s, queryLower));
-        case "select":
-            if (
+        case "switch":
+        case "text":
+        case "textBlock":
+        case "range":
+        case "notebookSavePath":
+            return (
                 textMatchesConfigSearch(row.title, queryLower) ||
                 textMatchesConfigSearch(row.desc, queryLower)
-            ) {
-                return true;
-            }
-            return row.options.some((o) => textMatchesConfigSearch(o.label, queryLower));
+            );
         case "number":
             if (
                 textMatchesConfigSearch(row.title, queryLower) ||
@@ -53,41 +50,49 @@ export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string)
                 return true;
             }
             return false;
-        case "button":
-            return (
-                textMatchesConfigSearch(row.title, queryLower) ||
-                textMatchesConfigSearch(row.desc, queryLower) ||
-                textMatchesConfigSearch(row.label, queryLower)
-            );
-        default:
+        case "select":
             if (
                 textMatchesConfigSearch(row.title, queryLower) ||
                 textMatchesConfigSearch(row.desc, queryLower)
             ) {
                 return true;
             }
-            return false;
+            return row.options.some((o) => textMatchesConfigSearch(o.label, queryLower));
+        case "button":
+            return (
+                textMatchesConfigSearch(row.title, queryLower) ||
+                textMatchesConfigSearch(row.desc, queryLower) ||
+                textMatchesConfigSearch(row.label, queryLower)
+            );
+        case "custom":
+            return row.keywords.some((k) => textMatchesConfigSearch(k, queryLower));
+        case "stack":
+            return stackExtraSearchStrings(row).some((s) => textMatchesConfigSearch(s, queryLower));
     }
 };
 
 /** 从一行注册数据取出参与侧栏与内容区检索索引的字符串（`custom` 仅用 `keywords`；`stack` 由各行推导；其余含 `title` / `desc` 的行用二者） */
 export const collectRowStringsForSearchIndex = (row: SettingRow): string[] => {
     switch (row.type) {
-        case "custom":
-            return [...row.keywords];
-        case "stack":
-            return stackExtraSearchStrings(row);
-        case "select":
-            return [row.title, row.desc, ...row.options.map((o) => o.label)];
+        case "switch":
+        case "text":
+        case "textBlock":
+        case "range":
+        case "notebookSavePath":
+            return [row.title, row.desc];
         case "number":
             if (row.unit) {
                 return [row.title, row.desc, row.unit];
             }
             return [row.title, row.desc];
+        case "select":
+            return [row.title, row.desc, ...row.options.map((o) => o.label)];
         case "button":
             return [row.title, row.desc, row.label];
-        default:
-            return [row.title, row.desc];
+        case "custom":
+            return [...row.keywords];
+        case "stack":
+            return stackExtraSearchStrings(row);
     }
 };
 

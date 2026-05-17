@@ -2,12 +2,12 @@ import {confirmDialog} from "../dialog/confirmDialog";
 import {genNotebookOption} from "../menus/onGetnotebookconf";
 import {fetchPost} from "../util/fetch";
 import {
-    findSettingRowByControlId,
-    notebookSavePathRow,
+    type SettingSection,
+    switchRow,
     numberRow,
     stackRow,
-    switchRow,
-    type SettingSection,
+    notebookSavePathRow,
+    findSettingRowByControlId,
 } from "./ui/settingRows";
 import {filterSettingSections} from "./ui/search";
 import {renderSettingTabHtmlFromSections} from "./ui/render";

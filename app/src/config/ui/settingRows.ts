@@ -11,16 +11,21 @@ export interface SettingRowSwitch {
     desc: string;
 }
 
-/** 滑块 */
-export interface SettingRowRange {
-    type: "range";
+/** 单行文本 */
+export interface SettingRowText {
+    type: "text";
     id: string;
     title: string;
     desc: string;
-    min: number;
-    max: number;
-    step: number;
-    bind?: (api: SettingBindApi) => void | Promise<void>;
+}
+
+/** 大块文本编辑 */
+export interface SettingRowTextBlock {
+    type: "textBlock";
+    id: string;
+    title: string;
+    desc: string;
+    getTextValue: () => string;
 }
 
 /** 数字输入 */
@@ -35,15 +40,16 @@ export interface SettingRowNumber {
     unit?: string;
 }
 
-/** 按钮 */
-export interface SettingRowButton {
-    type: "button";
+/** 滑块 */
+export interface SettingRowRange {
+    type: "range";
     id: string;
     title: string;
     desc: string;
-    label: string;
-    icon: string;
-    bind: (api: SettingBindApi) => void | Promise<void>;
+    min: number;
+    max: number;
+    step: number;
+    bind?: (api: SettingBindApi) => void | Promise<void>;
 }
 
 /** 下拉选择 */
@@ -57,12 +63,15 @@ export interface SettingRowSelect {
     bind?: (api: SettingBindApi) => void | Promise<void>;
 }
 
-/** 单行文本 */
-export interface SettingRowText {
-    type: "text";
+/** 按钮 */
+export interface SettingRowButton {
+    type: "button";
     id: string;
     title: string;
     desc: string;
+    label: string;
+    icon: string;
+    bind: (api: SettingBindApi) => void | Promise<void>;
 }
 
 /** 自定义 HTML / 绑定 */
@@ -73,26 +82,6 @@ export interface SettingRowCustom {
     html: () => string;
     /** 非标 DOM / 桌面特例在此绑定；工厂项走通用监听与按 `id` 合并 */
     bind?: (api: SettingBindApi) => void | Promise<void>;
-}
-
-/** 笔记本 + 路径 */
-export interface SettingRowNotebookSavePath {
-    type: "notebookSavePath";
-    title: string;
-    desc: string;
-    selectId: string;
-    pathId: string;
-    getOptionsHtml: () => string;
-    getPathValue: () => string;
-}
-
-/** 大块文本编辑 */
-export interface SettingRowTextBlock {
-    type: "textBlock";
-    id: string;
-    title: string;
-    desc: string;
-    getTextValue: () => string;
 }
 
 /** `stack` 行内右侧控件（整行仅左列时可省略 `right`） */
@@ -137,8 +126,20 @@ export interface SettingRowStack {
     type: "stack";
     lines: {
         left: StackLeft;
+        /** 仅左列（如大标题行）时可省略 */
         right?: StackRight;
     }[];
+}
+
+/** 笔记本 + 路径 */
+export interface SettingRowNotebookSavePath {
+    type: "notebookSavePath";
+    title: string;
+    desc: string;
+    selectId: string;
+    pathId: string;
+    getOptionsHtml: () => string;
+    getPathValue: () => string;
 }
 
 export type SettingRow =
@@ -151,7 +152,7 @@ export type SettingRow =
     | SettingRowButton
     | SettingRowCustom
     | SettingRowStack
-    | SettingRowNotebookSavePath
+    | SettingRowNotebookSavePath;
 
 export interface SettingSection {
     title?: string;
@@ -166,47 +167,9 @@ export const switchRow = (row: Omit<SettingRowSwitch, "type">): SettingRowSwitch
     ...row,
 });
 
-/** 注册 `range` 行 */
-export const rangeRow = (row: Omit<SettingRowRange, "type">): SettingRowRange => ({
-    type: "range",
-    ...row,
-});
-
-/** 注册 `number` 行 */
-export const numberRow = (row: Omit<SettingRowNumber, "type">): SettingRowNumber => ({
-    type: "number",
-    ...row,
-});
-
-/** 注册 `button` 行 */
-export const buttonRow = (row: Omit<SettingRowButton, "type">): SettingRowButton => ({
-    type: "button",
-    ...row,
-});
-
-/** 注册 `select` 行 */
-export const selectRow = (row: Omit<SettingRowSelect, "type">): SettingRowSelect => ({
-    type: "select",
-    ...row,
-});
-
 /** 注册 `text` 行 */
 export const textRow = (row: Omit<SettingRowText, "type">): SettingRowText => ({
     type: "text",
-    ...row,
-});
-
-/** 注册 `custom` 行 */
-export const customRow = (row: Omit<SettingRowCustom, "type">): SettingRowCustom => ({
-    type: "custom",
-    ...row,
-});
-
-/** 注册 `notebookSavePath` 行 */
-export const notebookSavePathRow = (
-    row: Omit<SettingRowNotebookSavePath, "type">
-): SettingRowNotebookSavePath => ({
-    type: "notebookSavePath",
     ...row,
 });
 
@@ -216,9 +179,47 @@ export const textBlockRow = (row: Omit<SettingRowTextBlock, "type">): SettingRow
     ...row,
 });
 
+/** 注册 `number` 行 */
+export const numberRow = (row: Omit<SettingRowNumber, "type">): SettingRowNumber => ({
+    type: "number",
+    ...row,
+});
+
+/** 注册 `range` 行 */
+export const rangeRow = (row: Omit<SettingRowRange, "type">): SettingRowRange => ({
+    type: "range",
+    ...row,
+});
+
+/** 注册 `select` 行 */
+export const selectRow = (row: Omit<SettingRowSelect, "type">): SettingRowSelect => ({
+    type: "select",
+    ...row,
+});
+
+/** 注册 `button` 行 */
+export const buttonRow = (row: Omit<SettingRowButton, "type">): SettingRowButton => ({
+    type: "button",
+    ...row,
+});
+
+/** 注册 `custom` 行 */
+export const customRow = (row: Omit<SettingRowCustom, "type">): SettingRowCustom => ({
+    type: "custom",
+    ...row,
+});
+
 /** 注册 `stack` 节（多行分栏堆叠） */
 export const stackRow = (row: Omit<SettingRowStack, "type">): SettingRowStack => ({
     type: "stack",
+    ...row,
+});
+
+/** 注册 `notebookSavePath` 行 */
+export const notebookSavePathRow = (
+    row: Omit<SettingRowNotebookSavePath, "type">
+): SettingRowNotebookSavePath => ({
+    type: "notebookSavePath",
     ...row,
 });
 

@@ -200,25 +200,15 @@ const renderStack = (entry: SettingRowStack): string => {
 const renderRow = (row: SettingRow): string => {
     const cfg = window.siyuan.config;
     switch (row.type) {
-        case "custom":
-            return row.html();
-        case "stack":
-            return renderStack(row);
         case "switch":
             return renderSwitchRow(row.id, row.title, row.desc, getSwitchChecked(row.id));
-        case "range": {
-            const v = getAtPath(cfg, row.id);
-            const num = typeof v === "number" && !Number.isNaN(v) ? v : row.min;
-            return renderRangeRow(
-                row.id,
-                row.title,
-                row.desc,
-                row.min,
-                row.max,
-                row.step,
-                num
-            );
+        case "text": {
+            const val = getAtPath(cfg, row.id);
+            const str = typeof val === "string" ? val : "";
+            return renderTextRow(row.id, row.title, row.desc, str);
         }
+        case "textBlock":
+            return renderTextBlockRow(row.title, row.desc, row.id, row.getTextValue());
         case "number": {
             const raw = getAtPath(cfg, row.id);
             const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
@@ -232,8 +222,19 @@ const renderRow = (row: SettingRow): string => {
                 row.unit
             );
         }
-        case "button":
-            return renderButtonRow(row.id, row.title, row.desc, row.label, row.icon);
+        case "range": {
+            const v = getAtPath(cfg, row.id);
+            const num = typeof v === "number" && !Number.isNaN(v) ? v : row.min;
+            return renderRangeRow(
+                row.id,
+                row.title,
+                row.desc,
+                row.min,
+                row.max,
+                row.step,
+                num
+            );
+        }
         case "select": {
             const firstVal = row.options[0]?.value;
             const numericSelect = row.options.length > 0 && typeof firstVal === "number";
@@ -255,11 +256,12 @@ const renderRow = (row: SettingRow): string => {
             }
             return renderSelectRow(row.id, row.title, row.desc, row.options, current);
         }
-        case "text": {
-            const val = getAtPath(cfg, row.id);
-            const str = typeof val === "string" ? val : "";
-            return renderTextRow(row.id, row.title, row.desc, str);
-        }
+        case "button":
+            return renderButtonRow(row.id, row.title, row.desc, row.label, row.icon);
+        case "custom":
+            return row.html();
+        case "stack":
+            return renderStack(row);
         case "notebookSavePath":
             return renderNotebookSavePathRow(
                 row.title,
@@ -268,8 +270,6 @@ const renderRow = (row: SettingRow): string => {
                 row.pathId,
                 row.getOptionsHtml()
             );
-        case "textBlock":
-            return renderTextBlockRow(row.title, row.desc, row.id, row.getTextValue());
     }
 };
 
