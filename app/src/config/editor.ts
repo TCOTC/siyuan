@@ -27,18 +27,12 @@ import {ipcRenderer} from "electron";
 /// #endif
 
 export const editor = {
-    /**
-     * 挂载编辑器设置
-     * @param root 容器
-     * @param searchQuery 搜索关键词
-     */
     mount: async (root: HTMLElement, searchQuery?: string) => {
         const sections = filterSettingSections(buildEditorSections(), searchQuery);
         root.innerHTML = renderSettingTabHtmlFromSections(sections);
         await mountSettingSaveHandlers(root, sections);
     },
 
-    /** 从 DOM 读出 `controlId` 对应值 → `send`；无有效值时不请求 */
     set(root: HTMLElement, controlId: string, sections: SettingSection[]) {
         if (!controlId.startsWith("editor.")) {
             return;
@@ -54,10 +48,6 @@ export const editor = {
         }
     },
 
-    /**
-     * 将 `value` 按点分路径合并进当前 `window.siyuan.config.editor` 后 POST；成功后 `apply`。
-     * `controlId` 与控件 `id`、全局配置点分路径一致（含 `editor.` 前缀），如 `editor.readOnly`、`editor.markdown.inlineAsterisk`。
-     */
     send(controlId: string, value: unknown) {
         if (!controlId.startsWith("editor.")) {
             return;
@@ -77,7 +67,6 @@ export const editor = {
         });
     },
 
-    /** 将服务端返回的 `IEditor` 写回全局配置并刷新各编辑器实例（外观页等也会调用） */
     apply(editorData: Config.IEditor) {
         window.siyuan.config.editor = editorData;
         getAllEditor().forEach((editorItem) => {

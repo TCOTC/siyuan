@@ -17,18 +17,12 @@ import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {mountSettingSaveHandlers} from "./ui/save";
 
 export const file = {
-    /**
-     * 挂载文档设置
-     * @param root 容器
-     * @param searchQuery 搜索关键词
-     */
     mount: async (root: HTMLElement, searchQuery?: string) => {
         const sections = filterSettingSections(buildFileSections(), searchQuery);
         root.innerHTML = renderSettingTabHtmlFromSections(sections);
         await mountSettingSaveHandlers(root, sections);
     },
 
-    /** 从 DOM 读出 `controlId` 对应值 → `send`；无有效值时不请求 */
     set(root: HTMLElement, controlId: string, sections: SettingSection[]) {
         if (!controlId.startsWith("fileTree.")) {
             return;
@@ -44,10 +38,6 @@ export const file = {
         }
     },
 
-    /**
-     * 将 `value` 按点分路径合并进当前 `window.siyuan.config.fileTree` 后 POST；成功后 `apply`。
-     * `controlId` 与控件 `id` 一致，须为 `fileTree.` 前缀。
-     */
     send(controlId: string, value: unknown) {
         if (!controlId.startsWith("fileTree.")) {
             return;
@@ -67,7 +57,6 @@ export const file = {
         });
     },
 
-    /** 将服务端返回的 `IFileTree` 写回全局配置 */
     apply(fileTreeData: Config.IFileTree) {
         window.siyuan.config.fileTree = fileTreeData;
     },
