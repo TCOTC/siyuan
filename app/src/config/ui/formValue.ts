@@ -1,5 +1,5 @@
 import {getAtPath} from "./dotPath";
-import {type SettingRow, findStackRightByControlId} from "./settingRows";
+import {type SettingRow, findStackControlByControlId} from "./settingRows";
 
 /**
  * 从 DOM 读出控件值。
@@ -17,9 +17,9 @@ export function readDomValue(el: HTMLElement, row?: SettingRow): unknown {
                 : el.value;
         }
         if (row.type === "stack") {
-            const sub = findStackRightByControlId(row, el.id);
-            if (sub?.kind === "select") {
-                return sub.options.length > 0 && typeof sub.options[0].value === "number"
+            const control = findStackControlByControlId(row, el.id);
+            if (control?.kind === "select") {
+                return control.options.length > 0 && typeof control.options[0].value === "number"
                     ? parseInt(el.value, 10)
                     : el.value;
             }

@@ -4,7 +4,10 @@ import type {SettingRow, SettingRowStack} from "./settingRows";
 const stackExtraSearchStrings = (row: SettingRowStack): string[] => {
     const out: string[] = [];
     for (const line of row.lines) {
-        out.push(line.left.text);
+        const {left} = line;
+        if (left.kind === "title" || left.kind === "desc") {
+            out.push(left.text);
+        }
         const right = line.right;
         if (right?.kind === "select") {
             out.push(...right.options.map((o) => o.label ?? String(o.value)));
@@ -32,6 +35,7 @@ export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string)
     switch (row.type) {
         case "switch":
         case "text":
+        case "textPair":
         case "textBlock":
         case "range":
         case "notebookSavePath":
@@ -76,6 +80,7 @@ export const collectRowStringsForSearchIndex = (row: SettingRow): string[] => {
     switch (row.type) {
         case "switch":
         case "text":
+        case "textPair":
         case "textBlock":
         case "range":
         case "notebookSavePath":

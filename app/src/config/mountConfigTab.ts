@@ -5,8 +5,8 @@ import {fileSettings} from "./file";
 import {appearanceSettings} from "./appearance";
 import {flashcardSettings} from "./flashcard";
 import {aiSettings} from "./ai";
+import {exportSettings} from "./export";
 import {assets} from "./assets";
-import {exportConfig} from "./exportConfig";
 import {keymap} from "./keymap";
 import {bazaar} from "./bazaar";
 import {searchConfig} from "./searchConfig";
@@ -45,9 +45,7 @@ export const mountConfigTab = (type: TConfigTab, containerElement: Element, app:
             assets.bindEvent(app);
             break;
         case "export":
-            exportConfig.element = containerElement;
-            containerElement.innerHTML = exportConfig.genHTML();
-            exportConfig.bindEvent();
+            void exportSettings.mount(containerElement as HTMLElement);
             break;
         case "search":
             searchConfig.element = containerElement;

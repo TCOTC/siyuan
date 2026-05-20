@@ -136,38 +136,46 @@ const renderTextRow = (id: string, title: string, desc: string, value: string): 
     <input class="b3-text-field fn__flex-center fn__size200" id="${id}" value="${value}"/>
 </div>`;
 
-const renderNotebookSavePathRow = (
+const renderTextPairRow = (
     title: string,
     desc: string,
-    selectId: string,
-    pathId: string,
-    selectOptionsHtml: string,
+    leftId: string,
+    leftValue: string,
+    rightId: string,
+    rightValue: string,
 ): string =>
-    `<div class="b3-label config__item">
-    ${title}
-    <div class="b3-label__text">${desc}</div>
-    <span class="fn__hr"></span>
-    <div class="fn__flex">
-        <select style="min-width: 200px" class="b3-select" id="${selectId}">${selectOptionsHtml}</select>
-        <div class="fn__space"></div>
-        <input class="b3-text-field fn__flex-1" id="${pathId}" value="">
+    `<div class="fn__flex b3-label config__item">
+    <div class="fn__flex-1">
+        ${title}
+        <div class="b3-label__text">${desc}</div>
     </div>
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size96" id="${leftId}" value="${Lute.EscapeHTMLStr(leftValue)}">
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size96" id="${rightId}" value="${Lute.EscapeHTMLStr(rightValue)}">
 </div>`;
 
-const renderTextBlockRow = (row: Pick<SettingRowTextBlock, "id" | "title" | "desc" | "mode" | "value">): string => {
-    const {id, title, desc, mode, value} = row;
+const buildTextBlockFieldHtml = (
+    id: string,
+    mode: SettingRowTextBlock["mode"],
+    value: string,
+): string => {
     const spellcheck = window.siyuan.config.editor.spellcheck ? "true" : "false";
-    let field: string;
     if (mode === "textarea") {
-        field = `<textarea class="b3-text-field fn__block" id="${id}" spellcheck="${spellcheck}">${value}</textarea>`;
-    } else if (mode === "input-password") {
-        field = `<div class="b3-form__icona fn__block">
+        return `<textarea class="b3-text-field fn__block" id="${id}" spellcheck="${spellcheck}">${value}</textarea>`;
+    }
+    if (mode === "input-password") {
+        return `<div class="b3-form__icona fn__block">
     <input id="${id}" type="password" class="b3-text-field b3-form__icona-input" value="${Lute.EscapeHTMLStr(value)}">
     <svg class="b3-form__icona-icon" data-action="togglePassword" style="user-select: none;"><use xlink:href="#iconEye"></use></svg>
 </div>`;
-    } else {
-        field = `<input class="b3-text-field fn__block" id="${id}" type="text" spellcheck="${spellcheck}" value="${Lute.EscapeHTMLStr(value)}"/>`;
     }
+    return `<input class="b3-text-field fn__block" id="${id}" type="text" spellcheck="${spellcheck}" value="${Lute.EscapeHTMLStr(value)}"/>`;
+};
+
+const renderTextBlockRow = (row: Pick<SettingRowTextBlock, "id" | "title" | "desc" | "mode" | "value">): string => {
+    const {id, title, desc, mode, value} = row;
+    const field = buildTextBlockFieldHtml(id, mode, value);
     return `<div class="b3-label">
     <div class="fn__block">
         ${title}
@@ -206,8 +214,12 @@ const renderStackRight = (r: StackRight): string => {
     }
 };
 
-const renderStackLeft = (left: StackLeft): string =>
-    `<div class="fn__flex-center fn__flex-1${left.kind === "desc" ? " ft__on-surface" : ""}">${left.text}</div>`;
+const renderStackLeft = (left: StackLeft): string => {
+    if (left.kind === "textBlock") {
+        return `<div class="fn__flex-1 fn__block">${buildTextBlockFieldHtml(left.id, left.mode, left.value)}</div>`;
+    }
+    return `<div class="fn__flex-center fn__flex-1${left.kind === "desc" ? " ft__on-surface" : ""}">${left.text}</div>`;
+};
 
 const renderStack = (entry: SettingRowStack): string => {
     const parts: string[] = [];
@@ -230,6 +242,24 @@ const renderStack = (entry: SettingRowStack): string => {
     return `<div class="b3-label">${parts.join("")}</div>`;
 };
 
+const renderNotebookSavePathRow = (
+    title: string,
+    desc: string,
+    selectId: string,
+    pathId: string,
+    selectOptionsHtml: string,
+): string =>
+    `<div class="b3-label config__item">
+    ${title}
+    <div class="b3-label__text">${desc}</div>
+    <span class="fn__hr"></span>
+    <div class="fn__flex">
+        <select style="min-width: 200px" class="b3-select" id="${selectId}">${selectOptionsHtml}</select>
+        <div class="fn__space"></div>
+        <input class="b3-text-field fn__flex-1" id="${pathId}" value="">
+    </div>
+</div>`;
+
 const renderRow = (row: SettingRow): string => {
     const cfg = window.siyuan.config;
     switch (row.type) {
@@ -239,6 +269,13 @@ const renderRow = (row: SettingRow): string => {
             const val = getAtPath(cfg, row.id);
             const str = typeof val === "string" ? val : "";
             return renderTextRow(row.id, row.title, row.desc, str);
+        }
+        case "textPair": {
+            const leftVal = getAtPath(cfg, row.leftId);
+            const rightVal = getAtPath(cfg, row.rightId);
+            const leftStr = typeof leftVal === "string" ? leftVal : "";
+            const rightStr = typeof rightVal === "string" ? rightVal : "";
+            return renderTextPairRow(row.title, row.desc, row.leftId, leftStr, row.rightId, rightStr);
         }
         case "textBlock":
             return renderTextBlockRow(row);

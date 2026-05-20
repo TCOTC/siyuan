@@ -3,10 +3,12 @@ import {fileSettings} from "../file";
 import {appearanceSettings} from "../appearance";
 import {flashcardSettings} from "../flashcard";
 import {aiSettings} from "../ai";
+import {exportSettings} from "../export";
 import type {SettingSection} from "./settingRows";
 import {bindPasswordIconaToggle} from "./render";
 
-const routedNamespaces = new Set(["editor", "fileTree", "appearance", "flashcard", "ai"]);
+const routedNamespaces = new Set(["editor", "fileTree", "appearance", "flashcard", "ai", "export"]);
+
 const settingSaveBoundWraps = new WeakSet<HTMLElement>();
 
 export const bindSettingSaveDelegation = (tabWrap: HTMLElement) => {
@@ -54,6 +56,9 @@ export const routeSettingSave = (el: HTMLElement, controlId: string) => {
         case "ai":
             aiSettings.set(el, controlId);
             break;
+        case "export":
+            exportSettings.set(el, controlId);
+            break;
     }
 };
 
@@ -64,7 +69,10 @@ export const mountSettingSaveHandlers = async (root: HTMLElement, sections: Sett
                 await row.bind(root);
             } else if (row.type === "stack") {
                 for (const line of row.lines) {
-                    const {right} = line;
+                    const {left, right} = line;
+                    if (left.kind === "textBlock" && left.mode === "input-password") {
+                        bindPasswordIconaToggle(root, left.id);
+                    }
                     if (right && "bind" in right && right.bind) {
                         await right.bind(root);
                     }

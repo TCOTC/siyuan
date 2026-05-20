@@ -15,6 +15,15 @@ export interface SettingRowText {
     desc: string;
 }
 
+/** 同一行左右双文本框 */
+export interface SettingRowTextPair {
+    type: "textPair";
+    title: string;
+    desc: string;
+    leftId: string;
+    rightId: string;
+}
+
 /** 大块文本编辑 */
 export interface SettingRowTextBlock {
     type: "textBlock";
@@ -84,7 +93,13 @@ export interface SettingRowCustom {
     bind?: (root: HTMLElement) => void | Promise<void>;
 }
 
-/** `stack` 行内右侧控件（整行仅左列时可省略 `right`） */
+/** `stack` 行内左侧文本和控件 */
+export type StackLeft =
+    | {kind: "title"; text: string}
+    | {kind: "desc"; text: string}
+    | {kind: "textBlock"; id: string; mode: SettingRowTextBlock["mode"]; value: string};
+
+/** `stack` 行内右侧控件 */
 export type StackRight =
     | {
           kind: "button";
@@ -111,10 +126,8 @@ export type StackRight =
           id: string;
       };
 
-/** `stack` 行内左列：主标题或次级说明（对应原 `b3-label` 主文案与 `ft__on-surface` 说明） */
-export type StackLeft =
-    | {kind: "title"; text: string}
-    | {kind: "desc"; text: string};
+/** `stack` 行内可绑 `controlId` 的控件 */
+export type StackControl = Extract<StackLeft, {kind: "textBlock"}> | StackRight;
 
 /**
  * 一节内纵向堆叠：横幅行 / 分栏行等。
@@ -145,6 +158,7 @@ export interface SettingRowNotebookSavePath {
 export type SettingRow =
     | SettingRowSwitch
     | SettingRowText
+    | SettingRowTextPair
     | SettingRowTextBlock
     | SettingRowNumber
     | SettingRowRange
@@ -170,6 +184,12 @@ export const switchRow = (row: Omit<SettingRowSwitch, "type">): SettingRowSwitch
 /** 注册 `text` 行 */
 export const textRow = (row: Omit<SettingRowText, "type">): SettingRowText => ({
     type: "text",
+    ...row,
+});
+
+/** 注册 `textPair` 行（左右双文本框） */
+export const textPairRow = (row: Omit<SettingRowTextPair, "type">): SettingRowTextPair => ({
+    type: "textPair",
     ...row,
 });
 
@@ -225,14 +245,19 @@ export const notebookSavePathRow = (
 
 // --- 行数据工具（`controlId` 匹配、DOM 读值） ---
 
-/** 在 `stack` 行内查找与 `controlId` 匹配的右侧控件定义 */
-export function findStackRightByControlId(row: SettingRowStack, controlId: string): StackRight | undefined {
+/** 在 `stack` 行内查找与 `controlId` 匹配的控件 */
+export function findStackControlByControlId(
+    row: SettingRowStack,
+    controlId: string,
+): StackControl | undefined {
     for (const line of row.lines) {
-        const r = line.right;
-        if (!r || !("id" in r) || r.id !== controlId) {
-            continue;
+        const {left, right} = line;
+        if (left.kind === "textBlock" && left.id === controlId) {
+            return left;
         }
-        return r;
+        if (right && "id" in right && right.id === controlId) {
+            return right;
+        }
     }
     return undefined;
 }
@@ -244,18 +269,29 @@ export function findSettingRowByControlId(
 ): SettingRow | undefined {
     for (const section of sections) {
         for (const row of section.items) {
-            if (row.type === "custom") {
-                /* empty */
-            } else if (row.type === "stack") {
-                if (findStackRightByControlId(row, controlId)) {
-                    return row;
-                }
-            } else if (row.type === "notebookSavePath") {
-                if (row.selectId === controlId || row.pathId === controlId) {
-                    return row;
-                }
-            } else if (row.id === controlId) {
-                return row;
+            switch (row.type) {
+                case "textPair":
+                    if (row.leftId === controlId || row.rightId === controlId) {
+                        return row;
+                    }
+                    break;
+                case "notebookSavePath":
+                    if (row.selectId === controlId || row.pathId === controlId) {
+                        return row;
+                    }
+                    break;
+                case "stack":
+                    if (findStackControlByControlId(row, controlId)) {
+                        return row;
+                    }
+                    break;
+                case "custom":
+                    break;
+                default:
+                    if (row.id === controlId) {
+                        return row;
+                    }
+                    break;
             }
         }
     }
