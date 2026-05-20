@@ -1,7 +1,6 @@
-import {Constants} from "../constants";
 import type {TConfigTab} from "./types";
 import {getConfigTabDefs} from "./tabs";
-import {collectSettingTabSearchStrings} from "./ui/search";
+import {collectSettingTabSearchStrings, textMatchesConfigSearch} from "./ui/search";
 import {buildEditorSections, editorSettings} from "./editor";
 import {buildFileSections, fileSettings} from "./file";
 import {buildAppearanceSections, appearanceSettings} from "./appearance";
@@ -9,8 +8,8 @@ import {buildFlashcardSections, flashcardSettings} from "./flashcard";
 import {buildAiSections, aiSettings} from "./ai";
 import {buildExportSections, exportSettings} from "./export";
 import {buildSearchSections, searchSettings} from "./searchSettings";
+import {buildKeymapSections, keymapSettings} from "./keymap";
 import {mountConfigTab} from "./mountConfigTab";
-import {keymap} from "./keymap";
 import {App} from "../index";
 import {isPhablet} from "../protyle/util/compatibility";
 
@@ -189,7 +188,7 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
     }
 };
 
-type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search">;
+type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search" | "keymap">;
 
 /**
  * 侧栏标签索引关键词：按一级 Tab 的 `id` 与 `TAB_LANG_KEYS` 的键对应；
@@ -204,13 +203,6 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
     assets: [
         "assets", "unreferencedAssets", "unreferencedAV", "missingAssets", "delete", "clearAll", "clearAllAV", "emptyContent",
     ],
-    keymap: ["keymap", "keymapTip", "keymapTip2", "refresh", "reset", "clear", "search", "general", "editor", "element", "headings", "list1",
-        "plugin"].concat(Object.keys(Constants.SIYUAN_KEYMAP.general))
-        .concat(Object.keys(Constants.SIYUAN_KEYMAP.editor.general))
-        .concat(Object.keys(Constants.SIYUAN_KEYMAP.editor.heading))
-        .concat(Object.keys(Constants.SIYUAN_KEYMAP.editor.insert))
-        .concat(Object.keys(Constants.SIYUAN_KEYMAP.editor.list))
-        .concat(Object.keys(Constants.SIYUAN_KEYMAP.editor.table)),
     sync: [
         "configGroupAccountSync", "configGroupAccount", "configGroupSync", "configGroupLocalDataRepo",
         "cloudStorage", "trafficStat", "sync", "backup", "cdn", "total", "sizeLimit", "pointExchangeSize",
@@ -269,6 +261,8 @@ const getTabSearchStrings = (tabId: TConfigTab): string[] => {
             return collectSettingTabSearchStrings(window.siyuan.languages.export, buildExportSections());
         case "search":
             return collectSettingTabSearchStrings(window.siyuan.languages.search, buildSearchSections());
+        case "keymap":
+            return collectSettingTabSearchStrings(window.siyuan.languages.keymap, buildKeymapSections());
     }
     return getLang(TAB_LANG_KEYS[tabId]);
 };
@@ -300,8 +294,7 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
                 }
                 // TODO 在把所有设置项都改成注册式之后，把 .toLowerCase() 移到对应的收集文案的函数里只处理一次，而不是在这里反复处理
                 // TODO 预先将含 HTML 的文案转为纯文本（比如 innerText 或 textContent），避免命中 HTML 标签中的文本（例如搜索 "code" 会命中包含 <code> 标签的文案）
-                const subLower = subItem.toLowerCase();
-                if (subLower.indexOf(keywords) > -1) {
+                if (textMatchesConfigSearch(subItem, keywords)) {
                     matchedTabIds.add(id);
                     break;
                 }
@@ -393,6 +386,9 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
             case "search":
                 void searchSettings.mount(el, keywords);
                 return;
+            case "keymap":
+                void keymapSettings.mount(el, keywords);
+                return;
         }
     }
 
@@ -400,14 +396,6 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
         mountConfigTab(type, containerElement, app);
     }
     if (!keywords) {
-        return;
-    }
-    if (type === "keymap") {
-        const searchElement = keymap.element.querySelector("#keymapInput") as HTMLInputElement;
-        const searchKeymapElement = keymap.element.querySelector("#searchByKey") as HTMLInputElement;
-        searchElement.value = keywords;
-        searchKeymapElement.value = "";
-        keymap.search(searchElement.value, searchKeymapElement.value);
         return;
     }
     applySettingPanelSearch(containerElement, keywords);
@@ -451,17 +439,9 @@ const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
             case "search":
                 void searchSettings.mount(container as HTMLElement);
                 break;
-            case "keymap": {
-                keymap.element = container;
-                const searchElement = container.querySelector("#keymapInput") as HTMLInputElement | null;
-                const searchKeymapElement = container.querySelector("#searchByKey") as HTMLInputElement | null;
-                if (searchElement && searchKeymapElement) {
-                    searchElement.value = "";
-                    searchKeymapElement.value = "";
-                    keymap.search("", "");
-                }
+            case "keymap":
+                void keymapSettings.mount(container as HTMLElement);
                 break;
-            }
             default:
                 applySettingPanelSearch(container, "");
                 break;

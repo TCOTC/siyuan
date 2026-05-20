@@ -104,7 +104,7 @@ const renderButtonRow = (row: Pick<SettingRowButton, "id" | "title" | "desc" | "
     return `<div class="fn__flex b3-label config__item">
     <div class="fn__flex-1">
         ${title}
-        <div class="b3-label__text">${desc}</div>
+        ${desc ? `<div class="b3-label__text">${desc}</div>` : ""}
     </div>
     <span class="fn__space"></span>
     ${buildButtonHtml(id, label, icon)}

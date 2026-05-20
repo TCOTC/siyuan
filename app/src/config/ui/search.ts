@@ -77,8 +77,8 @@ export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string)
         case "button":
             return (
                 textMatchesConfigSearch(row.title, queryLower) ||
-                textMatchesConfigSearch(row.desc, queryLower) ||
-                textMatchesConfigSearch(row.label, queryLower)
+                textMatchesConfigSearch(row.label, queryLower) ||
+                (row.desc ? textMatchesConfigSearch(row.desc, queryLower) : false)
             );
         case "custom":
             return row.keywords.some((k) => textMatchesConfigSearch(k, queryLower));
@@ -106,8 +106,13 @@ export const collectRowStringsForSearchIndex = (row: SettingRow): string[] => {
             return [row.title, row.desc];
         case "select":
             return [row.title, row.desc, ...row.options.map((o) => o.label ?? String(o.value))];
-        case "button":
-            return [row.title, row.desc, row.label];
+        case "button": {
+            const out = [row.title, row.label];
+            if (row.desc) {
+                out.push(row.desc);
+            }
+            return out;
+        }
         case "custom":
             return [...row.keywords];
         case "switchQuery":

@@ -77,7 +77,7 @@ export interface SettingRowButton {
     type: "button";
     id: string;
     title: string;
-    desc: string;
+    desc?: string;
     label: string;
     icon: string;
     bind: (root: HTMLElement) => void | Promise<void>;
