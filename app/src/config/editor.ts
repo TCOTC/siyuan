@@ -117,46 +117,46 @@ export function buildEditorSections(): SettingSection[] {
                         /// #endif
                     },
                 }),
-                customRow({
-                    keywords: [
-                        // 使用跟前面一样的关键词，搜索时就能同时匹配到
-                        window.siyuan.languages.spellcheck,
-                        browser ? window.siyuan.languages.spellcheckTip : window.siyuan.languages.spellcheckTip2,
-                    ],
-                    html: () => `<div class="fn__flex b3-label fn__none">
+                ...(browser ? [] : [
+                    customRow({
+                        keywords: [
+                            // 使用跟前面一样的关键词，搜索时就能同时匹配到
+                            window.siyuan.languages.spellcheck,
+                            window.siyuan.languages.spellcheckTip2,
+                        ],
+                        html: () => `<div class="fn__flex b3-label fn__none">
     <div class="b3-chips" id="editor.spellcheckLanguages"></div>
 </div>`,
-                    bind: async (root) => {
-                        /// #if !BROWSER
-                        const spellcheckLanguagesEl = root.querySelector<HTMLDivElement>(`#${CSS.escape("editor.spellcheckLanguages")}`);
-                        if (!spellcheckLanguagesEl) {
-                            return;
-                        }
-                        const languages: string[] = await ipcRenderer.invoke(Constants.SIYUAN_GET, {
-                            cmd: "availableSpellCheckerLanguages",
-                        });
-                        const spellcheckLanguagesHTMLArr: string[] = [];
-                        for (const item of languages) {
-                            spellcheckLanguagesHTMLArr.push(
-                                `<div class="fn__pointer b3-chip b3-chip--middle${window.siyuan.config.editor.spellcheckLanguages.includes(item) ? " b3-chip--current" : ""}">${item}</div>`
-                            );
-                        }
-                        spellcheckLanguagesEl.innerHTML = spellcheckLanguagesHTMLArr.join("");
-                        spellcheckLanguagesEl.addEventListener("click", (event) => {
-                            const target = event.target as Element;
-                            if (target.classList.contains("b3-chip")) {
-                                target.classList.toggle("b3-chip--current");
-                                const selectedLanguages = Array.from(spellcheckLanguagesEl.querySelectorAll(".b3-chip--current")).map((el) => el.textContent || "");
-                                ipcRenderer.send(Constants.SIYUAN_CMD, {
-                                    cmd: "setSpellCheckerLanguages",
-                                    languages: selectedLanguages,
-                                });
-                                editorSettings.send("editor.spellcheckLanguages", selectedLanguages);
+                        bind: async (root) => {
+                            const spellcheckLanguagesEl = root.querySelector<HTMLDivElement>(`#${CSS.escape("editor.spellcheckLanguages")}`);
+                            if (!spellcheckLanguagesEl) {
+                                return;
                             }
-                        });
-                        /// #endif
-                    },
-                }),
+                            const languages: string[] = await ipcRenderer.invoke(Constants.SIYUAN_GET, {
+                                cmd: "availableSpellCheckerLanguages",
+                            });
+                            const spellcheckLanguagesHTMLArr: string[] = [];
+                            for (const item of languages) {
+                                spellcheckLanguagesHTMLArr.push(
+                                    `<div class="fn__pointer b3-chip b3-chip--middle${window.siyuan.config.editor.spellcheckLanguages.includes(item) ? " b3-chip--current" : ""}">${item}</div>`
+                                );
+                            }
+                            spellcheckLanguagesEl.innerHTML = spellcheckLanguagesHTMLArr.join("");
+                            spellcheckLanguagesEl.addEventListener("click", (event) => {
+                                const target = event.target as Element;
+                                if (target.classList.contains("b3-chip")) {
+                                    target.classList.toggle("b3-chip--current");
+                                    const selectedLanguages = Array.from(spellcheckLanguagesEl.querySelectorAll(".b3-chip--current")).map((el) => el.textContent || "");
+                                    ipcRenderer.send(Constants.SIYUAN_CMD, {
+                                        cmd: "setSpellCheckerLanguages",
+                                        languages: selectedLanguages,
+                                    });
+                                    editorSettings.send("editor.spellcheckLanguages", selectedLanguages);
+                                }
+                            });
+                        },
+                    }),
+                ]),
                 rangeRow({
                     id: "editor.codeTabSpaces",
                     title: window.siyuan.languages.md29,
