@@ -1,7 +1,6 @@
 import {fetchPost} from "../util/fetch";
 import {
     type SettingSection,
-    type SettingBindApi,
     textBlockRow,
     numberRow,
     selectRow,
@@ -20,15 +19,11 @@ export const aiSettings = {
         await mountSettingSaveHandlers(root, sections);
     },
 
-    set(root: HTMLElement, controlId: string, sections: SettingSection[]) {
+    set(el: HTMLElement, controlId: string) {
         if (!controlId.startsWith("ai.")) {
             return;
         }
-        const el = root.querySelector<HTMLElement>(`#${CSS.escape(controlId)}`);
-        if (!el) {
-            return;
-        }
-        const row = findSettingRowByControlId(sections, controlId);
+        const row = findSettingRowByControlId(buildAiSections(), controlId);
         const value = readDomValue(el, row);
         if (value !== undefined) {
             aiSettings.send(controlId, value);
@@ -71,13 +66,13 @@ export function buildAiSections(): SettingSection[] {
                         {value: "Azure"},
                     ],
                     value: window.siyuan.config.ai.openAI.apiProvider,
-                    bind: async (api: SettingBindApi) => {
-                        const providerSelect = api.root.querySelector<HTMLSelectElement>(`#${CSS.escape("ai.openAI.apiProvider")}`);
+                    bind: async (root) => {
+                        const providerSelect = root.querySelector<HTMLSelectElement>(`#${CSS.escape("ai.openAI.apiProvider")}`);
                         if (!providerSelect) {
                             return;
                         }
                         const toggleVersionWrap = () => {
-                            api.root.querySelector(`#${CSS.escape("ai.openAI.apiVersion")}`)?.closest(".b3-label")?.classList.toggle("fn__none", providerSelect.value !== "Azure");
+                            root.querySelector(`#${CSS.escape("ai.openAI.apiVersion")}`)?.closest(".b3-label")?.classList.toggle("fn__none", providerSelect.value !== "Azure");
                         };
                         providerSelect.addEventListener("change", toggleVersionWrap);
                         toggleVersionWrap();

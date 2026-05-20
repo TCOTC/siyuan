@@ -22,15 +22,11 @@ export const fileSettings = {
         await mountSettingSaveHandlers(root, sections);
     },
 
-    set(root: HTMLElement, controlId: string, sections: SettingSection[]) {
+    set(el: HTMLElement, controlId: string) {
         if (!controlId.startsWith("fileTree.")) {
             return;
         }
-        const el = root.querySelector<HTMLElement>(`#${CSS.escape(controlId)}`);
-        if (!el) {
-            return;
-        }
-        const row = findSettingRowByControlId(sections, controlId);
+        const row = findSettingRowByControlId(buildFileSections(), controlId);
         const value = readDomValue(el, row);
         if (value !== undefined) {
             fileSettings.send(controlId, value);
@@ -156,8 +152,8 @@ export function buildFileSections(): SettingSection[] {
                                 id: "clearHistory",
                                 label: window.siyuan.languages.purge,
                                 icon: "iconTrashcan",
-                                bind: async (api) => {
-                                    api.root.querySelector("#clearHistory")?.addEventListener("click", () => {
+                                bind: async (root) => {
+                                    root.querySelector("#clearHistory")?.addEventListener("click", () => {
                                         confirmDialog(
                                             window.siyuan.languages.clearHistory,
                                             window.siyuan.languages.confirmClearHistory,

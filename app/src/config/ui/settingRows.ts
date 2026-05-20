@@ -1,15 +1,10 @@
-export type SettingBindApi = {
-    root: HTMLElement;
-    routeSave: (controlId: string) => void;
-};
-
 /** 开关 */
 export interface SettingRowSwitch {
     type: "switch";
     id: string;
     title: string;
     desc: string;
-    bind?: (api: SettingBindApi) => void | Promise<void>;
+    bind?: (root: HTMLElement) => void | Promise<void>;
 }
 
 /** 单行文本 */
@@ -53,7 +48,7 @@ export interface SettingRowRange {
     min: number;
     max: number;
     step: number;
-    bind?: (api: SettingBindApi) => void | Promise<void>;
+    bind?: (root: HTMLElement) => void | Promise<void>;
 }
 
 /** 下拉选择 */
@@ -65,7 +60,7 @@ export interface SettingRowSelect {
     /** 省略 `label` 时回退为 `value` 的字符串形式 */
     options: {value: number | string; label?: string}[];
     value: number | string;
-    bind?: (api: SettingBindApi) => void | Promise<void>;
+    bind?: (root: HTMLElement) => void | Promise<void>;
 }
 
 /** 按钮 */
@@ -76,7 +71,7 @@ export interface SettingRowButton {
     desc: string;
     label: string;
     icon: string;
-    bind: (api: SettingBindApi) => void | Promise<void>;
+    bind: (root: HTMLElement) => void | Promise<void>;
 }
 
 /** 自定义 HTML / 绑定 */
@@ -86,7 +81,7 @@ export interface SettingRowCustom {
     keywords: string[];
     html: () => string;
     /** 非标 DOM / 桌面特例在此绑定；工厂项走通用监听与按 `id` 合并 */
-    bind?: (api: SettingBindApi) => void | Promise<void>;
+    bind?: (root: HTMLElement) => void | Promise<void>;
 }
 
 /** `stack` 行内右侧控件（整行仅左列时可省略 `right`） */
@@ -96,7 +91,7 @@ export type StackRight =
           id: string;
           label: string;
           icon: string;
-          bind: (api: SettingBindApi) => void | Promise<void>;
+          bind: (root: HTMLElement) => void | Promise<void>;
       }
     | {
           kind: "select";

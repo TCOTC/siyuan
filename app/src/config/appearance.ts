@@ -15,7 +15,6 @@ import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Menu} from "../plugin/Menu";
 import {escapeAttr} from "../util/escape";
 import {
-    type SettingBindApi,
     type SettingSection,
     switchRow,
     numberRow,
@@ -43,13 +42,9 @@ export const appearanceSettings = {
         await mountSettingSaveHandlers(root, sections);
     },
 
-    set(root: HTMLElement, controlId: string, sections: SettingSection[]) {
-        if (controlId === APPEARANCE_THEME_MODE_ID) {
-            const modeEl = root.querySelector(`#${CSS.escape(APPEARANCE_THEME_MODE_ID)}`) as HTMLSelectElement | null;
-            if (!modeEl) {
-                return;
-            }
-            const value = parseInt(modeEl.value, 10); // 0: light, 1: dark, 2: system
+    set(el: HTMLElement, controlId: string) {
+        if (controlId === APPEARANCE_THEME_MODE_ID && el instanceof HTMLSelectElement) {
+            const value = parseInt(el.value, 10); // 0: light, 1: dark, 2: system
             const OSThemeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? 1 : 0;
             fetchPost("/api/setting/setAppearance", {
                 ...window.siyuan.config.appearance,
@@ -58,11 +53,7 @@ export const appearanceSettings = {
             });
             return;
         }
-        const el = root.querySelector<HTMLElement>(`#${CSS.escape(controlId)}`);
-        if (!el) {
-            return;
-        }
-        const row = findSettingRowByControlId(sections, controlId);
+        const row = findSettingRowByControlId(buildAppearanceSections(), controlId);
         const value = readDomValue(el, row);
         if (value !== undefined) {
             appearanceSettings.send(controlId, value);
@@ -131,8 +122,8 @@ export function buildAppearanceSections(): SettingSection[] {
         ${ window.siyuan.config.editor.fontWeight ? `font-weight: ${window.siyuan.config.editor.fontWeight};` : ""}"
     >
 </div>`,
-                    bind: (api: SettingBindApi) => {
-                        const fontFamilyEl = api.root.querySelector<HTMLInputElement>(`#${CSS.escape("editor.fontFamily")}`);
+                    bind: (root) => {
+                        const fontFamilyEl = root.querySelector<HTMLInputElement>(`#${CSS.escape("editor.fontFamily")}`);
                         if (!fontFamilyEl) {
                             return;
                         }
@@ -217,8 +208,8 @@ export function buildAppearanceSections(): SettingSection[] {
                     min: 12,
                     max: 48,
                     step: 1,
-                    bind: (api: SettingBindApi) => {
-                        api.root.querySelector(`#${CSS.escape("editor.fontSize")}`)?.addEventListener("input", (event: InputEvent) => {
+                    bind: (root) => {
+                        root.querySelector(`#${CSS.escape("editor.fontSize")}`)?.addEventListener("input", (event: InputEvent) => {
                             const target = event.target as HTMLInputElement;
                             target.parentElement.setAttribute("aria-label", target.value);
                         });
@@ -280,8 +271,8 @@ export function buildAppearanceSections(): SettingSection[] {
                                     id: "appearanceOpenTheme",
                                     label: window.siyuan.languages.appearance9,
                                     icon: "iconFolder",
-                                    bind: (api: SettingBindApi) => {
-                                        api.root.querySelector("#appearanceOpenTheme")?.addEventListener("click", () => {
+                                    bind: (root) => {
+                                        root.querySelector("#appearanceOpenTheme")?.addEventListener("click", () => {
                                             useShell("openPath", path.join(window.siyuan.config.system.confDir, "appearance", "themes"));
                                         });
                                     },
@@ -318,8 +309,8 @@ export function buildAppearanceSections(): SettingSection[] {
                                     id: "appearanceOpenIcon",
                                     label: window.siyuan.languages.appearance8,
                                     icon: "iconFolder",
-                                    bind: (api: SettingBindApi) => {
-                                        api.root.querySelector("#appearanceOpenIcon")?.addEventListener("click", () => {
+                                    bind: (root) => {
+                                        root.querySelector("#appearanceOpenIcon")?.addEventListener("click", () => {
                                             useShell("openPath", path.join(window.siyuan.config.system.confDir, "appearance", "icons"));
                                         });
                                     },
@@ -380,9 +371,9 @@ export function buildAppearanceSections(): SettingSection[] {
                         {value: 2, label: window.siyuan.languages.floatWindowMode2},
                     ],
                     value: window.siyuan.config.editor.floatWindowMode,
-                    bind: (api: SettingBindApi) => {
-                        const fwModeEl = api.root.querySelector<HTMLSelectElement>(`#${CSS.escape("editor.floatWindowMode")}`);
-                        const delayRow = api.root.querySelector(`#${CSS.escape("editor.floatWindowDelay")}`)?.closest(".b3-label");
+                    bind: (root) => {
+                        const fwModeEl = root.querySelector<HTMLSelectElement>(`#${CSS.escape("editor.floatWindowMode")}`);
+                        const delayRow = root.querySelector(`#${CSS.escape("editor.floatWindowDelay")}`)?.closest(".b3-label");
                         if (!fwModeEl || !delayRow) {
                             return;
                         }
@@ -428,8 +419,8 @@ export function buildAppearanceSections(): SettingSection[] {
                                 id: "statusBarSetting",
                                 label: window.siyuan.languages.config,
                                 icon: "iconSettings",
-                                bind: (api: SettingBindApi) => {
-                                    const statusBtn = api.root.querySelector("#statusBarSetting") as HTMLElement | null;
+                                bind: (root) => {
+                                    const statusBtn = root.querySelector("#statusBarSetting") as HTMLElement | null;
                                     setStatusBar(statusBtn);
                                 },
                             },
@@ -442,8 +433,8 @@ export function buildAppearanceSections(): SettingSection[] {
                     desc: window.siyuan.languages.appearance6,
                     label: window.siyuan.languages.reset,
                     icon: "iconUndo",
-                    bind: (api: SettingBindApi) => {
-                        api.root.querySelector("#resetLayout")?.addEventListener("click", () => {
+                    bind: (root) => {
+                        root.querySelector("#resetLayout")?.addEventListener("click", () => {
                             confirmDialog(
                                 "⚠️ " + window.siyuan.languages.reset,
                                 window.siyuan.languages.appearance6,
@@ -464,8 +455,8 @@ export function buildAppearanceSections(): SettingSection[] {
                         desc: window.siyuan.languages.customEmojiTip,
                         label: window.siyuan.languages.showInFolder,
                         icon: "iconFolder",
-                        bind: (api: SettingBindApi) => {
-                            api.root.querySelector("#appearanceOpenEmoji")?.addEventListener("click", () => {
+                        bind: (root) => {
+                            root.querySelector("#appearanceOpenEmoji")?.addEventListener("click", () => {
                                 useShell("openPath", path.join(window.siyuan.config.system.dataDir, "emojis"));
                             });
                         },
@@ -481,8 +472,8 @@ export function buildAppearanceSections(): SettingSection[] {
                                     id: "codeSnippetCommunityShare",
                                     label: window.siyuan.languages.visitCommunityShare,
                                     icon: "iconUpload",
-                                    bind: (api: SettingBindApi) => {
-                                        api.root.querySelector("#codeSnippetCommunityShare")?.addEventListener("click", () => {
+                                    bind: (root) => {
+                                        root.querySelector("#codeSnippetCommunityShare")?.addEventListener("click", () => {
                                             window.open("https://ld246.com/tag/code-snippet", "_blank");
                                         });
                                     },
@@ -496,8 +487,8 @@ export function buildAppearanceSections(): SettingSection[] {
                                 id: "codeSnippet",
                                 label: window.siyuan.languages.config,
                                 icon: "iconSettings",
-                                bind: (api: SettingBindApi) => {
-                                    api.root.querySelector("#codeSnippet")?.addEventListener("click", () => {
+                                bind: (root) => {
+                                    root.querySelector("#codeSnippet")?.addEventListener("click", () => {
                                         openSnippets();
                                     });
                                 },
@@ -516,8 +507,8 @@ export function buildAppearanceSections(): SettingSection[] {
                             raw === "true" || (raw !== "false" && !mobile),
                         );
                     },
-                    bind: (api: SettingBindApi) => {
-                        api.root.querySelector("#desktopMode")?.addEventListener("change", (event: Event) => {
+                    bind: (root) => {
+                        root.querySelector("#desktopMode")?.addEventListener("change", (event: Event) => {
                             const checked = (event.target as HTMLInputElement).checked;
                             document.cookie = "siyuan-desktop-mode=" + (checked ? "true" : "false") + ";path=/;max-age=31536000";
                             window.location.href = "/";

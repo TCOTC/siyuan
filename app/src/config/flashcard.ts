@@ -20,15 +20,11 @@ export const flashcardSettings = {
         await mountSettingSaveHandlers(root, sections);
     },
 
-    set(root: HTMLElement, controlId: string, sections: SettingSection[]) {
+    set(el: HTMLElement, controlId: string) {
         if (!controlId.startsWith("flashcard.")) {
             return;
         }
-        const el = root.querySelector<HTMLElement>(`#${CSS.escape(controlId)}`);
-        if (!el) {
-            return;
-        }
-        const row = findSettingRowByControlId(sections, controlId);
+        const row = findSettingRowByControlId(buildFlashcardSections(), controlId);
         const value = readDomValue(el, row);
         if (value !== undefined) {
             flashcardSettings.send(controlId, value);

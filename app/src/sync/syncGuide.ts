@@ -164,7 +164,7 @@ export const syncGuide = (app?: App) => {
     if (app && 0 === window.siyuan.config.sync.provider && needSubscribe("")) {
         const dialogSetting = openSetting(app, "sync");
         if (!window.siyuan.user) {
-            dialogSetting.element.querySelector('.config__tab-container[data-name="sync"]')?.setAttribute("data-action", "go-repos");
+            dialogSetting?.element.querySelector('.config__tab-container[data-name="sync"]')?.setAttribute("data-action", "go-repos");
         }
         return;
     }

@@ -1,7 +1,6 @@
 ﻿import {updateHotkeyTip} from "../protyle/util/compatibility";
 import {Constants} from "../constants";
 import {
-    type SettingBindApi,
     type SettingSection,
     switchRow,
     textRow,
@@ -34,15 +33,11 @@ export const editorSettings = {
         await mountSettingSaveHandlers(root, sections);
     },
 
-    set(root: HTMLElement, controlId: string, sections: SettingSection[]) {
+    set(el: HTMLElement, controlId: string) {
         if (!controlId.startsWith("editor.")) {
             return;
         }
-        const el = root.querySelector<HTMLElement>(`#${CSS.escape(controlId)}`);
-        if (!el) {
-            return;
-        }
-        const row = findSettingRowByControlId(sections, controlId);
+        const row = findSettingRowByControlId(buildEditorSections(), controlId);
         const value = readDomValue(el, row);
         if (value !== undefined) {
             editorSettings.send(controlId, value);
@@ -108,14 +103,14 @@ export function buildEditorSections(): SettingSection[] {
                     id: "editor.spellcheck",
                     title: window.siyuan.languages.spellcheck,
                     desc: browser ? window.siyuan.languages.spellcheckTip : window.siyuan.languages.spellcheckTip2,
-                    bind: async (api: SettingBindApi) => {
+                    bind: async (root) => {
                         /// #if !BROWSER
-                        const spellcheckSwitch = api.root.querySelector<HTMLInputElement>(`#${CSS.escape("editor.spellcheck")}`);
+                        const spellcheckSwitch = root.querySelector<HTMLInputElement>(`#${CSS.escape("editor.spellcheck")}`);
                         if (!spellcheckSwitch) {
                             return;
                         }
                         const toggleSpellcheckLanguagesWrap = () => {
-                            api.root.querySelector(`#${CSS.escape("editor.spellcheckLanguages")}`)?.closest(".b3-label")?.classList.toggle("fn__none", !spellcheckSwitch.checked);
+                            root.querySelector(`#${CSS.escape("editor.spellcheckLanguages")}`)?.closest(".b3-label")?.classList.toggle("fn__none", !spellcheckSwitch.checked);
                         };
                         spellcheckSwitch.addEventListener("change", toggleSpellcheckLanguagesWrap);
                         toggleSpellcheckLanguagesWrap();
@@ -131,9 +126,9 @@ export function buildEditorSections(): SettingSection[] {
                     html: () => `<div class="fn__flex b3-label fn__none">
     <div class="b3-chips" id="editor.spellcheckLanguages"></div>
 </div>`,
-                    bind: async (api: SettingBindApi) => {
+                    bind: async (root) => {
                         /// #if !BROWSER
-                        const spellcheckLanguagesEl = api.root.querySelector<HTMLDivElement>(`#${CSS.escape("editor.spellcheckLanguages")}`);
+                        const spellcheckLanguagesEl = root.querySelector<HTMLDivElement>(`#${CSS.escape("editor.spellcheckLanguages")}`);
                         if (!spellcheckLanguagesEl) {
                             return;
                         }

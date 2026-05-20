@@ -2,6 +2,7 @@
 import {popMenu} from "../mobile/menu";
 /// #else
 import {initConfigSearch, switchConfigTab} from "./search";
+import {bindSettingSaveDelegation} from "./ui/save";
 import {Dialog} from "../dialog";
 import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";
@@ -73,6 +74,13 @@ const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
     });
     dialog.element.setAttribute("data-key", Constants.DIALOG_SETTING);
 
+    const tabWrap = dialog.element.querySelector(".config__tab-wrap") as HTMLElement | null;
+    if (!tabWrap) {
+        console.error("openSettingDialog: .config__tab-wrap not found");
+        dialog.destroy();
+        return;
+    }
+    bindSettingSaveDelegation(tabWrap);
     initConfigSearch(dialog.element, app);
     (dialog.element.querySelector(".b3-dialog__container") as HTMLElement).style.maxWidth = "1280px";
     dialog.element.querySelectorAll(".config__side .b3-list-item").forEach(item => {
