@@ -144,6 +144,37 @@ export interface SettingRowStack {
     }[];
 }
 
+/** `config-query` 网格内单条开关 */
+export type SwitchQuerySwitchItem = {
+    kind: "switch";
+    id: string;
+    /** 左侧文案，可含简单 HTML（如 `<sup>[1]</sup>`） */
+    label: string;
+    icon?: string;
+};
+
+/** `config-query` 网格内单条数字框 */
+export type SwitchQueryNumberItem = {
+    kind: "number";
+    id: string;
+    label: string;
+    min?: number;
+    max?: number;
+};
+
+export type SwitchQueryItem = SwitchQuerySwitchItem | SwitchQueryNumberItem;
+
+/**
+ * 一节标题下 `config-query` 内纵向/网格排列的多组开关（及可选数字框）。
+ * 对应「设置 → 搜索」中块类型、块属性等成组开关版式。
+ */
+export interface SettingRowSwitchQuery {
+    type: "switchQuery";
+    title: string;
+    footer?: string;
+    items: SwitchQueryItem[];
+}
+
 /** 笔记本 + 路径 */
 export interface SettingRowNotebookSavePath {
     type: "notebookSavePath";
@@ -166,6 +197,7 @@ export type SettingRow =
     | SettingRowButton
     | SettingRowCustom
     | SettingRowStack
+    | SettingRowSwitchQuery
     | SettingRowNotebookSavePath;
 
 export interface SettingSection {
@@ -235,6 +267,12 @@ export const stackRow = (row: Omit<SettingRowStack, "type">): SettingRowStack =>
     ...row,
 });
 
+/** 注册 `switchQuery` 行 */
+export const switchQueryRow = (row: Omit<SettingRowSwitchQuery, "type">): SettingRowSwitchQuery => ({
+    type: "switchQuery",
+    ...row,
+});
+
 /** 注册 `notebookSavePath` 行 */
 export const notebookSavePathRow = (
     row: Omit<SettingRowNotebookSavePath, "type">
@@ -282,6 +320,11 @@ export function findSettingRowByControlId(
                     break;
                 case "stack":
                     if (findStackControlByControlId(row, controlId)) {
+                        return row;
+                    }
+                    break;
+                case "switchQuery":
+                    if (row.items.some((item) => item.id === controlId)) {
                         return row;
                     }
                     break;

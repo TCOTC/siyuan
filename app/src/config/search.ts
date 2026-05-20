@@ -8,6 +8,7 @@ import {buildAppearanceSections, appearanceSettings} from "./appearance";
 import {buildFlashcardSections, flashcardSettings} from "./flashcard";
 import {buildAiSections, aiSettings} from "./ai";
 import {buildExportSections, exportSettings} from "./export";
+import {buildSearchSections, searchSettings} from "./searchSettings";
 import {mountConfigTab} from "./mountConfigTab";
 import {keymap} from "./keymap";
 import {App} from "../index";
@@ -188,7 +189,7 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
     }
 };
 
-type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export">;
+type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search">;
 
 /**
  * 侧栏标签索引关键词：按一级 Tab 的 `id` 与 `TAB_LANG_KEYS` 的键对应；
@@ -202,13 +203,6 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
     ],
     assets: [
         "assets", "unreferencedAssets", "unreferencedAV", "missingAssets", "delete", "clearAll", "clearAllAV", "emptyContent",
-    ],
-    search: [
-        "search", "searchBlockType", "math", "table", "paragraph", "headings", "code", "database", "embedBlock", "video", "audio",
-        "widget", "quote", "callout", "superBlock", "list1", "listItem", "doc", "containerBlockTip1",
-        "searchBlockAttr", "name", "alias", "memo", "allAttrs", "searchBackmention", "anchor", "docName", "keywordsLimit",
-        "searchVirtualRef", "searchIndex", "indexAssetPath",
-        "searchLimit", "searchLimit1", "searchLimit2", "searchCaseSensitive", "searchCaseSensitive1",
     ],
     keymap: ["keymap", "keymapTip", "keymapTip2", "refresh", "reset", "clear", "search", "general", "editor", "element", "headings", "list1",
         "plugin"].concat(Object.keys(Constants.SIYUAN_KEYMAP.general))
@@ -273,6 +267,8 @@ const getTabSearchStrings = (tabId: TConfigTab): string[] => {
             return collectSettingTabSearchStrings(window.siyuan.languages.ai, buildAiSections());
         case "export":
             return collectSettingTabSearchStrings(window.siyuan.languages.export, buildExportSections());
+        case "search":
+            return collectSettingTabSearchStrings(window.siyuan.languages.search, buildSearchSections());
     }
     return getLang(TAB_LANG_KEYS[tabId]);
 };
@@ -394,6 +390,9 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
             case "export":
                 void exportSettings.mount(el, keywords);
                 return;
+            case "search":
+                void searchSettings.mount(el, keywords);
+                return;
         }
     }
 
@@ -448,6 +447,9 @@ const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
                 break;
             case "export":
                 void exportSettings.mount(container as HTMLElement);
+                break;
+            case "search":
+                void searchSettings.mount(container as HTMLElement);
                 break;
             case "keymap": {
                 keymap.element = container;

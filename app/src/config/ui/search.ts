@@ -1,4 +1,16 @@
-import type {SettingRow, SettingRowStack} from "./settingRows";
+import type {SettingRow, SettingRowStack, SettingRowSwitchQuery} from "./settingRows";
+
+/** `switchQuery` 参与设置搜索的文案：节标题、页脚与各网格项 `label` */
+const switchQuerySearchStrings = (row: SettingRowSwitchQuery): string[] => {
+    const out = [row.title];
+    if (row.footer) {
+        out.push(row.footer);
+    }
+    for (const item of row.items) {
+        out.push(item.label);
+    }
+    return out;
+};
 
 /** `stack` 参与设置搜索的文案：各行左列 `text`、`select` 选项（`label` 或回退 `value`）、`button` 的 `label` */
 const stackExtraSearchStrings = (row: SettingRowStack): string[] => {
@@ -70,6 +82,8 @@ export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string)
             );
         case "custom":
             return row.keywords.some((k) => textMatchesConfigSearch(k, queryLower));
+        case "switchQuery":
+            return switchQuerySearchStrings(row).some((s) => textMatchesConfigSearch(s, queryLower));
         case "stack":
             return stackExtraSearchStrings(row).some((s) => textMatchesConfigSearch(s, queryLower));
     }
@@ -96,6 +110,8 @@ export const collectRowStringsForSearchIndex = (row: SettingRow): string[] => {
             return [row.title, row.desc, row.label];
         case "custom":
             return [...row.keywords];
+        case "switchQuery":
+            return switchQuerySearchStrings(row);
         case "stack":
             return stackExtraSearchStrings(row);
     }

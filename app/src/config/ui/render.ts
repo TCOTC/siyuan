@@ -4,6 +4,8 @@ import type {
     SettingRowButton,
     SettingRowTextBlock,
     SettingRowStack,
+    SettingRowSwitchQuery,
+    SwitchQueryItem,
     StackLeft,
     StackRight,
 } from "./settingRows";
@@ -221,6 +223,38 @@ const renderStackLeft = (left: StackLeft): string => {
     return `<div class="fn__flex-center fn__flex-1${left.kind === "desc" ? " ft__on-surface" : ""}">${left.text}</div>`;
 };
 
+const renderSwitchQueryItem = (item: SwitchQueryItem): string => {
+    switch (item.kind) {
+        case "switch": {
+            const checked = getSwitchChecked(item.id);
+            return `<label class="fn__flex">
+    ${item.icon ? `<svg class="svg"><use xlink:href="#${item.icon}"></use></svg><span class="fn__space"></span>` : ""}
+    <div class="fn__flex-1">${item.label}</div>
+    <span class="fn__space"></span>
+    <input class="b3-switch" id="${item.id}" type="checkbox"${checked ? " checked" : ""}/>
+</label>`;
+        }
+        case "number": {
+            const raw = getAtPath(window.siyuan.config, item.id);
+            const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
+            return `<div class="fn__flex label">
+    <div>${item.label}</div>
+    <span class="fn__flex-1"></span>
+    <input class="b3-text-field" id="${item.id}" type="number" min="${item.min ?? ""}" max="${item.max ?? ""}" value="${value}"/>
+</div>`;
+        }
+    }
+};
+
+const renderSwitchQuery = (row: SettingRowSwitchQuery): string =>
+`<div class="b3-label">
+    <div>${row.title}</div>
+    <div class="config-query">
+        ${row.items.map(renderSwitchQueryItem).join("")}
+    </div>
+    ${row.footer ? `<div class="fn__hr"></div><div class="fn__flex-1"><div class="b3-label__text">${row.footer}</div></div>` : ""}
+</div>`;
+
 const renderStack = (entry: SettingRowStack): string => {
     const parts: string[] = [];
     entry.lines.forEach((line, index) => {
@@ -252,7 +286,7 @@ const renderNotebookSavePathRow = (
     `<div class="b3-label config__item">
     ${title}
     <div class="b3-label__text">${desc}</div>
-    <span class="fn__hr"></span>
+    <div class="fn__hr"></div>
     <div class="fn__flex">
         <select style="min-width: 200px" class="b3-select" id="${selectId}">${selectOptionsHtml}</select>
         <div class="fn__space"></div>
@@ -333,6 +367,8 @@ const renderRow = (row: SettingRow): string => {
             return row.html();
         case "stack":
             return renderStack(row);
+        case "switchQuery":
+            return renderSwitchQuery(row);
         case "notebookSavePath":
             return renderNotebookSavePathRow(
                 row.title,

@@ -6,10 +6,10 @@ import {appearanceSettings} from "./appearance";
 import {flashcardSettings} from "./flashcard";
 import {aiSettings} from "./ai";
 import {exportSettings} from "./export";
+import {searchSettings} from "./searchSettings";
 import {assets} from "./assets";
 import {keymap} from "./keymap";
 import {bazaar} from "./bazaar";
-import {searchConfig} from "./searchConfig";
 import {sync} from "./sync";
 import {access} from "./access";
 import {appConfig} from "./appConfig";
@@ -48,9 +48,7 @@ export const mountConfigTab = (type: TConfigTab, containerElement: Element, app:
             void exportSettings.mount(containerElement as HTMLElement);
             break;
         case "search":
-            searchConfig.element = containerElement;
-            containerElement.innerHTML = searchConfig.genHTML();
-            searchConfig.bindEvent();
+            void searchSettings.mount(containerElement as HTMLElement);
             break;
         case "keymap":
             keymap.element = containerElement;
