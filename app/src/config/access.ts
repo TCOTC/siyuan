@@ -16,7 +16,7 @@ import {isInMobileApp, isIPad, saveExportFile} from "../protyle/util/compatibili
 export const access = {
     element: undefined as Element,
     genHTML: () => {
-        return `<b class="config-group__title">${window.siyuan.languages.configGroupAuthentication}</b>
+        return `<b class="config-group__title">${window.siyuan.languages.authentication}</b>
 <div class="config-group">
     <div class="b3-label config__item${(window.siyuan.config.readonly || (isBrowser() && !isInMobileApp() && !isIPad())) ? " fn__none" : ""}">
         <div class="fn__flex">

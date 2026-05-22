@@ -63,11 +63,11 @@ export const getConfigTabTitle = (type: TConfigTab): string => {
         case "keymap":
             return window.siyuan.languages.keymap;
         case "sync":
-            return window.siyuan.languages.configGroupAccountSync;
+            return window.siyuan.languages.accountSync;
         case "access":
-            return window.siyuan.languages.configGroupAuthentication;
+            return window.siyuan.languages.authentication;
         case "app":
-            return window.siyuan.languages.configGroupApp;
+            return window.siyuan.languages.application;
         case "about":
             return window.siyuan.languages.about;
     }

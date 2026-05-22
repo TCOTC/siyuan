@@ -220,7 +220,7 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
         "cloudStoragePurge", "cloudStoragePurgeConfirm",
     ],
     access: [
-        "configGroupAuthentication", "configGroupServer", "configGroupPublish",
+        "authentication", "configGroupServer", "configGroupPublish",
         "about5", "about6", "about7", "about8", "about11", "about12", "about13", "about14",
         "networkServeTLS", "networkServeTLSTip", "networkServeTLSTip2", "exportCACert", "exportCACertTip",
         "publishService", "publishServiceTip", "publishServicePort", "publishServicePortTip",
@@ -228,7 +228,7 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
         "publishServiceAuthAccounts", "publishServiceAuthAccountsTip",
     ],
     app: [
-        "configGroupApp", "configGroupGeneral", "configGroupData", "configGroupMaintenance",
+        "application", "configGroupGeneral", "configGroupData", "configGroupMaintenance",
         "autoLaunch", "autoLaunchTip", "autoLaunchMode0", "autoLaunchMode1", "autoLaunchMode2",
         "networkProxy", "about17", "directConnection", "confirm",
         "export", "exportDataTip", "import", "importDataTip", "exportConf", "exportConfTip", "importConf", "importConfTip",
