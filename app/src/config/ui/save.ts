@@ -5,10 +5,11 @@ import {flashcardSettings} from "../flashcard";
 import {aiSettings} from "../ai";
 import {exportSettings} from "../export";
 import {searchSettings} from "../searchSettings";
+import {syncSettings} from "../sync";
 import type {SettingSection} from "./settingRows";
 import {bindPasswordIconaToggle} from "./render";
 
-const routedNamespaces = new Set(["editor", "fileTree", "appearance", "flashcard", "ai", "export", "search"]);
+const routedNamespaces = new Set(["editor", "fileTree", "appearance", "flashcard", "ai", "export", "search", "account", "sync", "repo"]);
 
 const settingSaveBoundWraps = new WeakSet<HTMLElement>();
 
@@ -62,6 +63,11 @@ export const routeSettingSave = (el: HTMLElement, controlId: string) => {
             break;
         case "search":
             searchSettings.set(el, controlId);
+            break;
+        case "account":
+        case "sync":
+        case "repo":
+            syncSettings.set(el, controlId);
             break;
     }
 };

@@ -9,6 +9,7 @@ import {buildAiSections, aiSettings} from "./ai";
 import {buildExportSections, exportSettings} from "./export";
 import {buildSearchSections, searchSettings} from "./searchSettings";
 import {buildKeymapSections, keymapSettings} from "./keymap";
+import {buildSyncSections, syncSettings} from "./sync";
 import {mountConfigTab} from "./mountConfigTab";
 import {App} from "../index";
 import {isPhablet} from "../protyle/util/compatibility";
@@ -188,7 +189,7 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
     }
 };
 
-type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search" | "keymap">;
+type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search" | "keymap" | "sync">;
 
 /**
  * 侧栏标签索引关键词：按一级 Tab 的 `id` 与 `TAB_LANG_KEYS` 的键对应；
@@ -202,22 +203,6 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
     ],
     assets: [
         "assets", "unreferencedAssets", "unreferencedAV", "missingAssets", "delete", "clearAll", "clearAllAV", "emptyContent",
-    ],
-    sync: [
-        "configGroupAccountSync", "configGroupAccount", "configGroupSync", "configGroupLocalDataRepo",
-        "cloudStorage", "trafficStat", "sync", "backup", "cdn", "total", "sizeLimit", "pointExchangeSize",
-        "cloudBackup", "cloudBackupTip", "updatePath", "cloudSync", "upload", "download",
-        "syncMode", "syncModeTip", "generateConflictDoc", "generateConflictDocTip",
-        "syncProvider", "syncProviderTip", "syncMode1", "syncMode2", "reposTip", "openSyncTip1", "openSyncTip2",
-        "cloudSyncDir", "cloudSyncDirTip", "config",
-        "cloudIntro1", "cloudIntro2", "cloudIntro3", "cloudIntro4", "cloudIntro5", "cloudIntro6", "cloudIntro7", "cloudIntro8",
-        "cloudIntro9", "cloudIntro10", "cloudIntro11", "syncOfficialProviderIntro", "syncThirdPartyProviderS3Intro", "syncThirdPartyProviderWebDAVIntro",
-        "syncThirdPartyProviderLocalIntro", "syncThirdPartyProviderTip", "mobileNotSupport", "proFeature",
-        "localFileSystem", "accountName", "password", "captcha", "forgetPassword", "login", "register",
-        "twoFactorCaptcha", "account1", "account2", "account5", "account6", "account7", "account8", "account10", "account12",
-        "account4", "onepay", "freeSub", "activationCodePlaceholder", "confirm", "refreshUser", "paymentStatus", "accountDisplayTitle",
-        "accountDisplayVIP", "clickMeToRenew", "day", "manage", "logout", "deactivateUser", "deactivateUserTip", "imported",
-        "cloudStoragePurge", "cloudStoragePurgeConfirm",
     ],
     access: [
         "authentication", "configGroupServer", "configGroupPublish",
@@ -263,6 +248,8 @@ const getTabSearchStrings = (tabId: TConfigTab): string[] => {
             return collectSettingTabSearchStrings(window.siyuan.languages.search, buildSearchSections());
         case "keymap":
             return collectSettingTabSearchStrings(window.siyuan.languages.keymap, buildKeymapSections());
+        case "sync":
+            return collectSettingTabSearchStrings(window.siyuan.languages.accountSync, buildSyncSections());
     }
     return getLang(TAB_LANG_KEYS[tabId]);
 };
@@ -391,6 +378,9 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
             case "keymap":
                 void keymapSettings.mount(el, keywords);
                 return;
+            case "sync":
+                void syncSettings.mount(el, keywords);
+                return;
         }
     }
 
@@ -443,6 +433,9 @@ const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
                 break;
             case "keymap":
                 void keymapSettings.mount(container as HTMLElement);
+                break;
+            case "sync":
+                void syncSettings.mount(container as HTMLElement);
                 break;
             default:
                 applySettingPanelSearch(container, "");
