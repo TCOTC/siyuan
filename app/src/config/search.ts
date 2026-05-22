@@ -1,6 +1,6 @@
 import type {TConfigTab} from "./types";
 import {getConfigTabDefs} from "./tabs";
-import {collectSettingTabSearchStrings, textMatchesConfigSearch} from "./ui/search";
+import {collectSettingTabSearchStrings, textMatchesSearch} from "./ui/search";
 import {buildEditorSections, editorSettings} from "./editor";
 import {buildFileSections, fileSettings} from "./file";
 import {buildAppearanceSections, appearanceSettings} from "./appearance";
@@ -270,6 +270,8 @@ const getTabSearchStrings = (tabId: TConfigTab): string[] => {
 export const initConfigSearch = (element: HTMLElement, app: App) => {
     const tabSearchStrings = getConfigTabDefs().map((def) => ({
         id: def.id,
+        // TODO build*Sections() 的结果是动态的，需要单独给每一个 sections 保存一个缓存，
+        // 每次 build*Sections() 之后都更新缓存，搜索时直接使用缓存。
         strings: getTabSearchStrings(def.id),
     }));
     const inputElement = element.querySelector(".b3-form__icon input") as HTMLInputElement;
@@ -294,7 +296,7 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
                 }
                 // TODO 在把所有设置项都改成注册式之后，把 .toLowerCase() 移到对应的收集文案的函数里只处理一次，而不是在这里反复处理
                 // TODO 预先将含 HTML 的文案转为纯文本（比如 innerText 或 textContent），避免命中 HTML 标签中的文本（例如搜索 "code" 会命中包含 <code> 标签的文案）
-                if (textMatchesConfigSearch(subItem, keywords)) {
+                if (textMatchesSearch(subItem, keywords)) {
                     matchedTabIds.add(id);
                     break;
                 }

@@ -74,12 +74,7 @@ const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
     });
     dialog.element.setAttribute("data-key", Constants.DIALOG_SETTING);
 
-    const tabWrap = dialog.element.querySelector(".config__tab-wrap") as HTMLElement | null;
-    if (!tabWrap) {
-        console.error("openSettingDialog: .config__tab-wrap not found");
-        dialog.destroy();
-        return;
-    }
+    const tabWrap = dialog.element.querySelector(".config__tab-wrap") as HTMLElement;
     bindSettingSaveDelegation(tabWrap);
     initConfigSearch(dialog.element, app);
     (dialog.element.querySelector(".b3-dialog__container") as HTMLElement).style.maxWidth = "1280px";

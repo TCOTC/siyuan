@@ -31,7 +31,7 @@ const stackExtraSearchStrings = (row: SettingRowStack): string[] => {
 };
 
 /** 设置面板内搜索：单条文案是否包含查询串（已 `trim` + `toLowerCase` 的 `queryLower`） */
-export const textMatchesConfigSearch = (text: string, queryLower: string): boolean => {
+export const textMatchesSearch = (text: string, queryLower: string): boolean => {
     if (!queryLower) {
         return true;
     }
@@ -52,40 +52,40 @@ export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string)
         case "range":
         case "notebookSavePath":
             return (
-                textMatchesConfigSearch(row.title, queryLower) ||
-                textMatchesConfigSearch(row.desc, queryLower)
+                textMatchesSearch(row.title, queryLower) ||
+                textMatchesSearch(row.desc, queryLower)
             );
         case "number":
             if (
-                textMatchesConfigSearch(row.title, queryLower) ||
-                textMatchesConfigSearch(row.desc, queryLower)
+                textMatchesSearch(row.title, queryLower) ||
+                textMatchesSearch(row.desc, queryLower)
             ) {
                 return true;
             }
-            if (row.unit && textMatchesConfigSearch(row.unit, queryLower)) {
+            if (row.unit && textMatchesSearch(row.unit, queryLower)) {
                 return true;
             }
             return false;
         case "select":
             if (
-                textMatchesConfigSearch(row.title, queryLower) ||
-                textMatchesConfigSearch(row.desc, queryLower)
+                textMatchesSearch(row.title, queryLower) ||
+                textMatchesSearch(row.desc, queryLower)
             ) {
                 return true;
             }
-            return row.options.some((o) => textMatchesConfigSearch(o.label ?? String(o.value), queryLower));
+            return row.options.some((o) => textMatchesSearch(o.label ?? String(o.value), queryLower));
         case "button":
             return (
-                textMatchesConfigSearch(row.title, queryLower) ||
-                textMatchesConfigSearch(row.label, queryLower) ||
-                (row.desc ? textMatchesConfigSearch(row.desc, queryLower) : false)
+                textMatchesSearch(row.title, queryLower) ||
+                textMatchesSearch(row.label, queryLower) ||
+                (row.desc ? textMatchesSearch(row.desc, queryLower) : false)
             );
         case "custom":
-            return row.keywords.some((k) => textMatchesConfigSearch(k, queryLower));
+            return row.keywords.some((k) => textMatchesSearch(k, queryLower));
         case "switchQuery":
-            return switchQuerySearchStrings(row).some((s) => textMatchesConfigSearch(s, queryLower));
+            return switchQuerySearchStrings(row).some((s) => textMatchesSearch(s, queryLower));
         case "stack":
-            return stackExtraSearchStrings(row).some((s) => textMatchesConfigSearch(s, queryLower));
+            return stackExtraSearchStrings(row).some((s) => textMatchesSearch(s, queryLower));
     }
 };
 
@@ -135,7 +135,7 @@ export const filterSettingSections = <T extends {title?: string; items: SettingR
     }
     const out: T[] = [];
     for (const section of sections) {
-        if (textMatchesConfigSearch(section.title ?? "", queryLower)) {
+        if (textMatchesSearch(section.title ?? "", queryLower)) {
             out.push(section);
             continue;
         }
