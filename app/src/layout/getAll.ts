@@ -188,20 +188,31 @@ export const getAllTabs = (type?: TTab | string) => {
 export const getAllDocks = () => {
     const docks: Config.IUILayoutDockTab[] = [];
     /// #if !MOBILE
+    const collectDock = (dock: Config.IUILayoutDockTab) => {
+        let hotkey = dock.hotkey;
+        if (dock.hotkeyLangId) {
+            // 原生 dock 快捷键
+            hotkey = window.siyuan.config.keymap.general[dock.hotkeyLangId]?.custom ?? dock.hotkey;
+        } else {
+            // 插件 dock 快捷键
+            for (const plugin of window.siyuan.ws.app.plugins) {
+                const keymap = window.siyuan.config.keymap.plugin[plugin.name]?.[dock.type];
+                if (keymap) {
+                    hotkey = keymap.custom;
+                    break;
+                }
+            }
+        }
+        docks.push({...dock, hotkey});
+    };
     window.siyuan.config.uiLayout.left.data.forEach((item) => {
-        item.forEach((dock) => {
-            docks.push(dock);
-        });
+        item.forEach(collectDock);
     });
     window.siyuan.config.uiLayout.right.data.forEach((item) => {
-        item.forEach((dock) => {
-            docks.push(dock);
-        });
+        item.forEach(collectDock);
     });
     window.siyuan.config.uiLayout.bottom.data.forEach((item) => {
-        item.forEach((dock) => {
-            docks.push(dock);
-        });
+        item.forEach(collectDock);
     });
     /// #endif
     return docks;
