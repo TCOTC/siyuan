@@ -1,6 +1,7 @@
 import type {App} from "../../index";
 import type {TConfigTab} from "../../config/types";
 import {mountConfigTab} from "../../config/mountConfigTab";
+import {bindSettingSaveDelegation} from "../../config/ui/save";
 import {getConfigTabIcon, getConfigTabTitle, isConfigTabMenuHidden} from "../../config/tabs";
 import {isMobile} from "../../util/functions";
 import {openModel} from "./model";
@@ -17,6 +18,7 @@ export const openMobileConfigTab = (type: TConfigTab, app: App) => {
         html: `<div class="config${mobileRootClass}"></div>`,
         bindEvent(modelMainElement: HTMLElement) {
             const root = modelMainElement.firstElementChild as HTMLElement;
+            bindSettingSaveDelegation(root);
             mountConfigTab(type, root, app);
         }
     });
