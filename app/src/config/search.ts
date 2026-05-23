@@ -172,21 +172,20 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
         filterUnstructuredPanel(panelElement, queryLower);
         return;
     }
-    const children = Array.from(panelElement.children);
-    let i = 0;
-    while (i < children.length) {
-        const el = children[i] as HTMLElement;
-        const next = children[i + 1] as HTMLElement | undefined;
-        if (el.classList.contains("config-group__title") && next?.classList.contains("config-group")) {
-            filterGroupSection(el, next, queryLower);
-            i += 2;
-            continue;
+    panelElement.querySelectorAll(":scope > .config-group").forEach((groupEl) => {
+        const titleEl = groupEl.querySelector(":scope > .config-title") as HTMLElement | null;
+        const itemsEl = groupEl.querySelector(":scope > .config-items") as HTMLElement | null;
+        const targetEl = itemsEl || (groupEl as HTMLElement);
+        filterGroupSection(titleEl, targetEl, queryLower);
+        const itemsHidden = targetEl.hasAttribute(CONFIG_SEARCH_MARK);
+        const titleHidden = !titleEl || titleEl.hasAttribute(CONFIG_SEARCH_MARK);
+        if (itemsHidden && titleHidden) {
+            markSearchHidden(groupEl as HTMLElement);
+        } else {
+            (groupEl as HTMLElement).style.display = "";
+            groupEl.removeAttribute(CONFIG_SEARCH_MARK);
         }
-        if (el.classList.contains("config-group")) {
-            filterGroupSection(null, el, queryLower);
-        }
-        i += 1;
-    }
+    });
 };
 
 type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search" | "keymap" | "sync">;

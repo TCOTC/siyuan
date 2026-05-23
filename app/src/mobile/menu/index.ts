@@ -15,7 +15,7 @@ import {newFile} from "../../util/newFile";
 import {afterLoadPlugin} from "../../plugin/loader";
 import {commandPanel} from "../../boot/globalEvent/command/panel";
 import {openTopBarMenu} from "../../plugin/openTopBarMenu";
-import {getConfigTabDefs, configTabToMenuId, getConfigTabTitle, isConfigTabMenuHidden} from "../../config/tabs";
+import {getConfigTabDefs, configTabToMenuId, isConfigTabMenuHidden} from "../../config/tabs";
 import type {TConfigTab} from "../../config/types";
 import {openMobileConfigTab} from "./openConfigTab";
 import {getCurrentEditor} from "../editor";
@@ -41,7 +41,7 @@ export const initRightMenu = (app: App) => {
     const configSettingsMenuHTML = getConfigTabDefs().filter(def => !isConfigTabMenuHidden(def.id)).map(def =>
         `<div class="b3-menu__item" id="${configTabToMenuId(def.id)}">
         <svg class="b3-menu__icon"><use xlink:href="#${def.icon}"></use></svg>
-        <span class="b3-menu__label">${getConfigTabTitle(def.id)}</span>
+        <span class="b3-menu__label">${def.title}</span>
     </div>`).join("");
 
     menuElement.innerHTML = `<div class="b3-menu__title">

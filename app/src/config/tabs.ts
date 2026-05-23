@@ -8,73 +8,41 @@ export const configTabToMenuId = (tabId: TConfigTab): string =>
 export interface IConfigTabDef {
     id: TConfigTab;
     icon: string;
+    title: string;
     /** 隐藏标签页 */
     hidden?: boolean;
-    /** `.config__tab-container` 的附加类名 */
-    panelExtraClass?: string;
-    /** `.config__tab-container` 的行内样式 */
-    panelStyle?: string;
 }
 
 let configTabDefsCache: IConfigTabDef[] | undefined;
 
 export const getConfigTabDefs = (): IConfigTabDef[] => {
-    if (!configTabDefsCache) {
-        configTabDefsCache = [
-            {id: "editor", icon: "iconEdit"},
-            {id: "file", icon: "iconFiles"},
-            {id: "appearance", icon: "iconTheme"},
-            {id: "bazaar", icon: "iconBazaar", hidden: !!(isHuawei() || isInHarmony()), panelExtraClass: "config__tab-container--top"},
-            {id: "flashcard", icon: "iconRiffCard"},
-            {id: "ai", icon: "iconSparkles"},
-            {id: "assets", icon: "iconImage", panelExtraClass: "config__tab-container--top"},
-            {id: "export", icon: "iconUpload"},
-            {id: "search", icon: "iconSearch"},
-            {id: "keymap", icon: "iconKeymap", panelStyle: "overflow: scroll"},
-            {id: "sync", icon: "iconCloud", panelExtraClass: "config__tab-container--full"},
-            {id: "access", icon: "iconLock"},
-            {id: "app", icon: "TODO"},
-            {id: "about", icon: "iconInfo"},
-        ];
+    if (configTabDefsCache) {
+        return configTabDefsCache;
     }
+    configTabDefsCache = [
+        {id: "editor", icon: "iconEdit", title: window.siyuan.languages.editor},
+        {id: "file", icon: "iconFiles", title: window.siyuan.languages.fileTree},
+        {id: "appearance", icon: "iconTheme", title: window.siyuan.languages.appearance},
+        {id: "bazaar", icon: "iconBazaar", title: window.siyuan.languages.bazaar, hidden: !!(isHuawei() || isInHarmony())},
+        {id: "flashcard", icon: "iconRiffCard", title: window.siyuan.languages.riffCard},
+        {id: "ai", icon: "iconSparkles", title: window.siyuan.languages.ai},
+        {id: "assets", icon: "iconImage", title: window.siyuan.languages.assets},
+        {id: "export", icon: "iconUpload", title: window.siyuan.languages.export},
+        {id: "search", icon: "iconSearch", title: window.siyuan.languages.search},
+        {id: "keymap", icon: "iconKeymap", title: window.siyuan.languages.keymap},
+        {id: "sync", icon: "iconCloud", title: window.siyuan.languages.accountSync},
+        {id: "access", icon: "iconLock", title: window.siyuan.languages.authentication},
+        {id: "app", icon: "", title: window.siyuan.languages.application}, // TODO 添加应用设置图标
+        {id: "about", icon: "iconInfo", title: window.siyuan.languages.about},
+    ];
     return configTabDefsCache;
-};
-
-export const getConfigTabTitle = (type: TConfigTab): string => {
-    switch (type) {
-        case "editor":
-            return window.siyuan.languages.editor;
-        case "file":
-            return window.siyuan.languages.fileTree;
-        case "appearance":
-            return window.siyuan.languages.appearance;
-        case "bazaar":
-            return window.siyuan.languages.bazaar;
-        case "flashcard":
-            return window.siyuan.languages.riffCard;
-        case "ai":
-            return window.siyuan.languages.ai;
-        case "assets":
-            return window.siyuan.languages.assets;
-        case "export":
-            return window.siyuan.languages.export;
-        case "search":
-            return window.siyuan.languages.search;
-        case "keymap":
-            return window.siyuan.languages.keymap;
-        case "sync":
-            return window.siyuan.languages.accountSync;
-        case "access":
-            return window.siyuan.languages.authentication;
-        case "app":
-            return window.siyuan.languages.application;
-        case "about":
-            return window.siyuan.languages.about;
-    }
 };
 
 export const getConfigTabIcon = (type: TConfigTab): string =>
     getConfigTabDefs().find(t => t.id === type)?.icon ?? "iconSettings";
+
+export const getConfigTabTitle = (type: TConfigTab): string =>
+    getConfigTabDefs().find(t => t.id === type)?.title ?? "";
 
 /** 侧栏 / 菜单中是否不展示该设置项（与桌面设置标签栏可见性一致） */
 export const isConfigTabMenuHidden = (type: TConfigTab): boolean => {

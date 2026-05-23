@@ -6,7 +6,7 @@ import {bindSettingSaveDelegation} from "./ui/save";
 import {Dialog} from "../dialog";
 import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";
-import {getConfigTabDefs, getConfigTabTitle, isConfigTabMenuHidden} from "./tabs";
+import {getConfigTabDefs, isConfigTabMenuHidden} from "./tabs";
 /// #endif
 
 import type {TConfigTab} from "./types";
@@ -16,15 +16,12 @@ import type {App} from "../index";
 const genConfigTabListHTML = (activeTab: TConfigTab) => getConfigTabDefs().map(def => {
     const hidden = isConfigTabMenuHidden(def.id) ? " fn__none" : "";
     const focus = def.id === activeTab ? " b3-list-item--focus" : "";
-    return `<li data-name="${def.id}" class="b3-list-item${focus}${hidden}"><svg class="b3-list-item__graphic"><use xlink:href="#${def.icon}"></use></svg><span class="b3-list-item__text">${getConfigTabTitle(def.id)}</span></li>`;
+    return `<li data-name="${def.id}" class="b3-list-item${focus}${hidden}"><svg class="b3-list-item__graphic"><use xlink:href="#${def.icon}"></use></svg><span class="b3-list-item__text">${def.title}</span></li>`;
 }).join("");
 
-const genConfigTabPanelsHTML = (activeTab: TConfigTab) => getConfigTabDefs().map(def => {
-    const none = def.id === activeTab ? "" : " fn__none";
-    const extra = def.panelExtraClass ? ` ${def.panelExtraClass}` : "";
-    const style = def.panelStyle ? ` style="${def.panelStyle}"` : "";
-    return `      <div class="config__tab-container${none}${extra}" data-name="${def.id}"${style}></div>`;
-}).join("\n");
+const genConfigTabPanelsHTML = (activeTab: TConfigTab) => getConfigTabDefs()
+    .map(def => `<div class="config__tab-container${def.id === activeTab ? "" : " fn__none"}" data-name="${def.id}"></div>`)
+    .join("");
 
 const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
     const exitDialog = window.siyuan.dialogs.find((item) => {
@@ -59,9 +56,7 @@ const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
         </ul>
     </div>
     <div class="config__tab-wrap">
-        <div class="fn__hr--b resize__move"></div>
         ${genConfigTabPanelsHTML(initialTab)}
-        <div class="fn__hr--b"></div>
     </div>
 </div>`,
         width: "90vw",

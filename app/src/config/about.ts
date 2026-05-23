@@ -1,43 +1,38 @@
 import {Constants} from "../constants";
 import {isBrowser} from "../util/functions";
 import {fetchPost} from "../util/fetch";
+import {buildConfigItemMainHtml, renderConfigGroup} from "./ui/render";
 
 export const about = {
     element: undefined as Element,
     genAboutHTML: () => {
-        const checkUpdateHTML = window.siyuan.config.system.isMicrosoftStore ? `<div class="fn__flex b3-label config__item">
+        const checkUpdateHTML = window.siyuan.config.system.isMicrosoftStore ? `<div class="fn__flex b3-label config-item config-wrap">
     <div class="fn__flex-1">
-        ${window.siyuan.languages.currentVer} v${Constants.SIYUAN_VERSION}
-        <span id="isInsider"></span>
+        <div class="config-name">${window.siyuan.languages.currentVer} v${Constants.SIYUAN_VERSION}<span id="isInsider"></span></div>
         <div class="b3-label__text">${window.siyuan.languages.isMsStoreVerTip}</div>
     </div>
-</div>` : `<div class="fn__flex b3-label config__item">
+</div>` : `<div class="fn__flex b3-label config-item config-wrap">
     <div class="fn__flex-1">
-        ${window.siyuan.languages.currentVer} v${Constants.SIYUAN_VERSION}
-        <span id="isInsider"></span>
+        <div class="config-name">${window.siyuan.languages.currentVer} v${Constants.SIYUAN_VERSION}<span id="isInsider"></span></div>
         <div class="b3-label__text">${window.siyuan.languages.downloadLatestVer}</div>
     </div>
     <div class="fn__space"></div>
-    <div class="fn__flex-center fn__size200 config__item-line">
+    <div class="fn__flex-center fn__size200">
         <button id="checkUpdateBtn" class="b3-button b3-button--outline fn__block">
             <svg><use xlink:href="#iconRefresh"></use></svg>${window.siyuan.languages.checkUpdate}
         </button>
     </div>
 </div>`;
 
-        return `<div class="config-group">
+        return renderConfigGroup(`
     ${checkUpdateHTML}
-    <label class="fn__flex b3-label${isBrowser() || window.siyuan.config.system.isMicrosoftStore || window.siyuan.config.system.container !== "std" || "linux" === window.siyuan.config.system.os ? " fn__none" : ""}">
-        <div class="fn__flex-1">
-            ${window.siyuan.languages.autoDownloadUpdatePkg}
-            <div class="b3-label__text">${window.siyuan.languages.autoDownloadUpdatePkgTip}</div>
-        </div>
+    <label class="fn__flex b3-label config-item${isBrowser() || window.siyuan.config.system.isMicrosoftStore || window.siyuan.config.system.container !== "std" || "linux" === window.siyuan.config.system.os ? " fn__none" : ""}">
+        ${buildConfigItemMainHtml(window.siyuan.languages.autoDownloadUpdatePkg, window.siyuan.languages.autoDownloadUpdatePkgTip)}
         <div class="fn__space"></div>
         <input class="b3-switch fn__flex-center" id="downloadInstallPkg" type="checkbox"${window.siyuan.config.system.downloadInstallPkg ? " checked" : ""}>
     </label>
-</div>
-<div class="config-group">
-    <div class="b3-label">
+`) + renderConfigGroup(`
+    <div class="b3-label config-item">
         <div class="config-about__logo">
             <img src="/stage/icon.png">
             <span class="fn__space"></span>
@@ -50,12 +45,12 @@ export const about = {
         <div class='fn__hr'></div>
         ${window.siyuan.languages.about1} ${"harmony" === window.siyuan.config.system.container ? " • " + window.siyuan.languages.feedback + " 845765@qq.com" : ""}
     </div>
-    <div class="b3-label">
+    <div class="b3-label config-item">
         <div class="b3-label__text">${window.siyuan.languages.accountSupport1}</div>
         <div class="fn__hr"></div>
         <div class="b3-label__text">${window.siyuan.languages.accountSupport2}</div>
     </div>
-</div>`;
+`);
     },
     bindEvent: () => {
         const root = about.element as Element;

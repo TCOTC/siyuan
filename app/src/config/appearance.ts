@@ -26,7 +26,7 @@ import {
     findSettingRowByControlId,
 } from "./ui/settingRows";
 import {filterSettingSections} from "./ui/search";
-import {renderSettingTabHtmlFromSections, renderSwitchRow} from "./ui/render";
+import {buildConfigItemMainHtml, renderSettingTabHtmlFromSections, renderSwitchRow} from "./ui/render";
 import {readDomValue} from "./ui/formValue";
 import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {mountSettingSaveHandlers} from "./ui/save";
@@ -104,11 +104,8 @@ export function buildAppearanceSections(): SettingSection[] {
                 customRow({
                     keywords: [window.siyuan.languages.font, window.siyuan.languages.font1],
                     html: () =>
-                        `<div class="fn__flex b3-label config__item">
-    <div class="fn__flex-1">
-        ${window.siyuan.languages.font}
-        <div class="b3-label__text">${window.siyuan.languages.font1}</div>
-    </div>
+                        `<div class="fn__flex b3-label config-item config-wrap">
+    ${buildConfigItemMainHtml(window.siyuan.languages.font, window.siyuan.languages.font1)}
     <span class="fn__space"></span>
     <input
         class="b3-select fn__flex-center fn__size200"
@@ -208,12 +205,6 @@ export function buildAppearanceSections(): SettingSection[] {
                     min: 12,
                     max: 48,
                     step: 1,
-                    bind: (root) => {
-                        root.querySelector(`#${CSS.escape("editor.fontSize")}`)?.addEventListener("input", (event: InputEvent) => {
-                            const target = event.target as HTMLInputElement;
-                            target.parentElement.setAttribute("aria-label", target.value);
-                        });
-                    },
                 }),
                 switchRow({
                     id: "editor.fontSizeScrollZoom",
@@ -284,7 +275,10 @@ export function buildAppearanceSections(): SettingSection[] {
                             right: {
                                 kind: "select",
                                 id: "appearance.themeLight",
-                                options: window.siyuan.config.appearance.lightThemes.map(value => ({value})),
+                                options: window.siyuan.config.appearance.lightThemes.map((item) => ({
+                                    value: item.name,
+                                    label: item.label,
+                                })),
                                 value: window.siyuan.config.appearance.themeLight,
                             },
                         },
@@ -293,7 +287,10 @@ export function buildAppearanceSections(): SettingSection[] {
                             right: {
                                 kind: "select",
                                 id: "appearance.themeDark",
-                                options: window.siyuan.config.appearance.darkThemes.map(value => ({value})),
+                                options: window.siyuan.config.appearance.darkThemes.map((item) => ({
+                                    value: item.name,
+                                    label: item.label,
+                                })),
                                 value: window.siyuan.config.appearance.themeDark,
                             },
                         },

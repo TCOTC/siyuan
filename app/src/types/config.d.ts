@@ -236,10 +236,6 @@ declare namespace Config {
          */
         codeBlockThemeLight: string;
         /**
-         * List of installed dark themes
-         */
-        darkThemes: string[];
-        /**
          * Whether to hide toolbar
          */
         hideToolbar: boolean;
@@ -266,7 +262,11 @@ declare namespace Config {
         /**
          * List of installed light themes
          */
-        lightThemes: string[];
+        lightThemes: { label: string; name: string }[];
+        /**
+         * List of installed dark themes
+         */
+        darkThemes: { label: string; name: string }[];
         /**
          * The current theme mode
          * - `0`: Light theme

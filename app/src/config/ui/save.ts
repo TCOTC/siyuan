@@ -7,6 +7,7 @@ import {exportSettings} from "../export";
 import {searchSettings} from "../searchSettings";
 import {syncSettings} from "../sync";
 import type {SettingSection} from "./settingRows";
+import {syncRangeRowValue} from "./formValue";
 import {bindPasswordIconaToggle} from "./render";
 
 const routedNamespaces = new Set(["editor", "fileTree", "appearance", "flashcard", "ai", "export", "search", "account", "sync", "repo"]);
@@ -18,7 +19,15 @@ export const bindSettingSaveDelegation = (tabWrap: HTMLElement) => {
         return;
     }
     settingSaveBoundWraps.add(tabWrap);
+    tabWrap.addEventListener("input", onSettingTabWrapInput);
     tabWrap.addEventListener("change", onSettingTabWrapChange);
+};
+
+const onSettingTabWrapInput = (event: Event) => {
+    const el = event.target;
+    if (el instanceof HTMLInputElement && el.type === "range") {
+        el.parentElement.setAttribute("aria-label", el.value);
+    }
 };
 
 const onSettingTabWrapChange = (event: Event) => {
@@ -26,10 +35,11 @@ const onSettingTabWrapChange = (event: Event) => {
     if (!(el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement)) {
         return;
     }
-    if (!el.id) {
-        return;
+    syncRangeRowValue(el as HTMLElement);
+    const controlId = el.id || el.getAttribute("data-control-id");
+    if (controlId) {
+        routeSettingSave(el, controlId);
     }
-    routeSettingSave(el, el.id);
 };
 
 export const routeSettingSave = (el: HTMLElement, controlId: string) => {
@@ -94,6 +104,9 @@ export const mountSettingSaveHandlers = async (root: HTMLElement, sections: Sett
                 }
             } else if (row.type === "textBlock" && row.mode === "input-password") {
                 bindPasswordIconaToggle(root, row.id);
+            } else if (row.type === "range") {
+                const rangeEl = root.querySelector<HTMLInputElement>(`#${CSS.escape(row.id)}`);
+                syncRangeRowValue(rangeEl);
             }
         }
     }

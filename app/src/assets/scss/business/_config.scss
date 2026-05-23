@@ -12,6 +12,7 @@
 
   &__tab-container {
     overflow: auto;
+    scrollbar-gutter: stable;
     box-sizing: border-box;
     height: 100%;
 
@@ -24,33 +25,49 @@
       cursor: pointer;
     }
 
-    &--full {
-      margin-top: -16px;
-      margin-bottom: -16px;
-      height: calc(100% + 32px);
-    }
-
-    &--top {
-      margin-top: -16px;
-      height: calc(100% + 16px);
-    }
-
     textarea.b3-text-field {
       resize: vertical;
     }
 
-    .config-group {
-      background-color: var(--b3-theme-surface);
-      margin: 16px 24px;
-      border-radius: var(--b3-border-radius-b);
+  }
 
-      &__title {
-        display: block;
-        padding: 16px 40px 0 40px;
-        font-size: 16px;
-      }
+  &-group {
+    margin: 24px 48px;
+  }
+
+  &-title {
+    display: block;
+    margin: 24px 16px 16px 16px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  &-items {
+    background-color: var(--b3-theme-surface);
+    border-radius: var(--b3-border-radius-b);
+  }
+
+  &-wrap {
+    align-items: center;
+  }
+
+  &-wrap--range {
+    min-width: 0;
+
+    .config-range__mobile {
+      display: none;
     }
 
+    .config-range__desktop {
+      flex-shrink: 0;
+      box-sizing: border-box;
+      max-width: 100%;
+      min-width: 0;
+    }
+  }
+
+  &-name {
+    font-size: 15px;
   }
 
   &__panel {
@@ -100,10 +117,10 @@
       }
 
       .b3-list-item {
-        line-height: 38px;
+        line-height: 32px;
 
         &__graphic {
-          margin-right: 0;
+          margin-right: 2px;
           padding: 0 8px 0 4px;
           height: 16px;
           width: 16px;
