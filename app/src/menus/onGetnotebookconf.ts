@@ -50,7 +50,7 @@ export const onGetnotebookconf = (data: INotebookConf) => {
     const titleHTML = `<div class="fn__flex">${escapeHtml(data.name)}
 <div class="fn__space"></div>
 <button class="b3-button b3-button--small fn__flex-center">${window.siyuan.languages.copy} ID</button></div>`;
-    const contentHTML = `<div class="b3-dialog__content" style="background-color: var(--b3-theme-background);">
+    const contentHTML = `<div class="b3-dialog__content">
 <div class="b3-label config-item config-item--save-path">
     <div class="config-name">${window.siyuan.languages.fileTree12}</div>
     <div class="b3-label__text">${window.siyuan.languages.fileTree13}</div>
