@@ -62,7 +62,7 @@ const buildSelectOptionsHtml = <T extends number | string>(
     }
 </select>`;
 
-export const renderSwitchRow = (id: string, title: string, desc: string, checked: boolean): string =>
+export const renderSwitchRow = (id: string, title: string, desc: string | undefined, checked: boolean): string =>
     `<label class="fn__flex b3-label config-item">
     ${buildConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>

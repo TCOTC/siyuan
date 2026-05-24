@@ -3,7 +3,7 @@ export interface SettingRowSwitch {
     type: "switch";
     id: string;
     title: string;
-    desc: string;
+    desc?: string;
     bind?: (root: HTMLElement) => void | Promise<void>;
 }
 

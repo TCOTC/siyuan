@@ -46,6 +46,10 @@ export const textMatchesSearch = (text: string, queryLower: string): boolean => 
 export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string): boolean => {
     switch (row.type) {
         case "switch":
+            return (
+                textMatchesSearch(row.title, queryLower) ||
+                (row.desc ? textMatchesSearch(row.desc, queryLower) : false)
+            );
         case "text":
         case "textPair":
         case "textBlock":
@@ -92,7 +96,13 @@ export const configRowMatchesSearchQuery = (row: SettingRow, queryLower: string)
 /** 从一行注册数据取出参与侧栏与内容区检索索引的字符串（`custom` 仅用 `keywords`；`stack` 由各行推导；其余含 `title` / `desc` 的行用二者） */
 export const collectRowStringsForSearchIndex = (row: SettingRow): string[] => {
     switch (row.type) {
-        case "switch":
+        case "switch": {
+            const out = [row.title];
+            if (row.desc) {
+                out.push(row.desc);
+            }
+            return out;
+        }
         case "text":
         case "textPair":
         case "textBlock":
