@@ -7,7 +7,7 @@ export const needSubscribe = (tip = window.siyuan.languages._kernel[29]) => {
     }
     if (tip) {
         if (tip === window.siyuan.languages._kernel[29] && window.siyuan.config.system.container === "ios") {
-            showMessage(window.siyuan.languages._kernel[122]);
+            showMessage(window.siyuan.languages._kernel[295]);
         } else {
             if (tip === window.siyuan.languages._kernel[29]) {
                 tip = window.siyuan.languages._kernel[29].replaceAll("${accountServer}", getCloudURL(""));
