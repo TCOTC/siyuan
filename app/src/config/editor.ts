@@ -110,7 +110,7 @@ export function buildEditorSections(): SettingSection[] {
                             return;
                         }
                         const toggleSpellcheckLanguagesWrap = () => {
-                            root.querySelector(`#${CSS.escape("editor.spellcheckLanguages")}`)?.closest(".b3-label")?.classList.toggle("fn__none", !spellcheckSwitch.checked);
+                            root.querySelector(`#${CSS.escape("editor.spellcheckLanguages")}`)?.closest(".config-item")?.classList.toggle("fn__none", !spellcheckSwitch.checked);
                         };
                         spellcheckSwitch.addEventListener("change", toggleSpellcheckLanguagesWrap);
                         toggleSpellcheckLanguagesWrap();
@@ -124,7 +124,7 @@ export function buildEditorSections(): SettingSection[] {
                             window.siyuan.languages.spellcheck,
                             window.siyuan.languages.spellcheckTip2,
                         ],
-                        html: () => `<div class="fn__flex b3-label fn__none">
+                        html: () => `<div class="fn__flex b3-label config-item fn__none">
     <div class="b3-chips" id="editor.spellcheckLanguages"></div>
 </div>`,
                         bind: async (root) => {

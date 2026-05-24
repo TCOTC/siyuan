@@ -370,7 +370,7 @@ export function buildAppearanceSections(): SettingSection[] {
                     value: window.siyuan.config.editor.floatWindowMode,
                     bind: (root) => {
                         const fwModeEl = root.querySelector<HTMLSelectElement>(`#${CSS.escape("editor.floatWindowMode")}`);
-                        const delayRow = root.querySelector(`#${CSS.escape("editor.floatWindowDelay")}`)?.closest(".b3-label");
+                        const delayRow = root.querySelector(`#${CSS.escape("editor.floatWindowDelay")}`)?.closest(".config-item");
                         if (!fwModeEl || !delayRow) {
                             return;
                         }

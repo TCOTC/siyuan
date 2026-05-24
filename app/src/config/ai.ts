@@ -72,7 +72,7 @@ export function buildAiSections(): SettingSection[] {
                             return;
                         }
                         const toggleVersionWrap = () => {
-                            root.querySelector(`#${CSS.escape("ai.openAI.apiVersion")}`)?.closest(".b3-label")?.classList.toggle("fn__none", providerSelect.value !== "Azure");
+                            root.querySelector(`#${CSS.escape("ai.openAI.apiVersion")}`)?.closest(".config-item")?.classList.toggle("fn__none", providerSelect.value !== "Azure");
                         };
                         providerSelect.addEventListener("change", toggleVersionWrap);
                         toggleVersionWrap();
