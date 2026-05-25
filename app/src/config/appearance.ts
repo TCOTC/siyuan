@@ -26,7 +26,7 @@ import {
     findSettingRowByControlId,
 } from "./ui/settingRows";
 import {filterSettingSections} from "./ui/search";
-import {buildConfigItemMainHtml, renderSettingTabHtmlFromSections, renderSwitchRow} from "./ui/render";
+import {genConfigItemMainHtml, genSettingTabHtmlFromSections, genSwitchRow} from "./ui/render";
 import {readDomValue} from "./ui/formValue";
 import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {mountSettingSaveHandlers} from "./ui/save";
@@ -38,7 +38,7 @@ const APPEARANCE_THEME_MODE_ID = "appearance.ThemeMode";
 export const appearanceSettings = {
     mount: async (root: HTMLElement, searchQuery?: string) => {
         const sections = filterSettingSections(buildAppearanceSections(), searchQuery);
-        root.innerHTML = renderSettingTabHtmlFromSections(sections);
+        root.innerHTML = genSettingTabHtmlFromSections(sections);
         await mountSettingSaveHandlers(root, sections);
     },
 
@@ -104,7 +104,7 @@ export function buildAppearanceSections(): SettingSection[] {
                     keywords: [window.siyuan.languages.font, window.siyuan.languages.font1],
                     html: () =>
                         `<div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(window.siyuan.languages.font, window.siyuan.languages.font1)}
+    ${genConfigItemMainHtml(window.siyuan.languages.font, window.siyuan.languages.font1)}
     <span class="fn__space"></span>
     <input
         class="b3-select fn__flex-center fn__size200"
@@ -426,7 +426,7 @@ export function buildAppearanceSections(): SettingSection[] {
                 customRow({
                     keywords: [window.siyuan.languages.desktopMode, window.siyuan.languages.mobileModeTip],
                     html: () => {
-                        return renderSwitchRow(
+                        return genSwitchRow(
                             "desktopMode",
                             window.siyuan.languages.desktopMode,
                             window.siyuan.languages.mobileModeTip,

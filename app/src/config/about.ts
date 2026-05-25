@@ -1,7 +1,7 @@
 import {Constants} from "../constants";
 import {isBrowser} from "../util/functions";
 import {fetchPost} from "../util/fetch";
-import {buildConfigItemMainHtml, renderConfigGroup} from "./ui/render";
+import {genConfigItemMainHtml, genConfigGroup} from "./ui/render";
 
 export const about = {
     element: undefined as Element,
@@ -24,14 +24,14 @@ export const about = {
     </div>
 </div>`;
 
-        return renderConfigGroup(`
+        return genConfigGroup(`
     ${checkUpdateHTML}
     <label class="fn__flex b3-label config-item${isBrowser() || window.siyuan.config.system.isMicrosoftStore || window.siyuan.config.system.container !== "std" || "linux" === window.siyuan.config.system.os ? " fn__none" : ""}">
-        ${buildConfigItemMainHtml(window.siyuan.languages.autoDownloadUpdatePkg, window.siyuan.languages.autoDownloadUpdatePkgTip)}
+        ${genConfigItemMainHtml(window.siyuan.languages.autoDownloadUpdatePkg, window.siyuan.languages.autoDownloadUpdatePkgTip)}
         <div class="fn__space"></div>
         <input class="b3-switch fn__flex-center" id="downloadInstallPkg" type="checkbox"${window.siyuan.config.system.downloadInstallPkg ? " checked" : ""}>
     </label>
-`) + renderConfigGroup(`
+`) + genConfigGroup(`
     <div class="b3-label config-item">
         <div class="config-about__logo">
             <img src="/stage/icon.png">

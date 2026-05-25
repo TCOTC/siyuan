@@ -10,14 +10,14 @@ import {exitSiYuan} from "../dialog/processSystem";
 import {showMessage} from "../dialog/message";
 import {isBrowser} from "../util/functions";
 import {isMac, saveExportFile} from "../protyle/util/compatibility";
-import {buildConfigItemMainHtml, renderConfigGroup, wrapConfigItemName} from "./ui/render";
+import {genConfigItemMainHtml, genConfigGroup, genConfigItemName} from "./ui/render";
 
 export const appConfig = {
     element: undefined as Element,
     genHTML: () => {
-        return renderConfigGroup(`
+        return genConfigGroup(`
 <div class="fn__flex b3-label config-item config-wrap${isBrowser() || window.siyuan.config.system.isMicrosoftStore || "std" !== window.siyuan.config.system.container || "linux" === window.siyuan.config.system.os ? " fn__none" : ""}">
-    ${buildConfigItemMainHtml(window.siyuan.languages.autoLaunch, window.siyuan.languages.autoLaunchTip)}
+    ${genConfigItemMainHtml(window.siyuan.languages.autoLaunch, window.siyuan.languages.autoLaunchTip)}
     <span class="fn__space"></span>
     <select class="b3-select fn__flex-center fn__size200" id="autoLaunch">
       <option value="0" ${window.siyuan.config.system.autoLaunch2 === 0 ? "selected" : ""}>${window.siyuan.languages.autoLaunchMode0}</option>
@@ -26,7 +26,7 @@ export const appConfig = {
     </select>
 </div>
 <div class="b3-label config-item">
-    ${wrapConfigItemName(window.siyuan.languages.networkProxy)}
+    ${genConfigItemName(window.siyuan.languages.networkProxy)}
     <div class="b3-label__text">
         ${window.siyuan.languages.about17}
     </div>
@@ -45,16 +45,16 @@ export const appConfig = {
         <button id="aboutConfirm" class="b3-button fn__size200 b3-button--outline">${window.siyuan.languages.confirm}</button>
     </div>
 </div>
-`, window.siyuan.languages.configGroupGeneral) + renderConfigGroup(`
+`, window.siyuan.languages.configGroupGeneral) + genConfigGroup(`
 <div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(`${window.siyuan.languages.export} Data`, window.siyuan.languages.exportDataTip)}
+    ${genConfigItemMainHtml(`${window.siyuan.languages.export} Data`, window.siyuan.languages.exportDataTip)}
     <span class="fn__space"></span>
     <button class="b3-button b3-button--outline fn__flex-center fn__size200" id="exportData">
         <svg><use xlink:href="#iconUpload"></use></svg>${window.siyuan.languages.export}
     </button>
 </div>
 <div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(`${window.siyuan.languages.import} Data`, window.siyuan.languages.importDataTip)}
+    ${genConfigItemMainHtml(`${window.siyuan.languages.import} Data`, window.siyuan.languages.importDataTip)}
     <span class="fn__space"></span>
     <button class="b3-button b3-button--outline fn__flex-center fn__size200" style="position: relative">
         <input id="importData" class="b3-form__upload" type="file">
@@ -62,44 +62,44 @@ export const appConfig = {
     </button>
 </div>
 <div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(window.siyuan.languages.exportConf, window.siyuan.languages.exportConfTip)}
+    ${genConfigItemMainHtml(window.siyuan.languages.exportConf, window.siyuan.languages.exportConfTip)}
     <span class="fn__space"></span>
     <button class="b3-button b3-button--outline fn__flex-center fn__size200" id="exportConf">
         <svg><use xlink:href="#iconUpload"></use></svg>${window.siyuan.languages.export}
     </button>
 </div>
 <div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(window.siyuan.languages.importConf, window.siyuan.languages.importConfTip)}
+    ${genConfigItemMainHtml(window.siyuan.languages.importConf, window.siyuan.languages.importConfTip)}
     <span class="fn__space"></span>
     <button class="b3-button b3-button--outline fn__flex-center fn__size200" style="position: relative">
         <input id="importConf" class="b3-form__upload" type="file">
         <svg><use xlink:href="#iconDownload"></use></svg>${window.siyuan.languages.import}
     </button>
 </div>
-`, window.siyuan.languages.configGroupData) + renderConfigGroup(`
+`, window.siyuan.languages.configGroupData) + genConfigGroup(`
 <div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(window.siyuan.languages.vacuumDataIndex, window.siyuan.languages.vacuumDataIndexTip)}
+    ${genConfigItemMainHtml(window.siyuan.languages.vacuumDataIndex, window.siyuan.languages.vacuumDataIndexTip)}
     <div class="fn__space"></div>
     <button id="vacuumDataIndex" class="b3-button b3-button--outline fn__size200 fn__flex-center">
         <svg><use xlink:href="#iconRefresh"></use></svg>${window.siyuan.languages.vacuumDataIndex}
     </button>
 </div>
 <div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(window.siyuan.languages.rebuildDataIndex, window.siyuan.languages.rebuildDataIndexTip)}
+    ${genConfigItemMainHtml(window.siyuan.languages.rebuildDataIndex, window.siyuan.languages.rebuildDataIndexTip)}
     <div class="fn__space"></div>
     <button id="rebuildDataIndex" class="b3-button b3-button--outline fn__size200 fn__flex-center">
         <svg><use xlink:href="#iconRefresh"></use></svg>${window.siyuan.languages.rebuildDataIndex}
     </button>
 </div>
 <div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(window.siyuan.languages.clearTempFiles, window.siyuan.languages.clearTempFilesTip)}
+    ${genConfigItemMainHtml(window.siyuan.languages.clearTempFiles, window.siyuan.languages.clearTempFilesTip)}
     <div class="fn__space"></div>
     <button id="clearTempFiles" class="b3-button b3-button--outline fn__size200 fn__flex-center">
         <svg><use xlink:href="#iconTrashcan"></use></svg>${window.siyuan.languages.purge}
     </button>
 </div>
 <div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(window.siyuan.languages.systemLog, window.siyuan.languages.systemLogTip)}
+    ${genConfigItemMainHtml(window.siyuan.languages.systemLog, window.siyuan.languages.systemLogTip)}
     <div class="fn__space"></div>
     <button id="exportLog" class="b3-button b3-button--outline fn__size200 fn__flex-center">
         <svg><use xlink:href="#iconUpload"></use></svg>${window.siyuan.languages.export}

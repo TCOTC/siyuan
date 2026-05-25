@@ -15,23 +15,23 @@ import {buildRangeValues, snapRangeValue} from "./formValue";
 const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config, id));
 
 /** 配置项标题 */
-export const wrapConfigItemName = (title: string): string =>
+export const genConfigItemName = (title: string): string =>
     `<div class="config-name">${title}</div>`;
 
 /** 配置项左侧区域（标题 + 描述） */
-export const buildConfigItemMainHtml = (title: string, desc?: string): string =>
+export const genConfigItemMainHtml = (title: string, desc?: string): string =>
     `<div class="fn__flex-1">
-    ${wrapConfigItemName(title)}
+    ${genConfigItemName(title)}
     ${desc ? `<div class="b3-label__text">${desc}</div>` : ""}
 </div>`;
 
-const buildButtonHtml = (id: string, label: string, icon: string): string =>
+const genButtonHtml = (id: string, label: string, icon: string): string =>
     `<button class="b3-button b3-button--outline fn__flex-center fn__size200" id="${id}">
         <svg><use xlink:href="#${icon}"></use></svg>
         ${label}
     </button>`;
 
-const buildNumberInputHtml = (
+const genNumberInputHtml = (
     id: string,
     value: number,
     min?: number,
@@ -47,10 +47,10 @@ const buildNumberInputHtml = (
     return input;
 };
 
-const buildSwitchInputHtml = (id: string, checked: boolean): string =>
+const genSwitchInputHtml = (id: string, checked: boolean): string =>
     `<input class="b3-switch fn__flex-center" id="${id}" type="checkbox"${checked ? " checked" : ""}/>`;
 
-const buildSelectOptionsHtml = <T extends number | string>(
+const genSelectOptionsHtml = <T extends number | string>(
     id: string,
     options: {value: T; label?: string}[],
     current: T,
@@ -62,14 +62,14 @@ const buildSelectOptionsHtml = <T extends number | string>(
     }
 </select>`;
 
-export const renderSwitchRow = (id: string, title: string, desc: string | undefined, checked: boolean): string =>
+export const genSwitchRow = (id: string, title: string, desc: string | undefined, checked: boolean): string =>
     `<label class="fn__flex b3-label config-item">
-    ${buildConfigItemMainHtml(title, desc)}
+    ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    ${buildSwitchInputHtml(id, checked)}
+    ${genSwitchInputHtml(id, checked)}
 </label>`;
 
-const renderRangeRow = (
+const genRangeRow = (
     id: string,
     title: string,
     desc: string,
@@ -79,7 +79,7 @@ const renderRangeRow = (
     value: number,
 ): string =>
     `<div class="fn__flex b3-label config-item config-wrap config-wrap--range">
-    ${buildConfigItemMainHtml(title, desc)}
+    ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
     <div class="config-range__desktop b3-tooltips b3-tooltips__n fn__flex-center" aria-label="${value}">
         <input class="b3-slider fn__size200" id="${id}" max="${max}" min="${min}" step="${step}" type="range" value="${value}">
@@ -91,7 +91,7 @@ const renderRangeRow = (
     </select>
 </div>`;
 
-const renderNumberRow = (
+const genNumberRow = (
     id: string,
     title: string,
     desc: string,
@@ -102,22 +102,22 @@ const renderNumberRow = (
     unit?: string,
 ): string =>
     `<div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(title, desc)}
+    ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    ${buildNumberInputHtml(id, value, min, max, step, unit)}
+    ${genNumberInputHtml(id, value, min, max, step, unit)}
 </div>`;
 
-const renderButtonRow = (row: Pick<SettingRowButton, "id" | "title" | "desc" | "label" | "icon">): string => {
+const genButtonRow = (row: Pick<SettingRowButton, "id" | "title" | "desc" | "label" | "icon">): string => {
     const {id, title, desc, label, icon} = row;
     return `<div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(title, desc || undefined)}
+    ${genConfigItemMainHtml(title, desc || undefined)}
     <span class="fn__space"></span>
-    ${buildButtonHtml(id, label, icon)}
+    ${genButtonHtml(id, label, icon)}
 </div>`;
 };
 
 /** 同一组 options 与 current 的 value 须同型（泛型 T 约束） */
-const renderSelectRow = <T extends number | string>(
+const genSelectRow = <T extends number | string>(
     id: string,
     title: string,
     desc: string,
@@ -125,19 +125,19 @@ const renderSelectRow = <T extends number | string>(
     current: T,
 ): string =>
     `<div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(title, desc)}
+    ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    ${buildSelectOptionsHtml(id, options, current)}
+    ${genSelectOptionsHtml(id, options, current)}
 </div>`;
 
-const renderTextRow = (id: string, title: string, desc: string, value: string): string =>
+const genTextRow = (id: string, title: string, desc: string, value: string): string =>
     `<div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(title, desc)}
+    ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
     <input class="b3-text-field fn__flex-center fn__size200" id="${id}" value="${value}"/>
 </div>`;
 
-const renderTextPairRow = (
+const genTextPairRow = (
     title: string,
     desc: string,
     leftId: string,
@@ -146,14 +146,14 @@ const renderTextPairRow = (
     rightValue: string,
 ): string =>
     `<div class="fn__flex b3-label config-item config-wrap">
-    ${buildConfigItemMainHtml(title, desc)}
+    ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
     <input class="b3-text-field fn__flex-center fn__size96" id="${leftId}" value="${Lute.EscapeHTMLStr(leftValue)}">
     <span class="fn__space"></span>
     <input class="b3-text-field fn__flex-center fn__size96" id="${rightId}" value="${Lute.EscapeHTMLStr(rightValue)}">
 </div>`;
 
-const buildTextBlockFieldHtml = (
+const genTextBlockFieldHtml = (
     id: string,
     mode: SettingRowTextBlock["mode"],
     value: string,
@@ -171,12 +171,12 @@ const buildTextBlockFieldHtml = (
     return `<input class="b3-text-field fn__block" id="${id}" type="text" spellcheck="${spellcheck}" value="${Lute.EscapeHTMLStr(value)}"/>`;
 };
 
-const renderTextBlockRow = (row: Pick<SettingRowTextBlock, "id" | "title" | "desc" | "mode" | "value">): string => {
+const genTextBlockRow = (row: Pick<SettingRowTextBlock, "id" | "title" | "desc" | "mode" | "value">): string => {
     const {id, title, desc, mode, value} = row;
-    const field = buildTextBlockFieldHtml(id, mode, value);
+    const field = genTextBlockFieldHtml(id, mode, value);
     return `<div class="b3-label config-item">
     <div class="fn__block">
-        ${wrapConfigItemName(title)}
+        ${genConfigItemName(title)}
         <div class="b3-label__text">${desc}</div>
         <div class="fn__hr"></div>
         ${field}
@@ -184,7 +184,7 @@ const renderTextBlockRow = (row: Pick<SettingRowTextBlock, "id" | "title" | "des
 </div>`;
 };
 
-/** 为指定 `id` 的密码框绑定显隐图标（与 `renderTextBlockRow` 中 `input-password` 分支的 DOM 结构配套） */
+/** 为指定 `id` 的密码框绑定显隐图标（与 `genTextBlockRow` 中 `input-password` 分支的 DOM 结构配套） */
 export const bindPasswordIconaToggle = (root: HTMLElement, inputId: string): void => {
     root.querySelector<HTMLElement>(`#${CSS.escape(inputId)} + .b3-form__icona-icon[data-action="togglePassword"]`)?.addEventListener("click", (event) => {
         const svg = event.currentTarget as SVGSVGElement;
@@ -199,27 +199,27 @@ export const bindPasswordIconaToggle = (root: HTMLElement, inputId: string): voi
     });
 };
 
-const renderStackRight = (r: StackRight): string => {
+const genStackRight = (r: StackRight): string => {
     switch (r.kind) {
         case "button":
-            return buildButtonHtml(r.id, r.label, r.icon);
+            return genButtonHtml(r.id, r.label, r.icon);
         case "select":
-            return buildSelectOptionsHtml(r.id, r.options, r.value);
+            return genSelectOptionsHtml(r.id, r.options, r.value);
         case "number":
-            return buildNumberInputHtml(r.id, r.value, r.min, r.max, undefined, undefined);
+            return genNumberInputHtml(r.id, r.value, r.min, r.max, undefined, undefined);
         case "switch":
-            return buildSwitchInputHtml(r.id, getSwitchChecked(r.id));
+            return genSwitchInputHtml(r.id, getSwitchChecked(r.id));
     }
 };
 
-const renderStackLeft = (left: StackLeft): string => {
+const genStackLeft = (left: StackLeft): string => {
     if (left.kind === "textBlock") {
-        return `<div class="fn__flex-1 fn__block">${buildTextBlockFieldHtml(left.id, left.mode, left.value)}</div>`;
+        return `<div class="fn__flex-1 fn__block">${genTextBlockFieldHtml(left.id, left.mode, left.value)}</div>`;
     }
     return `<div class="fn__flex-center fn__flex-1${left.kind === "desc" ? " ft__on-surface" : " config-name"}">${left.text}</div>`;
 };
 
-const renderSwitchQueryItem = (item: SwitchQueryItem): string => {
+const genSwitchQueryItem = (item: SwitchQueryItem): string => {
     switch (item.kind) {
         case "switch": {
             const checked = getSwitchChecked(item.id);
@@ -242,16 +242,16 @@ const renderSwitchQueryItem = (item: SwitchQueryItem): string => {
     }
 };
 
-const renderSwitchQuery = (row: SettingRowSwitchQuery): string =>
+const genSwitchQuery = (row: SettingRowSwitchQuery): string =>
 `<div class="b3-label config-item">
-    ${wrapConfigItemName(row.title)}
+    ${genConfigItemName(row.title)}
     <div class="config-query">
-        ${row.items.map(renderSwitchQueryItem).join("")}
+        ${row.items.map(genSwitchQueryItem).join("")}
     </div>
     ${row.footer ? `<div class="fn__hr"></div><div class="fn__flex-1"><div class="b3-label__text">${row.footer}</div></div>` : ""}
 </div>`;
 
-const renderStack = (entry: SettingRowStack): string => {
+const genStack = (entry: SettingRowStack): string => {
     const parts: string[] = [];
     entry.lines.forEach((line, index) => {
         if (index > 0) {
@@ -259,20 +259,20 @@ const renderStack = (entry: SettingRowStack): string => {
         }
         const {left, right} = line;
         if (!right) {
-            parts.push(`<div class="fn__flex config-wrap">${renderStackLeft(left)}</div>`);
+            parts.push(`<div class="fn__flex config-wrap">${genStackLeft(left)}</div>`);
         } else {
             const tag = right.kind === "switch" ? "label" : "div";
             parts.push(`<${tag} class="fn__flex${right.kind === "switch" ? "" : " config-wrap"}">
-    ${renderStackLeft(left)}
+    ${genStackLeft(left)}
     <span class="fn__space"></span>
-    ${renderStackRight(right)}
+    ${genStackRight(right)}
 </${tag}>`);
         }
     });
     return `<div class="b3-label config-item">${parts.join("")}</div>`;
 };
 
-const renderNotebookSavePathRow = (
+const genNotebookSavePathRow = (
     title: string,
     desc: string,
     selectId: string,
@@ -280,7 +280,7 @@ const renderNotebookSavePathRow = (
     selectOptionsHtml: string,
 ): string =>
     `<div class="b3-label config-item config-item--save-path">
-    ${wrapConfigItemName(title)}
+    ${genConfigItemName(title)}
     <div class="b3-label__text">${desc}</div>
     <div class="fn__hr"></div>
     <div class="fn__flex config-wrap">
@@ -290,29 +290,29 @@ const renderNotebookSavePathRow = (
     </div>
 </div>`;
 
-const renderRow = (row: SettingRow): string => {
+const genRowHtml = (row: SettingRow): string => {
     const cfg = window.siyuan.config;
     switch (row.type) {
         case "switch":
-            return renderSwitchRow(row.id, row.title, row.desc, getSwitchChecked(row.id));
+            return genSwitchRow(row.id, row.title, row.desc, getSwitchChecked(row.id));
         case "text": {
             const val = getAtPath(cfg, row.id);
             const str = typeof val === "string" ? val : "";
-            return renderTextRow(row.id, row.title, row.desc, str);
+            return genTextRow(row.id, row.title, row.desc, str);
         }
         case "textPair": {
             const leftVal = getAtPath(cfg, row.leftId);
             const rightVal = getAtPath(cfg, row.rightId);
             const leftStr = typeof leftVal === "string" ? leftVal : "";
             const rightStr = typeof rightVal === "string" ? rightVal : "";
-            return renderTextPairRow(row.title, row.desc, row.leftId, leftStr, row.rightId, rightStr);
+            return genTextPairRow(row.title, row.desc, row.leftId, leftStr, row.rightId, rightStr);
         }
         case "textBlock":
-            return renderTextBlockRow(row);
+            return genTextBlockRow(row);
         case "number": {
             const raw = getAtPath(cfg, row.id);
             const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
-            return renderNumberRow(
+            return genNumberRow(
                 row.id,
                 row.title,
                 row.desc,
@@ -327,7 +327,7 @@ const renderRow = (row: SettingRow): string => {
             const v = getAtPath(cfg, row.id);
             const raw = typeof v === "number" && !Number.isNaN(v) ? v : row.min;
             const num = snapRangeValue(raw, row.min, row.max, row.step);
-            return renderRangeRow(
+            return genRangeRow(
                 row.id,
                 row.title,
                 row.desc,
@@ -356,18 +356,18 @@ const renderRow = (row: SettingRow): string => {
                     current = firstVal;
                 }
             }
-            return renderSelectRow(row.id, row.title, row.desc, row.options, current);
+            return genSelectRow(row.id, row.title, row.desc, row.options, current);
         }
         case "button":
-            return renderButtonRow(row);
+            return genButtonRow(row);
         case "custom":
             return row.html();
         case "stack":
-            return renderStack(row);
+            return genStack(row);
         case "switchQuery":
-            return renderSwitchQuery(row);
+            return genSwitchQuery(row);
         case "notebookSavePath":
-            return renderNotebookSavePathRow(
+            return genNotebookSavePathRow(
                 row.title,
                 row.desc,
                 row.selectId,
@@ -378,15 +378,15 @@ const renderRow = (row: SettingRow): string => {
 };
 
 /** 生成设置分组 HTML */
-export const renderConfigGroup = (itemsHtml: string, title?: string): string =>
+export const genConfigGroup = (itemsHtml: string, title?: string): string =>
     `<div class="config-group">${title ? `<div class="config-title">${title}</div>` : ""}<div class="config-items">${itemsHtml}</div></div>`;
 
 /** 按节列表生成设置页面 HTML */
-export const renderSettingTabHtmlFromSections = (sections: SettingSection[]): string => {
+export const genSettingTabHtmlFromSections = (sections: SettingSection[]): string => {
     const parts: string[] = [];
     sections.forEach((section) => {
-        const itemsHtml = section.items.map((row) => renderRow(row)).join("");
-        parts.push(renderConfigGroup(itemsHtml, section.title));
+        const itemsHtml = section.items.map((row) => genRowHtml(row)).join("");
+        parts.push(genConfigGroup(itemsHtml, section.title));
     });
     return parts.join("");
 };

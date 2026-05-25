@@ -13,43 +13,43 @@ import {exportLayout} from "../layout/util";
 import {exitSiYuan} from "../dialog/processSystem";
 import {isBrowser} from "../util/functions";
 import {isInMobileApp, isIPad, saveExportFile} from "../protyle/util/compatibility";
-import {buildConfigItemMainHtml, renderConfigGroup, wrapConfigItemName} from "./ui/render";
+import {genConfigItemMainHtml, genConfigGroup, genConfigItemName} from "./ui/render";
 export const access = {
     element: undefined as Element,
     genHTML: () => {
-        return renderConfigGroup(`
+        return genConfigGroup(`
     <div class="b3-label config-item${(window.siyuan.config.readonly || (isBrowser() && !isInMobileApp() && !isIPad())) ? " fn__none" : ""}">
         <div class="fn__flex config-wrap">
-            ${buildConfigItemMainHtml(window.siyuan.languages.about5, window.siyuan.languages.about6)}
+            ${genConfigItemMainHtml(window.siyuan.languages.about5, window.siyuan.languages.about6)}
             <div class="fn__space"></div>
             <button class="fn__flex-center b3-button b3-button--outline fn__size200" id="authCode">
                 <svg><use xlink:href="#iconLock"></use></svg>${window.siyuan.languages.config}
             </button>
         </div>
         <label class="b3-label fn__flex${!window.siyuan.config.accessAuthCode || isBrowser() ? " fn__none" : ""}">
-            ${buildConfigItemMainHtml(window.siyuan.languages.about7, window.siyuan.languages.about8)}
+            ${genConfigItemMainHtml(window.siyuan.languages.about7, window.siyuan.languages.about8)}
             <div class="fn__space"></div>
             <input class="b3-switch fn__flex-center" id="lockScreenMode" type="checkbox"${window.siyuan.config.system.lockScreenMode === 1 ? " checked" : ""}>
         </label>
     </div>
     <div class="fn__flex b3-label config-item config-wrap${(isBrowser() && !isInMobileApp()) ? " fn__none" : ""}">
         <div class="fn__flex-1">
-            ${wrapConfigItemName(window.siyuan.languages.about13)}
+            ${genConfigItemName(window.siyuan.languages.about13)}
             <div class="b3-label__text" id="tokenTip">${window.siyuan.languages.about14.replace("${token}", window.siyuan.config.api.token)}</div>
         </div>
         <span class="fn__space"></span>
         <input class="b3-text-field fn__flex-center fn__size200" id="token" value="${window.siyuan.config.api.token}">
     </div>
-`, window.siyuan.languages.authentication) + renderConfigGroup(`
+`, window.siyuan.languages.authentication) + genConfigGroup(`
     <div class="b3-label config-item${(isBrowser() && !isInMobileApp() && !isIPad()) ? " fn__none" : ""}">
         <label class="fn__flex b3-label">
-            ${buildConfigItemMainHtml(window.siyuan.languages.about11, window.siyuan.languages.about12)}
+            ${genConfigItemMainHtml(window.siyuan.languages.about11, window.siyuan.languages.about12)}
             <div class="fn__space"></div>
             <input class="b3-switch fn__flex-center" id="networkServe" type="checkbox"${window.siyuan.config.system.networkServe ? " checked" : ""}>
         </label>
         <label class="b3-label fn__flex${window.siyuan.config.system.networkServe ? "" : " fn__none"}">
             <div class="fn__flex-1">
-                ${wrapConfigItemName(window.siyuan.languages.networkServeTLS)}
+                ${genConfigItemName(window.siyuan.languages.networkServeTLS)}
                 <div class="b3-label__text">${window.siyuan.languages.networkServeTLSTip}</div>
                 <div class="b3-label__text">${window.siyuan.languages.networkServeTLSTip2}</div>
             </div>
@@ -57,21 +57,21 @@ export const access = {
             <input class="b3-switch fn__flex-center" id="networkServeTLS" type="checkbox"${window.siyuan.config.system.networkServeTLS ? " checked" : ""}${!window.siyuan.config.system.networkServe ? " disabled" : ""}>
         </label>
         <div class="fn__flex b3-label config-wrap${(window.siyuan.config.system.networkServeTLS && window.siyuan.config.system.networkServe) ? "" : " fn__none"}">
-            ${buildConfigItemMainHtml(window.siyuan.languages.exportCACert, window.siyuan.languages.exportCACertTip)}
+            ${genConfigItemMainHtml(window.siyuan.languages.exportCACert, window.siyuan.languages.exportCACertTip)}
             <div class="fn__space"></div>
             <button class="b3-button b3-button--outline fn__size200 fn__flex-center" id="exportCACert">
                 <svg><use xlink:href="#iconUpload"></use></svg>${window.siyuan.languages.export}
             </button>
         </div>
         <div class="fn__flex b3-label config-wrap${(window.siyuan.config.system.networkServeTLS && window.siyuan.config.system.networkServe) ? "" : " fn__none"}">
-            ${buildConfigItemMainHtml(window.siyuan.languages.exportCABundle, window.siyuan.languages.exportCABundleTip)}
+            ${genConfigItemMainHtml(window.siyuan.languages.exportCABundle, window.siyuan.languages.exportCABundleTip)}
             <div class="fn__space"></div>
             <button class="b3-button b3-button--outline fn__size200 fn__flex-center" id="exportCABundle">
                 <svg><use xlink:href="#iconUpload"></use></svg>${window.siyuan.languages.export}
             </button>
         </div>
         <div class="fn__flex b3-label config-wrap${(window.siyuan.config.system.networkServeTLS && window.siyuan.config.system.networkServe) ? "" : " fn__none"}">
-            ${buildConfigItemMainHtml(window.siyuan.languages.importCABundle, window.siyuan.languages.importCABundleTip)}
+            ${genConfigItemMainHtml(window.siyuan.languages.importCABundle, window.siyuan.languages.importCABundleTip)}
             <div class="fn__space"></div>
             <button class="b3-button b3-button--outline fn__size200 fn__flex-center" id="importCABundle">
                 <svg><use xlink:href="#iconDownload"></use></svg>${window.siyuan.languages.import}
@@ -81,7 +81,7 @@ export const access = {
     <div class="b3-label config-item${(isBrowser() && !isInMobileApp()) ? " fn__none" : ""}">
         <div class="fn__flex config-wrap">
         <div class="fn__flex-1">
-            ${wrapConfigItemName(window.siyuan.languages.about2)}
+            ${genConfigItemName(window.siyuan.languages.about2)}
             <div class="b3-label__text">${window.siyuan.languages.about3.replace("${port}", location.port)}</div>
             ${(() => {
             const serverAddrs: string[] = [];
@@ -102,13 +102,13 @@ export const access = {
         </button>
         </div>
     </div>
-`, window.siyuan.languages.configGroupServer) + renderConfigGroup(access.genPublishHTML(), window.siyuan.languages.configGroupPublish);
+`, window.siyuan.languages.configGroupServer) + genConfigGroup(access.genPublishHTML(), window.siyuan.languages.configGroupPublish);
     },
     genPublishHTML: () => {
         const mobile = isMobile();
         return `
 <label class="fn__flex b3-label config-item">
-    ${buildConfigItemMainHtml(window.siyuan.languages.publishService, window.siyuan.languages.publishServiceTip)}
+    ${genConfigItemMainHtml(window.siyuan.languages.publishService, window.siyuan.languages.publishServiceTip)}
     <span class="fn__space"></span>
     <input class="b3-switch fn__flex-center" id="publishEnable" type="checkbox"${window.siyuan.config.publish.enable ? " checked" : ""}/>
 </label>
@@ -116,14 +116,14 @@ export const access = {
     ${(() => {
             if (mobile) {
                 return `
-${wrapConfigItemName(window.siyuan.languages.publishServicePort)}
+${genConfigItemName(window.siyuan.languages.publishServicePort)}
 <span class="fn__hr"></span>
 <input class="b3-text-field fn__block" id="publishPort" type="number" min="0" max="65535" value="${window.siyuan.config.publish.port}">
 <div class="b3-label__text">${window.siyuan.languages.publishServicePortTip}</div>`;
             } else {
                 return `
 <div class="fn__flex config-wrap">
-    ${buildConfigItemMainHtml(window.siyuan.languages.publishServicePort, window.siyuan.languages.publishServicePortTip)}
+    ${genConfigItemMainHtml(window.siyuan.languages.publishServicePort, window.siyuan.languages.publishServicePortTip)}
     <span class="fn__space"></span>
     <input class="b3-text-field fn__flex-center fn__size200" id="publishPort" type="number" min="0" max="65535" value="${window.siyuan.config.publish.port}">
 </div>`;
@@ -132,7 +132,7 @@ ${wrapConfigItemName(window.siyuan.languages.publishServicePort)}
 </div>
 <div class="b3-label config-item">
     <div class="fn__flex config-wrap">
-        ${buildConfigItemMainHtml(window.siyuan.languages.publishServiceAddresses, window.siyuan.languages.publishServiceAddressesTip)}
+        ${genConfigItemMainHtml(window.siyuan.languages.publishServiceAddresses, window.siyuan.languages.publishServiceAddressesTip)}
         <div class="fn__space"></div>
     </div>
     <div class="fn__hr"></div>
@@ -141,7 +141,7 @@ ${wrapConfigItemName(window.siyuan.languages.publishServicePort)}
 </div>
 <div class="b3-label config-item">
     <label class="fn__flex b3-label">
-        ${buildConfigItemMainHtml(window.siyuan.languages.publishServiceAuth, window.siyuan.languages.publishServiceAuthTip)}
+        ${genConfigItemMainHtml(window.siyuan.languages.publishServiceAuth, window.siyuan.languages.publishServiceAuthTip)}
         <span class="fn__space"></span>
         <input class="b3-switch fn__flex-center" id="publishAuthEnable" type="checkbox"${window.siyuan.config.publish.auth.enable ? " checked" : ""}/>
     </label>
@@ -150,7 +150,7 @@ ${wrapConfigItemName(window.siyuan.languages.publishServicePort)}
     ${(() => {
             if (mobile) {
                 return `
-${wrapConfigItemName(window.siyuan.languages.publishServiceAuthAccounts)}
+${genConfigItemName(window.siyuan.languages.publishServiceAuthAccounts)}
 <div class="b3-label__text">${window.siyuan.languages.publishServiceAuthAccountsTip}</div>
 <div class="b3-label b3-label--inner fn__flex">
     <span class="fn__flex-1"></span>
@@ -161,7 +161,7 @@ ${wrapConfigItemName(window.siyuan.languages.publishServiceAuthAccounts)}
             } else {
                 return `
 <div class="fn__flex config-wrap">
-    ${buildConfigItemMainHtml(window.siyuan.languages.publishServiceAuthAccounts, window.siyuan.languages.publishServiceAuthAccountsTip)}
+    ${genConfigItemMainHtml(window.siyuan.languages.publishServiceAuthAccounts, window.siyuan.languages.publishServiceAuthAccountsTip)}
     <div class="fn__space"></div>
     <button class="b3-button b3-button--outline fn__size200 fn__flex-center" id="publishAuthAccountAdd">
         <svg><use xlink:href="#iconAdd"></use></svg>${window.siyuan.languages.publishServiceAuthAccountAdd}

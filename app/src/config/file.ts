@@ -10,7 +10,7 @@ import {
     findSettingRowByControlId,
 } from "./ui/settingRows";
 import {filterSettingSections} from "./ui/search";
-import {renderSettingTabHtmlFromSections} from "./ui/render";
+import {genSettingTabHtmlFromSections} from "./ui/render";
 import {readDomValue} from "./ui/formValue";
 import {mergeRecordByDottedPath} from "./ui/dotPath";
 import {mountSettingSaveHandlers} from "./ui/save";
@@ -18,7 +18,7 @@ import {mountSettingSaveHandlers} from "./ui/save";
 export const fileSettings = {
     mount: async (root: HTMLElement, searchQuery?: string) => {
         const sections = filterSettingSections(buildFileSections(), searchQuery);
-        root.innerHTML = renderSettingTabHtmlFromSections(sections);
+        root.innerHTML = genSettingTabHtmlFromSections(sections);
         await mountSettingSaveHandlers(root, sections);
     },
 

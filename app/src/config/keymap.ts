@@ -15,7 +15,7 @@ import {
     customRow,
 } from "./ui/settingRows";
 import {filterSettingSections, textMatchesSearch} from "./ui/search";
-import {renderSettingTabHtmlFromSections} from "./ui/render";
+import {genSettingTabHtmlFromSections} from "./ui/render";
 import {mountSettingSaveHandlers} from "./ui/save";
 import type {Plugin} from "../plugin";
 
@@ -31,7 +31,7 @@ export const keymapSettings = {
                 sections = allSections;
             }
         }
-        root.innerHTML = renderSettingTabHtmlFromSections(sections);
+        root.innerHTML = genSettingTabHtmlFromSections(sections);
         await mountSettingSaveHandlers(root, sections);
         if (query) {
             // 设置窗口全局搜索进入快捷键 Tab，仅当命中具体命令名时才写入搜索框并筛选列表，
