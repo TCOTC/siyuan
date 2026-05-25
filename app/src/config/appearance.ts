@@ -3,7 +3,7 @@ import * as path from "path";
 /// #endif
 import {Constants} from "../constants";
 import {exportLayout, resetLayout} from "../layout/util";
-import {readCookieValue} from "../util/cookie";
+import {desktopModeCookie} from "../util/cookie";
 import {isBrowser, isMobile} from "../util/functions";
 import {fetchPost} from "../util/fetch";
 import {openSnippets} from "./util/snippets";
@@ -96,7 +96,6 @@ export const appearanceSettings = {
 
 export function buildAppearanceSections(): SettingSection[] {
     const browser = isBrowser();
-    const mobile = isMobile();
     return [
         {
             title: window.siyuan.languages.configGroupContent,
@@ -424,6 +423,24 @@ export function buildAppearanceSections(): SettingSection[] {
                         },
                     ],
                 }),
+                customRow({
+                    keywords: [window.siyuan.languages.desktopMode, window.siyuan.languages.mobileModeTip],
+                    html: () => {
+                        return renderSwitchRow(
+                            "desktopMode",
+                            window.siyuan.languages.desktopMode,
+                            window.siyuan.languages.mobileModeTip,
+                            desktopModeCookie.read(),
+                        );
+                    },
+                    bind: (root) => {
+                        root.querySelector("#desktopMode")?.addEventListener("change", (event: Event) => {
+                            const checked = (event.target as HTMLInputElement).checked;
+                            desktopModeCookie.set(checked);
+                            window.location.href = "/";
+                        });
+                    },
+                }),
                 buttonRow({
                     id: "resetLayout",
                     title: window.siyuan.languages.resetLayout,
@@ -492,25 +509,6 @@ export function buildAppearanceSections(): SettingSection[] {
                             },
                         },
                     ],
-                }),
-                customRow({
-                    keywords: [window.siyuan.languages.desktopMode, window.siyuan.languages.mobileModeTip],
-                    html: () => {
-                        const raw = readCookieValue("siyuan-desktop-mode");
-                        return renderSwitchRow(
-                            "desktopMode",
-                            window.siyuan.languages.desktopMode,
-                            window.siyuan.languages.mobileModeTip,
-                            raw === "true" || (raw !== "false" && !mobile),
-                        );
-                    },
-                    bind: (root) => {
-                        root.querySelector("#desktopMode")?.addEventListener("change", (event: Event) => {
-                            const checked = (event.target as HTMLInputElement).checked;
-                            document.cookie = "siyuan-desktop-mode=" + (checked ? "true" : "false") + ";path=/;max-age=31536000";
-                            window.location.href = "/";
-                        });
-                    },
                 }),
             ],
         },
