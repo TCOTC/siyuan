@@ -216,7 +216,7 @@ const renderStackLeft = (left: StackLeft): string => {
     if (left.kind === "textBlock") {
         return `<div class="fn__flex-1 fn__block">${buildTextBlockFieldHtml(left.id, left.mode, left.value)}</div>`;
     }
-    return `<div class="fn__flex-center fn__flex-1${left.kind === "desc" ? " ft__on-surface" : ""}">${left.text}</div>`;
+    return `<div class="fn__flex-center fn__flex-1${left.kind === "desc" ? " ft__on-surface" : " config-name"}">${left.text}</div>`;
 };
 
 const renderSwitchQueryItem = (item: SwitchQueryItem): string => {
