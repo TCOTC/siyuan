@@ -25,17 +25,17 @@ export const bindSettingSaveDelegation = (tabWrap: HTMLElement) => {
 
 const onSettingTabWrapInput = (event: Event) => {
     const el = event.target;
-    if (el instanceof HTMLInputElement && el.type === "range") {
+    if (el instanceof HTMLInputElement && el.matches(".b3-slider") && el.type === "range") {
         el.parentElement.setAttribute("aria-label", el.value);
     }
 };
 
 const onSettingTabWrapChange = (event: Event) => {
-    const el = event.target;
-    if (!(el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement)) {
+    const el = event.target as HTMLElement;
+    if (!el.matches(".b3-switch, .b3-select, .b3-textarea, .b3-text-field, .b3-slider")) {
         return;
     }
-    syncRangeRowValue(el as HTMLElement);
+    syncRangeRowValue(el);
     const controlId = el.id || el.getAttribute("data-control-id");
     if (controlId) {
         routeSettingSave(el, controlId);

@@ -51,6 +51,27 @@
     align-items: center;
   }
 
+  &-cloud-space {
+    position: relative;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+
+    &__body {
+      flex: 1 1 180px;
+      min-width: 0;
+    }
+
+    ul {
+      margin-left: 12px;
+    }
+
+    &--loading &__placeholder {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
   &-wrap--range {
     min-width: 0;
 

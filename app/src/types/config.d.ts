@@ -1517,7 +1517,7 @@ declare namespace Config {
          * - `3`: Network storage service using WebDAV protocol
          * - `4`: Local file system
          */
-        provider: number;
+        provider: 0 | 2 | 3 | 4;
         s3: ISyncS3;
         /**
          * The prompt information of the last synchronization

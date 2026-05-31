@@ -45,7 +45,13 @@ export const addCloudName = (cloudListElement: Element) => {
     });
 };
 
+const syncCloudListBoundElements = new WeakSet<Element>();
+
 export const bindSyncCloudListEvent = (cloudListElement: Element, cb?: () => void) => {
+    if (syncCloudListBoundElements.has(cloudListElement)) {
+        return;
+    }
+    syncCloudListBoundElements.add(cloudListElement);
     cloudListElement.addEventListener("click", (event) => {
         let target = event.target as HTMLElement;
         while (target && !target.isEqualNode(cloudListElement)) {
