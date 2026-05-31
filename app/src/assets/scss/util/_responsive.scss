@@ -1,4 +1,8 @@
 @media (max-width: 750px) {
+  .config-about__motto {
+    display: none;
+  }
+
   .config {
     &__panel {
       & > .config__side {
@@ -16,11 +20,6 @@
         .config__tab-title {
           height: 25px;
         }
-      }
-
-      .config-account {
-        flex-direction: column;
-        min-height: 100%;
       }
     }
 

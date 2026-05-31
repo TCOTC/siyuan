@@ -470,6 +470,26 @@
   }
 }
 
+.config-about__logo {
+  display: flex;
+  align-items: center;
+}
+
+.config-about__motto {
+  color: var(--b3-theme-surface);
+  font-family: cursive;
+  cursor: default;
+}
+
+#configAccountPayment {
+  .ft__on-surface svg {
+    width: 16px !important;
+    height: 16px !important;
+    vertical-align: -3px;
+    margin-right: 4px;
+  }
+}
+
 #configAccountLoginRoot {
   max-width: 400px;
   width: 100%;
