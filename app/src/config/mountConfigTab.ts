@@ -12,7 +12,7 @@ import {keymapSettings} from "./keymap";
 import {bazaar} from "./bazaar";
 import {syncSettings} from "./sync";
 import {accessSettings} from "./access";
-import {appConfig} from "./appConfig";
+import {appSettings} from "./appConfig";
 import {about} from "./about";
 
 /** 将指定设置页面挂载到容器 */
@@ -60,9 +60,7 @@ export const mountConfigTab = (type: TConfigTab, containerElement: Element, app:
             void accessSettings.mount(containerElement as HTMLElement);
             break;
         case "app":
-            appConfig.element = containerElement;
-            containerElement.innerHTML = appConfig.genHTML();
-            appConfig.bindEvent();
+            void appSettings.mount(containerElement as HTMLElement);
             break;
         case "about":
             about.element = containerElement;

@@ -11,6 +11,7 @@ import {buildSearchSections, searchSettings} from "./searchSettings";
 import {buildKeymapSections, keymapSettings} from "./keymap";
 import {buildSyncSections, syncSettings} from "./sync";
 import {buildAccessSections, accessSettings} from "./access";
+import {buildAppSections, appSettings} from "./appConfig";
 import {mountConfigTab} from "./mountConfigTab";
 import {App} from "../index";
 import {isPhablet} from "../protyle/util/compatibility";
@@ -189,7 +190,7 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
     });
 };
 
-type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search" | "keymap" | "sync" | "access">;
+type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search" | "keymap" | "sync" | "access" | "app">;
 
 /**
  * 侧栏标签索引关键词：按一级 Tab 的 `id` 与 `TAB_LANG_KEYS` 的键对应；
@@ -203,17 +204,6 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
     ],
     assets: [
         "assets", "unreferencedAssets", "unreferencedAV", "missingAssets", "delete", "clearAll", "clearAllAV", "emptyContent",
-    ],
-    app: [
-        "application", "configGroupGeneral", "configGroupData", "configGroupMaintenance",
-        "autoLaunch", "autoLaunchTip", "autoLaunchMode0", "autoLaunchMode1", "autoLaunchMode2",
-        "networkProxy", "about17", "directConnection", "confirm",
-        "export", "exportDataTip", "import", "importDataTip", "exportConf", "exportConfTip", "importConf", "importConfTip",
-        "vacuumDataIndex", "vacuumDataIndexTip", "clearTempFiles", "clearTempFilesTip",
-        "rebuildDataIndex", "rebuildDataIndexTip", "dataRepoPurge", "dataRepoPurgeTip",
-        "dataRepoAutoPurgeIndexRetentionDays", "dataRepoAutoPurgeRetentionIndexesDaily",
-        "initRepoKeyTip", "dataRepoKeyTip1", "dataRepoKeyTip2", "importKey", "genKey", "genKeyByPW", "copyKey", "resetRepo", "resetRepoTip",
-        "safeQuit", "systemLog", "systemLogTip",
     ],
     about: [
         "about", "currentVer", "downloadLatestVer", "isMsStoreVerTip", "checkUpdate",
@@ -244,6 +234,8 @@ const getTabSearchStrings = (tabId: TConfigTab): string[] => {
             return collectSettingTabSearchStrings(window.siyuan.languages.accountSync, buildSyncSections());
         case "access":
             return collectSettingTabSearchStrings(window.siyuan.languages.authentication, buildAccessSections());
+        case "app":
+            return collectSettingTabSearchStrings(window.siyuan.languages.application, buildAppSections());
     }
     return getLang(TAB_LANG_KEYS[tabId]);
 };
@@ -378,6 +370,9 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
             case "access":
                 void accessSettings.mount(el, keywords);
                 return;
+            case "app":
+                void appSettings.mount(el, keywords);
+                return;
         }
     }
 
@@ -436,6 +431,9 @@ const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
                 break;
             case "access":
                 void accessSettings.mount(container as HTMLElement);
+                break;
+            case "app":
+                void appSettings.mount(container as HTMLElement);
                 break;
             default:
                 applySettingPanelSearch(container, "");

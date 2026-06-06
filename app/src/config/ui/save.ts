@@ -7,6 +7,7 @@ import {exportSettings} from "../export";
 import {searchSettings} from "../searchSettings";
 import {syncSettings} from "../sync";
 import {accessSettings} from "../access";
+import {appSettings} from "../appConfig";
 import type {SettingSection} from "./settingRows";
 import {syncRangeRowValue} from "./formValue";
 import {bindPasswordIconaToggle} from "./render";
@@ -80,10 +81,12 @@ export const routeSettingSave = (el: HTMLElement, controlId: string) => {
         case "repo":
             syncSettings.set(el, controlId);
             break;
-        case "system":
         case "api":
         case "publish":
             accessSettings.set(el, controlId);
+            break;
+        case "system":
+            appSettings.set(el, controlId);
             break;
     }
 };

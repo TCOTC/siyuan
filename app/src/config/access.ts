@@ -6,8 +6,6 @@ import {showMessage} from "../dialog/message";
 /// #if !BROWSER
 import {shell} from "electron";
 /// #endif
-import {exportLayout} from "../layout/util";
-import {exitSiYuan} from "../dialog/processSystem";
 import {isInMobileApp, saveExportFile} from "../protyle/util/compatibility";
 import {genConfigItemMainHtml, genSettingTabHtmlFromSections} from "./ui/render";
 import {
@@ -45,13 +43,6 @@ export const accessSettings = {
 
     send(controlId: string, value: unknown) {
         switch (controlId) {
-            case "system.lockScreenMode": {
-                const lockScreenMode = (Boolean(value) ? 1 : 0) as Config.ISystem["lockScreenMode"];
-                fetchPost("/api/system/setFollowSystemLockScreen", {lockScreenMode}, () => {
-                    window.siyuan.config.system.lockScreenMode = lockScreenMode;
-                });
-                break;
-            }
             case "api.token": {
                 const token = value as Config.IAPI["token"];
                 fetchPost("/api/system/setAPIToken", {token}, () => {
@@ -63,28 +54,6 @@ export const accessSettings = {
                 });
                 break;
             }
-
-            case "system.networkServe": {
-                const networkServe = Boolean(value) as Config.ISystem["networkServe"];
-                fetchPost("/api/system/setNetworkServe", {networkServe}, () => {
-                    exportLayout({
-                        errorExit: true,
-                        cb: exitSiYuan,
-                    });
-                });
-                break;
-            }
-            case "system.networkServeTLS": {
-                const networkServeTLS = Boolean(value) as Config.ISystem["networkServeTLS"];
-                fetchPost("/api/system/setNetworkServeTLS", {networkServeTLS}, () => {
-                    exportLayout({
-                        errorExit: true,
-                        cb: exitSiYuan,
-                    });
-                });
-                break;
-            }
-
             case "publish.enable": {
                 const enable = Boolean(value) as Config.IPublish["enable"];
                 savePublish(true, {enable});
