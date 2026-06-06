@@ -33,7 +33,7 @@ export const appSettings = {
         if (!controlId.startsWith("system.")) {
             return;
         }
-        // 访问授权页中的 system.* 行在 buildAccessSections 中注册；读值不依赖 row 类型（均为 switch / select）
+        // 访问授权 / 关于页中的 system.* 行分别在 buildAccessSections / buildAboutSections 中注册；读值不依赖 row 类型
         const row = findSettingRowByControlId(buildAppSections(), controlId);
         const value = readDomValue(el, row);
         if (value === undefined) {
@@ -81,6 +81,13 @@ export const appSettings = {
                         errorExit: true,
                         cb: exitSiYuan,
                     });
+                });
+                break;
+            }
+            case "system.downloadInstallPkg": {
+                const downloadInstallPkg = Boolean(value) as Config.ISystem["downloadInstallPkg"];
+                fetchPost("/api/system/setDownloadInstallPkg", {downloadInstallPkg}, () => {
+                    window.siyuan.config.system.downloadInstallPkg = downloadInstallPkg;
                 });
                 break;
             }

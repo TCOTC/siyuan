@@ -84,7 +84,7 @@ export const onGetConfig = (isStart: boolean, app: App) => {
             /// #if !MOBILE
             // 临时：启动后直接打开设置
             window.setTimeout(() => {
-                openSetting(app, "appearance");
+                openSetting(app);
             }, 0);
             /// #endif
         } catch (e) {

@@ -12,6 +12,7 @@ import {buildKeymapSections, keymapSettings} from "./keymap";
 import {buildSyncSections, syncSettings} from "./sync";
 import {buildAccessSections, accessSettings} from "./access";
 import {buildAppSections, appSettings} from "./appConfig";
+import {buildAboutSections, aboutSettings} from "./about";
 import {mountConfigTab} from "./mountConfigTab";
 import {App} from "../index";
 import {isPhablet} from "../protyle/util/compatibility";
@@ -190,7 +191,7 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
     });
 };
 
-type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search" | "keymap" | "sync" | "access" | "app">;
+type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search" | "keymap" | "sync" | "access" | "app" | "about">;
 
 /**
  * 侧栏标签索引关键词：按一级 Tab 的 `id` 与 `TAB_LANG_KEYS` 的键对应；
@@ -204,11 +205,6 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
     ],
     assets: [
         "assets", "unreferencedAssets", "unreferencedAV", "missingAssets", "delete", "clearAll", "clearAllAV", "emptyContent",
-    ],
-    about: [
-        "about", "currentVer", "downloadLatestVer", "isMsStoreVerTip", "checkUpdate",
-        "autoDownloadUpdatePkg", "autoDownloadUpdatePkgTip",
-        "siyuanNote", "slogan", "about1", "feedback", "accountSupport1", "accountSupport2",
     ],
 };
 
@@ -236,6 +232,8 @@ const getTabSearchStrings = (tabId: TConfigTab): string[] => {
             return collectSettingTabSearchStrings(window.siyuan.languages.authentication, buildAccessSections());
         case "app":
             return collectSettingTabSearchStrings(window.siyuan.languages.application, buildAppSections());
+        case "about":
+            return collectSettingTabSearchStrings(window.siyuan.languages.about, buildAboutSections());
     }
     return getLang(TAB_LANG_KEYS[tabId]);
 };
@@ -373,6 +371,9 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
             case "app":
                 void appSettings.mount(el, keywords);
                 return;
+            case "about":
+                void aboutSettings.mount(el, keywords);
+                return;
         }
     }
 
@@ -434,6 +435,9 @@ const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
                 break;
             case "app":
                 void appSettings.mount(container as HTMLElement);
+                break;
+            case "about":
+                void aboutSettings.mount(container as HTMLElement);
                 break;
             default:
                 applySettingPanelSearch(container, "");

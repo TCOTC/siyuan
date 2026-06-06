@@ -13,7 +13,7 @@ import {bazaar} from "./bazaar";
 import {syncSettings} from "./sync";
 import {accessSettings} from "./access";
 import {appSettings} from "./appConfig";
-import {about} from "./about";
+import {aboutSettings} from "./about";
 
 /** 将指定设置页面挂载到容器 */
 export const mountConfigTab = (type: TConfigTab, containerElement: Element, app: App) => {
@@ -63,9 +63,7 @@ export const mountConfigTab = (type: TConfigTab, containerElement: Element, app:
             void appSettings.mount(containerElement as HTMLElement);
             break;
         case "about":
-            about.element = containerElement;
-            containerElement.innerHTML = about.genAboutHTML();
-            about.bindEvent();
+            void aboutSettings.mount(containerElement as HTMLElement);
             break;
     }
 };
