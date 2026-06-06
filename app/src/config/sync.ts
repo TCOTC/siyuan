@@ -56,106 +56,92 @@ export const syncSettings = {
     },
 
     send(controlId: string, value: unknown) {
-        const root = syncSettings.element;
         switch (controlId) {
-            case "account.displayTitle":
+            case "account.displayTitle": {
+                const displayTitle = Boolean(value) as Config.IAccount["displayTitle"];
                 fetchPost("/api/setting/setAccount", {
                     ...window.siyuan.config.account,
-                    displayTitle: Boolean(value),
+                    displayTitle,
                 }, (response) => {
                     window.siyuan.config.account = response.data;
                     onSetaccount();
                 });
                 break;
-            case "account.displayVIP":
+            }
+            case "account.displayVIP": {
+                const displayVIP = Boolean(value) as Config.IAccount["displayVIP"];
                 fetchPost("/api/setting/setAccount", {
                     ...window.siyuan.config.account,
-                    displayVIP: Boolean(value),
+                    displayVIP,
                 }, (response) => {
                     window.siyuan.config.account = response.data;
                     onSetaccount();
                 });
                 break;
+            }
 
             case "sync.provider": {
                 const provider = value as Config.ISync["provider"];
-                fetchPost("/api/sync/setSyncProvider", {provider}, (response) => {
-                    const syncProviderElement = document.querySelector(`#${CSS.escape("sync.provider")}`) as HTMLSelectElement | null;
-                    if (response.code === 1) {
-                        showMessage(response.msg);
-                        if (syncProviderElement) {
-                            syncProviderElement.value = "0";
-                        }
-                        window.siyuan.config.sync.provider = 0;
-                    } else {
-                        window.siyuan.config.sync.provider = provider;
-                    }
-                    if (root) {
-                        setSyncConfigItemVisible(root);
-                        setSyncModeRelatedConfigItemVisible(root);
-                        renderProviderConfig(root);
-                        renderCloudSpace(root);
-                    }
-                    const syncConfigElement = root?.querySelector("#syncCloudList");
-                    if (syncConfigElement) {
-                        syncConfigElement.innerHTML = "";
-                        syncConfigElement.classList.add("fn__none");
-                    }
+                fetchPost("/api/sync/setSyncProvider", {provider}, () => {
+                    window.siyuan.config.sync.provider = provider;
+                    syncSettings.refreshSyncCloudSpaceGroup(syncSettings.element!);
                 });
                 break;
             }
             case "sync.enabled": {
-                const enabled = Boolean(value);
-                if (enabled && window.siyuan.config.sync.cloudName === "") {
-                    const switchElement = document.querySelector(`#${CSS.escape("sync.enabled")}`) as HTMLInputElement | null;
-                    if (switchElement) {
-                        switchElement.checked = false;
-                    }
-                    showMessage(window.siyuan.languages._kernel[123]);
-                    return;
-                }
+                const enabled = Boolean(value) as Config.ISync["enabled"];
                 fetchPost("/api/sync/setSyncEnable", {enabled}, () => {
                     window.siyuan.config.sync.enabled = enabled;
                     processSync();
                 });
                 break;
             }
-            case "sync.generateConflictDoc":
-                fetchPost("/api/sync/setSyncGenerateConflictDoc", {enabled: Boolean(value)}, () => {
-                    window.siyuan.config.sync.generateConflictDoc = Boolean(value);
+            case "sync.generateConflictDoc": {
+                const generateConflictDoc = Boolean(value) as Config.ISync["generateConflictDoc"];
+                fetchPost("/api/sync/setSyncGenerateConflictDoc", {enabled: generateConflictDoc}, () => {
+                    window.siyuan.config.sync.generateConflictDoc = generateConflictDoc;
                 });
                 break;
-            case "sync.mode":
-                fetchPost("/api/sync/setSyncMode", {mode: value as number}, () => {
-                    window.siyuan.config.sync.mode = value as number;
-                    if (root) {
-                        setSyncModeRelatedConfigItemVisible(root);
-                    }
+            }
+            case "sync.mode": {
+                const mode = value as Config.ISync["mode"];
+                fetchPost("/api/sync/setSyncMode", {mode}, () => {
+                    window.siyuan.config.sync.mode = mode;
+                    setSyncModeRelatedConfigItemVisible(syncSettings.element!);
                 });
                 break;
-            case "sync.interval":
-                fetchPost("/api/sync/setSyncInterval", {interval: value as number}, () => {
-                    window.siyuan.config.sync.interval = value as number;
+            }
+            case "sync.interval": {
+                const interval = value as Config.ISync["interval"];
+                fetchPost("/api/sync/setSyncInterval", {interval}, () => {
+                    window.siyuan.config.sync.interval = interval;
                     processSync();
                 });
                 break;
-            case "sync.perception":
-                fetchPost("/api/sync/setSyncPerception", {enabled: Boolean(value)}, () => {
-                    window.siyuan.config.sync.perception = Boolean(value);
+            }
+            case "sync.perception": {
+                const perception = Boolean(value) as Config.ISync["perception"];
+                fetchPost("/api/sync/setSyncPerception", {enabled: perception}, () => {
+                    window.siyuan.config.sync.perception = perception;
                     processSync();
                 });
                 break;
+            }
 
-            case "repo.indexRetentionDays":
-                fetchPost("/api/repo/setRepoIndexRetentionDays", {days: value as number}, () => {
-                    window.siyuan.config.repo.indexRetentionDays = value as number;
+            case "repo.indexRetentionDays": {
+                const indexRetentionDays = value as Config.IRepo["indexRetentionDays"];
+                fetchPost("/api/repo/setRepoIndexRetentionDays", {days: indexRetentionDays}, () => {
+                    window.siyuan.config.repo.indexRetentionDays = indexRetentionDays;
                 });
                 break;
-            case "repo.retentionIndexesDaily":
-                fetchPost("/api/repo/setRetentionIndexesDaily", {indexes: value as number}, () => {
-                    window.siyuan.config.repo.retentionIndexesDaily = value as number;
+            }
+            case "repo.retentionIndexesDaily": {
+                const retentionIndexesDaily = value as Config.IRepo["retentionIndexesDaily"];
+                fetchPost("/api/repo/setRetentionIndexesDaily", {indexes: retentionIndexesDaily}, () => {
+                    window.siyuan.config.repo.retentionIndexesDaily = retentionIndexesDaily;
                 });
                 break;
+            }
             default:
                 break;
         }
@@ -170,7 +156,6 @@ export const syncSettings = {
         if (syncConfigElement) {
             syncConfigElement.innerHTML = "";
             syncConfigElement.classList.add("fn__none");
-            bindSyncCloudListEvent(syncConfigElement);
         }
     },
 };
@@ -833,7 +818,7 @@ const readProviderConfigFields = <T extends object>(configElement: Element, temp
 };
 
 const renderCloudSpace = (root: Element) => {
-    const cloudSpaceElement = root?.querySelector("#cloudSpace");
+    const cloudSpaceElement = root.querySelector("#cloudSpace");
     if (!cloudSpaceElement) {
         return;
     }

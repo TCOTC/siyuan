@@ -45,13 +45,7 @@ export const addCloudName = (cloudListElement: Element) => {
     });
 };
 
-const syncCloudListBoundElements = new WeakSet<Element>();
-
 export const bindSyncCloudListEvent = (cloudListElement: Element, cb?: () => void) => {
-    if (syncCloudListBoundElements.has(cloudListElement)) {
-        return;
-    }
-    syncCloudListBoundElements.add(cloudListElement);
     cloudListElement.addEventListener("click", (event) => {
         let target = event.target as HTMLElement;
         while (target && !target.isEqualNode(cloudListElement)) {
@@ -245,7 +239,7 @@ const setSync = (key?: string, dialog?: Dialog) => {
     </div>
 </div>
 <div class="b3-dialog__action">
-    <button class="b3-button" disabled="disabled">${window.siyuan.languages.openSyncTip1}</button>
+    <button class="b3-button" disabled>${window.siyuan.languages.openSyncTip1}</button>
 </div>`;
         if (dialog) {
             dialog.element.querySelector(".b3-dialog__header").innerHTML = "🗂️ " + window.siyuan.languages.cloudSyncDir;
@@ -259,21 +253,12 @@ const setSync = (key?: string, dialog?: Dialog) => {
         }
         dialog.element.setAttribute("data-key", Constants.DIALOG_SYNCCHOOSEDIR);
         const contentElement = dialog.element.querySelector(".b3-dialog__content").lastElementChild;
-        const btnElement = dialog.element.querySelector(".b3-button");
-        bindSyncCloudListEvent(contentElement, () => {
-            if (contentElement.querySelector("input[checked]")) {
-                btnElement.removeAttribute("disabled");
-            } else {
-                btnElement.setAttribute("disabled", "disabled");
-            }
-        });
-        renderSyncCloudList(contentElement, false, () => {
-            if (contentElement.querySelector("input[checked]")) {
-                btnElement.removeAttribute("disabled");
-            } else {
-                btnElement.setAttribute("disabled", "disabled");
-            }
-        });
+        const btnElement = dialog.element.querySelector(".b3-button") as HTMLButtonElement;
+        const updateOpenSyncBtn = () => {
+            btnElement.disabled = !contentElement.querySelector("input[checked]");
+        };
+        bindSyncCloudListEvent(contentElement, updateOpenSyncBtn);
+        renderSyncCloudList(contentElement, false, updateOpenSyncBtn);
         btnElement.addEventListener("click", () => {
             dialog.destroy();
             fetchPost("/api/sync/setSyncEnable", {enabled: true}, () => {
