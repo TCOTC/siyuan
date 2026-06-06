@@ -1,5 +1,6 @@
 import {showMessage} from "../dialog/message";
 import {getCloudURL} from "../config/util/about";
+import {isInIOS} from "../protyle/util/compatibility";
 
 export const needSubscribe = (tip = window.siyuan.languages._kernel[29]) => {
     if (window.siyuan.user && (window.siyuan.user.userSiYuanProExpireTime === -1 || window.siyuan.user.userSiYuanProExpireTime > 0)) {
@@ -7,14 +8,10 @@ export const needSubscribe = (tip = window.siyuan.languages._kernel[29]) => {
         return false;
     }
     if (tip) {
-        if (tip === window.siyuan.languages._kernel[29] && window.siyuan.config.system.container === "ios") {
-            showMessage(window.siyuan.languages._kernel[295]);
-        } else {
-            if (tip === window.siyuan.languages._kernel[29]) {
-                tip = window.siyuan.languages._kernel[29].replaceAll("${accountServer}", getCloudURL(""));
-            }
-            showMessage(tip);
+        if (tip === window.siyuan.languages._kernel[29]) {
+            tip = isInIOS() ? window.siyuan.languages._kernel[295] : window.siyuan.languages._kernel[29].replaceAll("${accountServer}", getCloudURL(""));
         }
+        showMessage(tip);
     }
     return true;
 };

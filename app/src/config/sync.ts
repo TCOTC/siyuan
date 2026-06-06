@@ -484,9 +484,7 @@ const SYNC_PROVIDER_DEFS: Record<Config.ISync["provider"], SyncProviderDef> = {
         genUnpaidIntro: () => {
             const accountServer = getCloudURL("");
             return `<div class="b3-label b3-label--inner">
-    ${window.siyuan.config.system.container === "ios"
-        ? window.siyuan.languages._kernel[295]
-        : window.siyuan.languages._kernel[29].replaceAll("${accountServer}", accountServer)}
+    ${isInIOS() ? window.siyuan.languages._kernel[295] : window.siyuan.languages._kernel[29].replaceAll("${accountServer}", accountServer)}
 </div>
 <div class="b3-label b3-label--inner">
     ${window.siyuan.languages.cloudIntro1}
@@ -657,7 +655,7 @@ const renderProviderConfig = (root: Element) => {
         if (!def.isProviderConfigAllowed()) {
             html = def.genUnpaidIntro();
         } else if (isThirdPartySyncProviderDef(def)) {
-            html = `${def.genIntro()}${def.fields.map(renderProviderField).join("")}${genProviderActionButtons(def.configKey)}`;
+            html = `${def.genIntro()}${def.fields.map(genProviderField).join("")}${genProviderActionButtons(def.configKey)}`;
         } else {
             html = def.genIntro();
         }
@@ -667,7 +665,7 @@ const renderProviderConfig = (root: Element) => {
     bindProviderConfigEvent(providerConfigElement, root);
 };
 
-const renderProviderField = (field: SyncProviderFieldDef): string => {
+const genProviderField = (field: SyncProviderFieldDef): string => {
     switch (field.type) {
         case "input":
             return genProviderFlexInput(field.label, field.id, field.attrs);
