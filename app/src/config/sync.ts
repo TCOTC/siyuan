@@ -299,10 +299,10 @@ export function buildSyncSections(): SettingSection[] {
                     html: () => `<div class="fn__flex b3-label config-item config-wrap">
     <div class="fn__flex-1 fn__flex-center">
         ${genConfigItemName(window.siyuan.languages.dataRepoKey)}
-        <div class="fn__hr"></div>
+        <div class="fn__hr--small"></div>
         <div class="b3-label__text">
             ${window.siyuan.languages.dataRepoKeyTip1}
-            <div class="fn__hr"></div>
+            <div class="fn__hr--small"></div>
             <span class="ft__error">${window.siyuan.languages.dataRepoKeyTip2}</span>
         </div>
     </div>

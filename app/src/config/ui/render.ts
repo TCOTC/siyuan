@@ -178,7 +178,7 @@ const genTextBlockRow = (row: Pick<SettingRowTextBlock, "id" | "title" | "desc" 
     <div class="fn__block">
         ${genConfigItemName(title)}
         <div class="b3-label__text">${desc}</div>
-        <div class="fn__hr"></div>
+        <div class="fn__hr--small"></div>
         ${field}
     </div>
 </div>`;
@@ -212,9 +212,12 @@ const genStackRight = (r: StackRight): string => {
     }
 };
 
-const genStackLeft = (left: StackLeft): string => {
+const genStackLeft = (left: StackLeft, hasRight: boolean): string => {
     if (left.kind === "textBlock") {
-        return `<div class="fn__flex-1 fn__block">${genTextBlockFieldHtml(left.id, left.mode, left.value)}</div>`;
+        return `<div class="${hasRight ? "fn__flex-1 " : ""}fn__block">${genTextBlockFieldHtml(left.id, left.mode, left.value)}</div>`;
+    }
+    if (!hasRight) {
+        return left.kind === "title" ? genConfigItemName(left.text) : `<div class="b3-label__text">${left.text}</div>`;
     }
     return `<div class="fn__flex-center fn__flex-1${left.kind === "desc" ? " ft__on-surface" : " config-name"}">${left.text}</div>`;
 };
@@ -254,16 +257,16 @@ const genSwitchQuery = (row: SettingRowSwitchQuery): string =>
 const genStack = (entry: SettingRowStack): string => {
     const parts: string[] = [];
     entry.lines.forEach((line, index) => {
-        if (index > 0) {
-            parts.push('<div class="fn__hr"></div>');
-        }
         const {left, right} = line;
+        if (index > 0 && (right || left.kind !== "desc")) {
+            parts.push('<div class="fn__hr--small"></div>');
+        }
         if (!right) {
-            parts.push(`<div class="fn__flex config-wrap">${genStackLeft(left)}</div>`);
+            parts.push(genStackLeft(left, false));
         } else {
             const tag = right.kind === "switch" ? "label" : "div";
             parts.push(`<${tag} class="fn__flex${right.kind === "switch" ? "" : " config-wrap"}">
-    ${genStackLeft(left)}
+    ${genStackLeft(left, true)}
     <span class="fn__space"></span>
     ${genStackRight(right)}
 </${tag}>`);
@@ -282,7 +285,7 @@ const genNotebookSavePathRow = (
     `<div class="b3-label config-item config-item--save-path">
     ${genConfigItemName(title)}
     <div class="b3-label__text">${desc}</div>
-    <div class="fn__hr"></div>
+    <div class="fn__hr--small"></div>
     <div class="fn__flex config-wrap">
         <select class="b3-select fn__size200" id="${selectId}">${selectOptionsHtml}</select>
         <div class="fn__space"></div>

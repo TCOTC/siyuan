@@ -131,8 +131,8 @@ export type StackControl = Extract<StackLeft, {kind: "textBlock"}> | StackRight;
 
 /**
  * 一节内纵向堆叠：横幅行 / 分栏行等。
- * 用于「左列为标题或描述、右列可选为按钮 / 下拉 / 输入」的重复版式；最外层固定为 `b3-label`，相邻 `lines` 之间由渲染层自动插入 `fn__hr`。
- * stack 外层为 `b3-label config-item`；子行为 `fn__flex config-wrap`（横排）或 `fn__flex`（switch，无 config-wrap）。
+ * 用于「左列为标题或描述、右列可选为按钮 / 下拉 / 输入」的重复版式；最外层固定为 `b3-label`，相邻 `lines` 之间由渲染层自动插入 `fn__hr`（仅左列 desc 除外，与 title 连续排版）。
+ * stack 外层为 `b3-label config-item`；仅左列时 title 用 `config-name`、desc 用 `b3-label__text`、输入用 `fn__block`；有右列时为 `fn__flex config-wrap`（横排）或 `fn__flex`（switch，无 config-wrap）。
  * 独立横排行为 `config-item config-wrap`；独立 switch 为 `config-item`。
  * 设置搜索侧栏索引由 `lines` 中左列与右侧控件可见文案自动汇总。
  */

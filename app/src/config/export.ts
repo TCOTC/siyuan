@@ -211,7 +211,7 @@ export function buildExportSections(): SettingSection[] {
                         {
                             left: {
                                 kind: "desc",
-                                text: `${window.siyuan.languages.export29}<div class="fn__hr"></div>${window.siyuan.languages.export10}`,
+                                text: `${window.siyuan.languages.export29}<div class="fn__hr--small"></div>${window.siyuan.languages.export10}`,
                             },
                         },
                         {
