@@ -154,6 +154,28 @@ export function buildAiSections(): SettingSection[] {
                     max: 2,
                     step: "0.1",
                 }),
+                numberRow({
+                    id: "ai.openAI.agentTimeout",
+                    title: window.siyuan.languages.agentTimeout,
+                    desc: window.siyuan.languages.agentTimeoutTip,
+                    min: 0,
+                    unit: "s",
+                }),
+                numberRow({
+                    id: "ai.openAI.agentConfirmTimeout",
+                    title: window.siyuan.languages.agentConfirmTimeout,
+                    desc: window.siyuan.languages.agentConfirmTimeoutTip,
+                    min: 10,
+                    max: 600,
+                    unit: "s",
+                }),
+                numberRow({
+                    id: "ai.openAI.agentMaxRetries",
+                    title: window.siyuan.languages.agentMaxRetries,
+                    desc: window.siyuan.languages.agentMaxRetriesTip,
+                    min: 0,
+                    max: 10,
+                }),
             ],
         },
     ];
