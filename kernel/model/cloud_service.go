@@ -668,7 +668,7 @@ func Login(userName, password, captcha string, cloudRegion int) (ret *gulu.Resul
 		Data: map[string]any{
 			"userName":    result["userName"],
 			"token":       result["token"],
-			"needCaptcha": result["needCaptcha"],
+			"needCaptcha": result["needCaptcha"], // 值为 user id
 		},
 	}
 	if -1 == ret.Code {

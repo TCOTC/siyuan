@@ -163,141 +163,78 @@
     }
   }
 
-  &-account {
-    height: 100%;
+  &-account__row-actions {
+    align-items: center;
+  }
 
-    &__list {
-      .b3-chips {
-        margin-top: 4px;
-      }
+  &-account__profile {
+    align-items: center;
+    min-width: 0;
+  }
+
+  &-account__profile-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &-account__profile-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    min-width: 0;
+    column-gap: 8px;
+  }
+
+  &-account__profile-meta {
+    display: contents;
+  }
+
+  &-account__profile-name {
+    order: 1;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &-account__profile-titles {
+    order: 2;
+    flex: 0 1 auto;
+    padding: 0;
+    align-self: center;
+    justify-content: flex-start;
+
+    .b3-chip {
+      gap: 4px;
+      margin: 2px 4px 2px 0;
     }
+  }
 
-    &__pay-content {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+  &-account__profile-region {
+    order: 3;
+    flex: 1 1 100%;
+  }
 
-    &__pay-header {
-      align-items: center;
-      width: 100%;
-      flex-wrap: wrap;
-      gap: 8px 12px;
+  &-account__profile-avatar {
+    height: 48px;
+    width: 48px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 1px solid var(--b3-border-color);
+    background-color: var(--b3-theme-surface-lighter);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-      .b3-chips {
-        margin-top: 0;
-      }
-    }
+  &-account__svg {
+    flex-wrap: wrap;
 
-    &__pay-label {
-      flex-shrink: 0;
-    }
-
-    &__pay-status {
-      align-items: center;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      margin-left: auto;
-    }
-
-    &__row-actions {
-      align-items: center;
-    }
-
-    &__profile-avatar {
-      height: 48px;
-      width: 48px;
-      flex-shrink: 0;
-      border-radius: 50%;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      border: 1px solid var(--b3-border-color);
-      background-color: var(--b3-theme-surface-lighter);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    &__center {
-      flex-direction: column;
-      justify-content: center;
-      flex: 1;
-      display: flex;
-      min-width: 1px;
-      align-items: center;
-
-      &--text {
-        background-color: var(--b3-theme-surface);
-        padding: 16px 24px;
-        overflow: auto;
-
-        .b3-button--outline {
-          white-space: normal;
-        }
-      }
-    }
-
-    &__form {
-      max-width: 298px;
-      width: 100%;
-    }
-
-    &__bg {
-      position: relative;
-      margin-bottom: 82px;
-      width: 100%;
-      flex: 1;
-      min-height: 128px;
-    }
-
-    &__info {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 16px 24px;
-      margin-top: 10vh;
-    }
-
-    &__cover {
-      position: absolute;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-size: cover;
-      background-position: center center;
-    }
-
-    &__avatar {
-      position: absolute;
-      bottom: 24px;
-      width: 128px;
-      height: 128px;
-      left: 50%;
-      margin-left: -64px;
-      background-repeat: no-repeat;
-      background-position: 50%;
-      background-size: cover;
-      border-radius: 90px;
-      background-color: rgba(255, 255, 255, .8);
-      box-shadow: var(--b3-point-shadow);
-      border: 1px solid var(--b3-theme-surface-lighter);
-    }
-
-    &__name {
-      bottom: -58px;
-      position: absolute;
-      width: 100%;
-      text-align: center;
-    }
-
-    &__svg {
-      flex-wrap: wrap;
-
-      svg {
-        margin: 8px;
-        height: 16px;
-        width: 16px;
-      }
+    svg {
+      margin: 8px;
+      height: 16px;
+      width: 16px;
     }
   }
 
@@ -490,8 +427,45 @@
   }
 }
 
-#configAccountLoginRoot {
+#configAccountMain.config-wrap {
+  @media (max-width: 750px) {
+    .config-account__profile-meta {
+      display: block;
+      flex: 0 1 auto;
+      min-width: 0;
+    }
+
+    .config-account__profile-main {
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
+
+    .config-account__profile-titles {
+      flex: 1 1 0;
+      min-width: 0;
+      justify-content: flex-end;
+
+      .b3-chip {
+        margin: 2px 0 2px 4px;
+        max-width: 100%;
+      }
+    }
+
+    .config-account__profile-region {
+      flex: unset;
+    }
+
+    .config-account__row-actions {
+      margin-top: 8px;
+    }
+  }
+}
+
+#configAccountMain.config-account--login, .config-account--auth {
+  box-sizing: border-box;
   max-width: 400px;
   width: 100%;
-  align-self: center;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 16px 0;
 }

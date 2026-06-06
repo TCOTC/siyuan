@@ -2,11 +2,10 @@ import {showMessage} from "../dialog/message";
 import {Constants} from "../constants";
 import {fetchPost, fetchSyncPost} from "../util/fetch";
 import {confirmDialog} from "../dialog/confirmDialog";
-import {saveExportFile, writeText} from "../protyle/util/compatibility";
+import {isInIOS, saveExportFile, writeText} from "../protyle/util/compatibility";
 import {processSync} from "../dialog/processSystem";
 import {isPaidUser, needSubscribe} from "../util/needSubscribe";
-import {bindSyncCloudListEvent, renderSyncCloudList, setKey, syncGuide} from "../sync/syncGuide";
-import {hideElements} from "../protyle/ui/hideElements";
+import {bindSyncCloudListEvent, renderSyncCloudList, setKey} from "../sync/syncGuide";
 import {getCloudURL} from "./util/about";
 import {Dialog} from "../dialog";
 import {
@@ -23,8 +22,8 @@ import {genConfigItemMainHtml, genSettingTabHtmlFromSections, genConfigItemName}
 import {readDomValue} from "./ui/formValue";
 import {
     buildAccountSection,
-    mountSiyuanAccountDebugPanel,
-    sendAccountSetting,
+    debugMountPanel,
+    onSetaccount,
     updateAccountSwitchesVisibility,
 } from "./account";
 
@@ -45,7 +44,7 @@ export const syncSettings = {
         renderCloudSpace(root);
 
         updateAccountSwitchesVisibility(root);
-        mountSiyuanAccountDebugPanel();
+        debugMountPanel();
     },
 
     set(el: HTMLElement, controlId: string) {
@@ -60,8 +59,22 @@ export const syncSettings = {
         const root = syncSettings.element;
         switch (controlId) {
             case "account.displayTitle":
+                fetchPost("/api/setting/setAccount", {
+                    ...window.siyuan.config.account,
+                    displayTitle: Boolean(value),
+                }, (response) => {
+                    window.siyuan.config.account = response.data;
+                    onSetaccount();
+                });
+                break;
             case "account.displayVIP":
-                sendAccountSetting();
+                fetchPost("/api/setting/setAccount", {
+                    ...window.siyuan.config.account,
+                    displayVIP: Boolean(value),
+                }, (response) => {
+                    window.siyuan.config.account = response.data;
+                    onSetaccount();
+                });
                 break;
 
             case "sync.provider": {
@@ -148,18 +161,6 @@ export const syncSettings = {
         }
     },
 
-    _tryGoRepos(element: Element) {
-        if (element.getAttribute("data-action") !== "go-repos") {
-            return;
-        }
-        if (needSubscribe("") && 0 === window.siyuan.config.sync.provider) {
-            element.removeAttribute("data-action");
-        } else {
-            hideElements(["dialog"]);
-            syncGuide();
-        }
-    },
-
     refreshSyncCloudSpaceGroup(root: Element) {
         setSyncConfigItemVisible(root);
         setSyncModeRelatedConfigItemVisible(root);
@@ -175,8 +176,7 @@ export const syncSettings = {
 };
 
 const setSyncConfigItemVisible = (root: Element) => {
-    const isProviderOfficial = window.siyuan.config.sync.provider === 0;
-    const visible = isProviderOfficial ? !needSubscribe("") : isPaidUser();
+    const visible = window.siyuan.config.sync.provider === 0 ? !needSubscribe("") : isPaidUser();
     [
         "cloudSpace",
         "sync.enabled",
