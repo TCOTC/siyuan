@@ -159,37 +159,22 @@ export const syncGuide = (app?: App) => {
     if (window.siyuan.config.readonly) {
         return;
     }
-    /// #if MOBILE
-    if (0 === window.siyuan.config.sync.provider) {
-        if (needSubscribe()) {
-            return;
-        }
-    } else if (!isPaidUser()) {
-        showMessage(window.siyuan.languages["_kernel"][214].replaceAll("${accountServer}", getCloudURL("")));
+    if (app && document.querySelector("#barSync")?.classList.contains("toolbar__item--active")) {
         return;
     }
-    /// #else
-    if (document.querySelector("#barSync")?.classList.contains("toolbar__item--active")) {
-        return;
-    }
-    if (app && 0 === window.siyuan.config.sync.provider && needSubscribe("")) {
-        const dialogSetting = openSetting(app, "sync");
-        if (!window.siyuan.user) {
-            dialogSetting?.element.querySelector('.config__tab-container[data-name="sync"]')?.setAttribute("data-action", "go-repos");
-        }
-        return;
-    }
-    if (app && 0 !== window.siyuan.config.sync.provider) {
-        if (!window.siyuan.user) {
+    if (window.siyuan.config.sync.provider === 0 && needSubscribe()) {
+        if (app) {
             openSetting(app, "sync");
-            return;
         }
-        if (!isPaidUser()) {
-            showMessage(window.siyuan.languages["_kernel"][214].replaceAll("${accountServer}", getCloudURL("")));
-            return;
+        showMessage(window.siyuan.languages._kernel[29].replaceAll("${accountServer}", getCloudURL("")));
+        return;
+    } else if (!isPaidUser()) {
+        if (app) {
+            openSetting(app, "sync");
         }
+        showMessage(window.siyuan.languages._kernel[214].replaceAll("${accountServer}", getCloudURL("")));
+        return;
     }
-    /// #endif
     if (!window.siyuan.config.repo.key) {
         setKey(true);
         return;
@@ -323,7 +308,7 @@ export const setKey = (isSync: boolean, cb?: () => void) => {
 </div>
 <div class="b3-dialog__action">
     <label class="fn__flex">
-        <input type="checkbox" class="b3-switch fn__flex-center">
+        <input type="checkbox">
         <span class="fn__space"></span>
         ${window.siyuan.languages.confirmPassword}
     </label>
