@@ -23,6 +23,23 @@
       }
     }
 
+    // 该类名目前只有旧的插件设置使用
+    &__item {
+      flex-wrap: wrap;
+
+      & > .b3-text-field,
+      & > .b3-select,
+      .b3-slider,
+      & > .b3-button,
+      & > .b3-tooltips,
+      & > .b3-form__icona,
+      &-line,
+      .searchByKeyLabel {
+        width: 100%;
+        margin-top: 8px;
+      }
+    }
+
     &-wrap {
       flex-wrap: wrap;
       align-items: flex-start;
