@@ -13,6 +13,7 @@ export interface SettingRowText {
     id: string;
     title: string;
     desc: string;
+    bind?: (root: HTMLElement) => void | Promise<void>;
 }
 
 /** 同一行左右双文本框 */

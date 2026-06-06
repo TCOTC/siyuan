@@ -1,215 +1,130 @@
 import {fetchPost} from "../util/fetch";
 import {Dialog} from "../dialog";
 import {Constants} from "../constants";
-import {hasClosestByTag} from "../protyle/util/hasClosest";
-import {hasClosestByClassName} from "../protyle/util/hasClosest";
-import {isMobile} from "../util/functions";
+import {isBrowser, isMobile} from "../util/functions";
 import {showMessage} from "../dialog/message";
 /// #if !BROWSER
 import {shell} from "electron";
-import {useShell} from "../util/pathName";
 /// #endif
 import {exportLayout} from "../layout/util";
 import {exitSiYuan} from "../dialog/processSystem";
-import {isBrowser} from "../util/functions";
-import {isInMobileApp, isIPad, saveExportFile} from "../protyle/util/compatibility";
-import {genConfigItemMainHtml, genConfigGroup, genConfigItemName} from "./ui/render";
-export const access = {
-    element: undefined as Element,
-    genHTML: () => {
-        return genConfigGroup(`
-    <div class="b3-label config-item${(window.siyuan.config.readonly || (isBrowser() && !isInMobileApp() && !isIPad())) ? " fn__none" : ""}">
-        <div class="fn__flex config-wrap">
-            ${genConfigItemMainHtml(window.siyuan.languages.about5, window.siyuan.languages.about6)}
-            <div class="fn__space"></div>
-            <button class="fn__flex-center b3-button b3-button--outline fn__size200" id="authCode">
-                <svg><use xlink:href="#iconLock"></use></svg>${window.siyuan.languages.config}
-            </button>
-        </div>
-        <label class="b3-label fn__flex${!window.siyuan.config.accessAuthCode || isBrowser() ? " fn__none" : ""}">
-            ${genConfigItemMainHtml(window.siyuan.languages.about7, window.siyuan.languages.about8)}
-            <div class="fn__space"></div>
-            <input class="b3-switch fn__flex-center" id="lockScreenMode" type="checkbox"${window.siyuan.config.system.lockScreenMode === 1 ? " checked" : ""}>
-        </label>
-    </div>
-    <div class="fn__flex b3-label config-item config-wrap${(isBrowser() && !isInMobileApp()) ? " fn__none" : ""}">
-        <div class="fn__flex-1">
-            ${genConfigItemName(window.siyuan.languages.about13)}
-            <div class="b3-label__text" id="tokenTip">${window.siyuan.languages.about14.replace("${token}", window.siyuan.config.api.token)}</div>
-        </div>
-        <span class="fn__space"></span>
-        <input class="b3-text-field fn__flex-center fn__size200" id="token" value="${window.siyuan.config.api.token}">
-    </div>
-`, window.siyuan.languages.authentication) + genConfigGroup(`
-    <div class="b3-label config-item${(isBrowser() && !isInMobileApp() && !isIPad()) ? " fn__none" : ""}">
-        <label class="fn__flex b3-label">
-            ${genConfigItemMainHtml(window.siyuan.languages.about11, window.siyuan.languages.about12)}
-            <div class="fn__space"></div>
-            <input class="b3-switch fn__flex-center" id="networkServe" type="checkbox"${window.siyuan.config.system.networkServe ? " checked" : ""}>
-        </label>
-        <label class="b3-label fn__flex${window.siyuan.config.system.networkServe ? "" : " fn__none"}">
-            <div class="fn__flex-1">
-                ${genConfigItemName(window.siyuan.languages.networkServeTLS)}
-                <div class="b3-label__text">${window.siyuan.languages.networkServeTLSTip}</div>
-                <div class="b3-label__text">${window.siyuan.languages.networkServeTLSTip2}</div>
-            </div>
-            <div class="fn__space"></div>
-            <input class="b3-switch fn__flex-center" id="networkServeTLS" type="checkbox"${window.siyuan.config.system.networkServeTLS ? " checked" : ""}${!window.siyuan.config.system.networkServe ? " disabled" : ""}>
-        </label>
-        <div class="fn__flex b3-label config-wrap${(window.siyuan.config.system.networkServeTLS && window.siyuan.config.system.networkServe) ? "" : " fn__none"}">
-            ${genConfigItemMainHtml(window.siyuan.languages.exportCACert, window.siyuan.languages.exportCACertTip)}
-            <div class="fn__space"></div>
-            <button class="b3-button b3-button--outline fn__size200 fn__flex-center" id="exportCACert">
-                <svg><use xlink:href="#iconUpload"></use></svg>${window.siyuan.languages.export}
-            </button>
-        </div>
-        <div class="fn__flex b3-label config-wrap${(window.siyuan.config.system.networkServeTLS && window.siyuan.config.system.networkServe) ? "" : " fn__none"}">
-            ${genConfigItemMainHtml(window.siyuan.languages.exportCABundle, window.siyuan.languages.exportCABundleTip)}
-            <div class="fn__space"></div>
-            <button class="b3-button b3-button--outline fn__size200 fn__flex-center" id="exportCABundle">
-                <svg><use xlink:href="#iconUpload"></use></svg>${window.siyuan.languages.export}
-            </button>
-        </div>
-        <div class="fn__flex b3-label config-wrap${(window.siyuan.config.system.networkServeTLS && window.siyuan.config.system.networkServe) ? "" : " fn__none"}">
-            ${genConfigItemMainHtml(window.siyuan.languages.importCABundle, window.siyuan.languages.importCABundleTip)}
-            <div class="fn__space"></div>
-            <button class="b3-button b3-button--outline fn__size200 fn__flex-center" id="importCABundle">
-                <svg><use xlink:href="#iconDownload"></use></svg>${window.siyuan.languages.import}
-            </button>
-        </div>
-    </div>
-    <div class="b3-label config-item${(isBrowser() && !isInMobileApp()) ? " fn__none" : ""}">
-        <div class="fn__flex config-wrap">
-        <div class="fn__flex-1">
-            ${genConfigItemName(window.siyuan.languages.about2)}
-            <div class="b3-label__text">${window.siyuan.languages.about3.replace("${port}", location.port)}</div>
-            ${(() => {
-            const serverAddrs: string[] = [];
-            for (const serverAddr of window.siyuan.config.serverAddrs) {
-                if (!serverAddr.trim()) {
-                    break;
-                }
+import {isInMobileApp, saveExportFile} from "../protyle/util/compatibility";
+import {genConfigItemMainHtml, genSettingTabHtmlFromSections} from "./ui/render";
+import {
+    type SettingSection,
+    switchRow,
+    textRow,
+    numberRow,
+    buttonRow,
+    stackRow,
+    customRow,
+    findSettingRowByControlId,
+} from "./ui/settingRows";
+import {filterSettingSections} from "./ui/search";
+import {readDomValue} from "./ui/formValue";
+import {mountSettingSaveHandlers} from "./ui/save";
 
-                serverAddrs.push(`<code class="fn__code">${serverAddr}</code>`);
-            }
-            return `<div class="b3-label__text">${serverAddrs.join(" ")}</div>`;
-        })()}
-            <div class="b3-label__text">${window.siyuan.languages.about18}</div>
-        </div>
-        <div class="fn__space"></div>
-        <button data-type="open" data-url="${"http://127.0.0.1:" + location.port}" class="b3-button b3-button--outline fn__size200 fn__flex-center">
-            <svg><use xlink:href="#iconLink"></use></svg>${window.siyuan.languages.about4}
-        </button>
-        </div>
-    </div>
-`, window.siyuan.languages.configGroupServer) + genConfigGroup(access.genPublishHTML(), window.siyuan.languages.configGroupPublish);
+export const accessSettings = {
+    element: undefined as HTMLElement | undefined,
+
+    mount: async (root: HTMLElement, searchQuery?: string) => {
+        accessSettings.element = root;
+        const sections = filterSettingSections(buildAccessSections(), searchQuery);
+        root.innerHTML = genSettingTabHtmlFromSections(sections);
+        await mountSettingSaveHandlers(root, sections);
     },
-    genPublishHTML: () => {
-        const mobile = isMobile();
-        return `
-<label class="fn__flex b3-label config-item">
-    ${genConfigItemMainHtml(window.siyuan.languages.publishService, window.siyuan.languages.publishServiceTip)}
-    <span class="fn__space"></span>
-    <input class="b3-switch fn__flex-center" id="publishEnable" type="checkbox"${window.siyuan.config.publish.enable ? " checked" : ""}/>
-</label>
-<div class="b3-label config-item">
-    ${(() => {
-            if (mobile) {
-                return `
-${genConfigItemName(window.siyuan.languages.publishServicePort)}
-<span class="fn__hr"></span>
-<input class="b3-text-field fn__block" id="publishPort" type="number" min="0" max="65535" value="${window.siyuan.config.publish.port}">
-<div class="b3-label__text">${window.siyuan.languages.publishServicePortTip}</div>`;
-            } else {
-                return `
-<div class="fn__flex config-wrap">
-    ${genConfigItemMainHtml(window.siyuan.languages.publishServicePort, window.siyuan.languages.publishServicePortTip)}
-    <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size200" id="publishPort" type="number" min="0" max="65535" value="${window.siyuan.config.publish.port}">
-</div>`;
-            }
-        })()}
-</div>
-<div class="b3-label config-item">
-    <div class="fn__flex config-wrap">
-        ${genConfigItemMainHtml(window.siyuan.languages.publishServiceAddresses, window.siyuan.languages.publishServiceAddressesTip)}
-        <div class="fn__space"></div>
-    </div>
-    <div class="fn__hr"></div>
-    <div id="publishAddresses">
-    </div>
-</div>
-<div class="b3-label config-item">
-    <label class="fn__flex b3-label">
-        ${genConfigItemMainHtml(window.siyuan.languages.publishServiceAuth, window.siyuan.languages.publishServiceAuthTip)}
-        <span class="fn__space"></span>
-        <input class="b3-switch fn__flex-center" id="publishAuthEnable" type="checkbox"${window.siyuan.config.publish.auth.enable ? " checked" : ""}/>
-    </label>
-</div>
-<div class="b3-label config-item">
-    ${(() => {
-            if (mobile) {
-                return `
-${genConfigItemName(window.siyuan.languages.publishServiceAuthAccounts)}
-<div class="b3-label__text">${window.siyuan.languages.publishServiceAuthAccountsTip}</div>
-<div class="b3-label b3-label--inner fn__flex">
-    <span class="fn__flex-1"></span>
-    <button class="b3-button b3-button--outline fn__size200 fn__flex-center" id="publishAuthAccountAdd">
-        <svg><use xlink:href="#iconAdd"></use></svg>${window.siyuan.languages.publishServiceAuthAccountAdd}
-    </button>
-</div>`;
-            } else {
-                return `
-<div class="fn__flex config-wrap">
-    ${genConfigItemMainHtml(window.siyuan.languages.publishServiceAuthAccounts, window.siyuan.languages.publishServiceAuthAccountsTip)}
-    <div class="fn__space"></div>
-    <button class="b3-button b3-button--outline fn__size200 fn__flex-center" id="publishAuthAccountAdd">
-        <svg><use xlink:href="#iconAdd"></use></svg>${window.siyuan.languages.publishServiceAuthAccountAdd}
-    </button>
-</div>`;
-            }
-        })()}
-    <div class="fn__flex-1" id="publishAuthAccounts">
-    </div>
-</div>
-`;
+
+    set(el: HTMLElement, controlId: string) {
+        const row = findSettingRowByControlId(buildAccessSections(), controlId);
+        const value = readDomValue(el, row);
+        if (value === undefined) {
+            return;
+        }
+        accessSettings.send(controlId, value);
     },
-    bindEvent: () => {
-        const root = access.element as Element;
-        const tokenElement = root.querySelector("#token") as HTMLInputElement;
-        tokenElement?.addEventListener("click", () => {
-            tokenElement.select();
-        });
-        tokenElement?.addEventListener("change", () => {
-            fetchPost("/api/system/setAPIToken", {token: tokenElement.value}, () => {
-                window.siyuan.config.api.token = tokenElement.value;
-                const tokenTipEl = root.querySelector("#tokenTip");
-                if (tokenTipEl) {
-                    tokenTipEl.innerHTML = window.siyuan.languages.about14.replace("${token}", window.siyuan.config.api.token);
-                }
-            });
-        });
-        root.querySelectorAll('[data-type="open"]').forEach(item => {
-            item.addEventListener("click", () => {
-                const url = item.getAttribute("data-url");
-                if (!url) {
-                    return;
-                }
-                /// #if !BROWSER
-                if (url.startsWith("http")) {
-                    shell.openExternal(url);
-                } else {
-                    useShell("openPath", url);
-                }
-                /// #else
-                window.open(url);
-                /// #endif
-            });
-        });
-        root.querySelector("#authCode")?.addEventListener("click", () => {
-            const dialog = new Dialog({
-                title: window.siyuan.languages.about5,
-                content: `<div class="b3-dialog__content">
+
+    send(controlId: string, value: unknown) {
+        switch (controlId) {
+            case "system.lockScreenMode": {
+                const lockScreenMode = (Boolean(value) ? 1 : 0) as Config.ISystem["lockScreenMode"];
+                fetchPost("/api/system/setFollowSystemLockScreen", {lockScreenMode}, () => {
+                    window.siyuan.config.system.lockScreenMode = lockScreenMode;
+                });
+                break;
+            }
+            case "api.token": {
+                const token = value as Config.IAPI["token"];
+                fetchPost("/api/system/setAPIToken", {token}, () => {
+                    window.siyuan.config.api.token = token;
+                    const tokenTipEl = accessSettings.element?.querySelector(`#${CSS.escape("api.token")}`)?.closest(".config-item")?.querySelector(".b3-label__text");
+                    if (tokenTipEl) {
+                        tokenTipEl.innerHTML = window.siyuan.languages.about14.replace("${token}", token);
+                    }
+                });
+                break;
+            }
+
+            case "system.networkServe": {
+                const networkServe = Boolean(value) as Config.ISystem["networkServe"];
+                fetchPost("/api/system/setNetworkServe", {networkServe}, () => {
+                    exportLayout({
+                        errorExit: true,
+                        cb: exitSiYuan,
+                    });
+                });
+                break;
+            }
+            case "system.networkServeTLS": {
+                const networkServeTLS = Boolean(value) as Config.ISystem["networkServeTLS"];
+                fetchPost("/api/system/setNetworkServeTLS", {networkServeTLS}, () => {
+                    exportLayout({
+                        errorExit: true,
+                        cb: exitSiYuan,
+                    });
+                });
+                break;
+            }
+
+            case "publish.enable": {
+                const enable = Boolean(value) as Config.IPublish["enable"];
+                savePublish(true, {enable});
+                break;
+            }
+            case "publish.port": {
+                const port = value as Config.IPublish["port"];
+                savePublish(true, {port});
+                break;
+            }
+            case "publish.auth.enable": {
+                const authEnable = Boolean(value) as Config.IPublishAuth["enable"];
+                savePublish(true, {authEnable});
+                break;
+            }
+            default:
+                break;
+        }
+    },
+};
+
+export function buildAccessSections(): SettingSection[] {
+    const hideOnWeb = isBrowser() && !isInMobileApp();
+
+    return [
+        ...(hideOnWeb ? [] : [{
+            title: window.siyuan.languages.authentication,
+            items: [
+                ...(window.siyuan.config.readonly ? [] : [
+                    buttonRow({
+                        id: "authCode",
+                        title: window.siyuan.languages.about5,
+                        desc: window.siyuan.languages.about6,
+                        label: window.siyuan.languages.config,
+                        icon: "iconLock",
+                        bind: (root) => {
+                            root.querySelector("#authCode")?.addEventListener("click", () => {
+                                const dialog = new Dialog({
+                                    title: window.siyuan.languages.about5,
+                                    content: `<div class="b3-dialog__content">
     <input class="b3-text-field fn__block" placeholder="${window.siyuan.languages.about5}" value="${window.siyuan.config.accessAuthCode}">
     <div class="b3-label__text">${window.siyuan.languages.about6}</div>
 </div>
@@ -217,178 +132,329 @@ ${genConfigItemName(window.siyuan.languages.publishServiceAuthAccounts)}
     <button class="b3-button b3-button--cancel">${window.siyuan.languages.cancel}</button><div class="fn__space"></div>
     <button class="b3-button b3-button--text">${window.siyuan.languages.confirm}</button>
 </div>`,
-                width: isMobile() ? "92vw" : "520px",
-            });
-            const inputElement = dialog.element.querySelector("input") as HTMLInputElement;
-            const btnsElement = dialog.element.querySelectorAll(".b3-button");
-            dialog.element.setAttribute("data-key", Constants.DIALOG_ACCESSAUTHCODE);
-            dialog.bindInput(inputElement, () => {
-                (btnsElement[1] as HTMLButtonElement).click();
-            });
-            inputElement.select();
-            btnsElement[0].addEventListener("click", () => {
-                dialog.destroy();
-            });
-            btnsElement[1].addEventListener("click", () => {
-                fetchPost("/api/system/setAccessAuthCode", {accessAuthCode: inputElement.value});
-            });
-        });
-        const networkServeElement = root.querySelector("#networkServe") as HTMLInputElement;
-        const networkServeTLSElement = root.querySelector("#networkServeTLS") as HTMLInputElement;
-        const networkServeContainElement = networkServeElement
-            ? hasClosestByClassName(networkServeElement, "b3-label") as HTMLElement
-            : null;
-        if (networkServeElement && networkServeTLSElement && networkServeContainElement) {
-            networkServeElement.addEventListener("change", () => {
-                networkServeTLSElement.disabled = !networkServeElement.checked;
-                if (!networkServeElement.checked) {
-                    networkServeTLSElement.checked = false;
-                }
-                Array.from(networkServeContainElement.children).forEach((item: HTMLElement, index) => {
-                    if (index === 1) {
-                        if (networkServeElement.checked) {
-                            item.classList.remove("fn__none");
-                        } else {
-                            item.classList.add("fn__none");
-                        }
-                    } else if (index > 1) {
-                        if (networkServeTLSElement.checked) {
-                            item.classList.remove("fn__none");
-                        } else {
-                            item.classList.add("fn__none");
-                        }
-                    }
-                });
-                fetchPost("/api/system/setNetworkServe", {networkServe: networkServeElement.checked}, () => {
-                    exportLayout({
-                        errorExit: true,
-                        cb: exitSiYuan
-                    });
-                });
-            });
-            networkServeTLSElement.addEventListener("change", () => {
-                Array.from(networkServeContainElement.children).forEach((item: HTMLElement, index) => {
-                    if (index > 1) {
-                        if (networkServeTLSElement.checked) {
-                            item.classList.remove("fn__none");
-                        } else {
-                            item.classList.add("fn__none");
-                        }
-                    }
-                });
-                fetchPost("/api/system/setNetworkServeTLS", {networkServeTLS: networkServeTLSElement.checked}, () => {
-                    exportLayout({
-                        errorExit: true,
-                        cb: exitSiYuan
-                    });
-                });
-            });
+                                    width: isMobile() ? "92vw" : "520px",
+                                });
+                                const inputElement = dialog.element.querySelector("input") as HTMLInputElement;
+                                const btnsElement = dialog.element.querySelectorAll(".b3-button");
+                                dialog.element.setAttribute("data-key", Constants.DIALOG_ACCESSAUTHCODE);
+                                dialog.bindInput(inputElement, () => {
+                                    (btnsElement[1] as HTMLButtonElement).click();
+                                });
+                                inputElement.select();
+                                btnsElement[0].addEventListener("click", () => {
+                                    dialog.destroy();
+                                });
+                                btnsElement[1].addEventListener("click", () => {
+                                    fetchPost("/api/system/setAccessAuthCode", {accessAuthCode: inputElement.value});
+                                });
+                            });
+                        },
+                    }),
+                ]),
+                ...(window.siyuan.config.accessAuthCode ? [
+                    switchRow({
+                        id: "system.lockScreenMode",
+                        title: window.siyuan.languages.about7,
+                        desc: window.siyuan.languages.about8,
+                    }),
+                ] : []),
+                textRow({
+                    id: "api.token",
+                    title: window.siyuan.languages.about13,
+                    desc: window.siyuan.languages.about14.replace("${token}", window.siyuan.config.api.token),
+                    bind: (root) => {
+                        const tokenElement = root.querySelector<HTMLInputElement>(`#${CSS.escape("api.token")}`);
+                        let tokenFocused = false;
+                        tokenElement?.addEventListener("focus", () => {
+                            tokenFocused = true;
+                        });
+                        tokenElement?.addEventListener("blur", () => {
+                            tokenFocused = false;
+                        });
+                        tokenElement?.addEventListener("mousedown", (event) => {
+                            if (!tokenFocused) {
+                                event.preventDefault();
+                                tokenElement.select();
+                            }
+                        });
+                    },
+                }),
+            ],
+        }]),
+        ...(hideOnWeb ? [] : [{
+            title: window.siyuan.languages.configGroupServer,
+            items: [
+                switchRow({
+                    id: "system.networkServe",
+                    title: window.siyuan.languages.about11,
+                    desc: window.siyuan.languages.about12,
+                }),
+                ...(window.siyuan.config.system.networkServe ? [
+                    switchRow({
+                        id: "system.networkServeTLS",
+                        title: window.siyuan.languages.networkServeTLS,
+                        desc: `${window.siyuan.languages.networkServeTLSTip}<div class="fn__hr--small"></div>${window.siyuan.languages.networkServeTLSTip2}`,
+                    }),
+                ] : []),
+                ...(window.siyuan.config.system.networkServe && window.siyuan.config.system.networkServeTLS ? [
+                    buttonRow({
+                        id: "exportCACert",
+                        title: window.siyuan.languages.exportCACert,
+                        desc: window.siyuan.languages.exportCACertTip,
+                        label: window.siyuan.languages.export,
+                        icon: "iconUpload",
+                        bind: (root) => {
+                            root.querySelector("#exportCACert")?.addEventListener("click", () => {
+                                fetchPost("/api/system/exportTLSCACert", {}, (response) => {
+                                    saveExportFile(response.data.path);
+                                });
+                            });
+                        },
+                    }),
+                    buttonRow({
+                        id: "exportCABundle",
+                        title: window.siyuan.languages.exportCABundle,
+                        desc: window.siyuan.languages.exportCABundleTip,
+                        label: window.siyuan.languages.export,
+                        icon: "iconUpload",
+                        bind: (root) => {
+                            root.querySelector("#exportCABundle")?.addEventListener("click", () => {
+                                fetchPost("/api/system/exportTLSCABundle", {}, (response) => {
+                                    saveExportFile(response.data.path);
+                                });
+                            });
+                        },
+                    }),
+                    buttonRow({
+                        id: "importCABundle",
+                        title: window.siyuan.languages.importCABundle,
+                        desc: window.siyuan.languages.importCABundleTip,
+                        label: window.siyuan.languages.import,
+                        icon: "iconDownload",
+                        bind: (root) => {
+                            root.querySelector("#importCABundle")?.addEventListener("click", () => {
+                                const input = document.createElement("input");
+                                input.type = "file";
+                                input.accept = ".zip";
+                                input.onchange = () => {
+                                    if (input.files && input.files[0]) {
+                                        const formData = new FormData();
+                                        formData.append("file", input.files[0]);
+                                        fetch("/api/system/importTLSCABundle", {
+                                            method: "POST",
+                                            body: formData,
+                                        }).then(res => res.json()).then((response) => {
+                                            if (response.code === 0) {
+                                                showMessage(window.siyuan.languages.importCABundleSuccess);
+                                            } else {
+                                                showMessage(response.msg, 6000, "error");
+                                            }
+                                        });
+                                    }
+                                };
+                                input.click();
+                            });
+                        },
+                    }),
+                ] : []),
+                stackRow({
+                    lines: [
+                        {
+                            left: {kind: "title", text: window.siyuan.languages.about2},
+                            right: {
+                                kind: "button",
+                                id: "openLocalServer",
+                                label: window.siyuan.languages.about4,
+                                icon: "iconLink",
+                                bind: (root) => {
+                                    root.querySelector("#openLocalServer")?.addEventListener("click", () => {
+                                        const url = `http://127.0.0.1:${location.port}`;
+                                        /// #if !BROWSER
+                                        shell.openExternal(url);
+                                        /// #else
+                                        window.open(url);
+                                        /// #endif
+                                    });
+                                },
+                            },
+                        },
+                        {left: {kind: "desc", text: window.siyuan.languages.about3.replace("${port}", location.port)}},
+                        {left: {kind: "desc", text: (() => {
+                            const parts: string[] = [];
+                            for (const serverAddr of window.siyuan.config.serverAddrs) {
+                                if (!serverAddr.trim()) {
+                                    break;
+                                }
+                                parts.push(`<code class="fn__code">${serverAddr}</code>`);
+                            }
+                            return parts.join(" ");
+                        })()}},
+                        {left: {kind: "desc", text: window.siyuan.languages.about18}},
+                    ],
+                }),
+            ],
+        }]),
+        {
+            title: window.siyuan.languages.configGroupPublish,
+            items: [
+                switchRow({
+                    id: "publish.enable",
+                    title: window.siyuan.languages.publishService,
+                    desc: window.siyuan.languages.publishServiceTip,
+                }),
+                numberRow({
+                    id: "publish.port",
+                    title: window.siyuan.languages.publishServicePort,
+                    desc: window.siyuan.languages.publishServicePortTip,
+                    min: 0,
+                    max: 65535,
+                }),
+                customRow({
+                    keywords: [
+                        window.siyuan.languages.publishServiceAddresses,
+                        window.siyuan.languages.publishServiceAddressesTip,
+                        window.siyuan.languages.publishServiceNotStarted,
+                    ],
+                    html: () => `<div class="b3-label config-item">
+    <div class="fn__flex config-wrap">
+        ${genConfigItemMainHtml(window.siyuan.languages.publishServiceAddresses, window.siyuan.languages.publishServiceAddressesTip)}
+        <div class="fn__space"></div>
+    </div>
+    <div id="publishAddresses" class="b3-label__text"></div>
+</div>`,
+                    bind: () => {
+                        fetchPost("/api/setting/getPublish", {}, (response: IWebSocketData) => {
+                            updatePublishConfig(true, response);
+                        });
+                    },
+                }),
+                switchRow({
+                    id: "publish.auth.enable",
+                    title: window.siyuan.languages.publishServiceAuth,
+                    desc: window.siyuan.languages.publishServiceAuthTip,
+                }),
+                buttonRow({
+                    id: "publishAuthAccountAdd",
+                    title: window.siyuan.languages.publishServiceAuthAccounts,
+                    desc: window.siyuan.languages.publishServiceAuthAccountsTip,
+                    label: window.siyuan.languages.publishServiceAuthAccountAdd,
+                    icon: "iconAdd",
+                    bind: (root) => {
+                        root.querySelector("#publishAuthAccountAdd")?.addEventListener("click", () => {
+                            window.siyuan.config.publish.auth.accounts.push({
+                                username: "",
+                                password: "",
+                                memo: "",
+                            });
+                            renderPublishAuthAccounts();
+                        });
+                    },
+                }),
+                customRow({
+                    keywords: [
+                        window.siyuan.languages.userName,
+                        window.siyuan.languages.password,
+                        window.siyuan.languages.memo,
+                        window.siyuan.languages.delete,
+                    ],
+                    html: () => `<div class="b3-label config-item"><div class="fn__flex-1" id="publishAuthAccounts"></div></div>`,
+                    bind: (root) => {
+                        const publishAuthAccounts = root.querySelector("#publishAuthAccounts");
+                        publishAuthAccounts?.addEventListener("change", (event) => {
+                            const input = event.target as HTMLInputElement;
+                            if (input.tagName !== "INPUT" || !input.dataset.name) {
+                                return;
+                            }
+                            const li = input.closest("li");
+                            if (li) {
+                                const index = parseInt(li.dataset.index);
+                                const name = input.dataset.name as keyof Config.IPublishAuthAccount;
+                                if (name in window.siyuan.config.publish.auth.accounts[index]) {
+                                    window.siyuan.config.publish.auth.accounts[index][name] = input.value;
+                                    savePublish(false);
+                                }
+                            }
+                        });
+                        publishAuthAccounts?.addEventListener("click", (event) => {
+                            const target = event.target as Element;
+                            const li = target.closest('[data-action="remove"]')?.closest("li");
+                            if (li) {
+                                const index = parseInt(li.dataset.index);
+                                window.siyuan.config.publish.auth.accounts.splice(index, 1);
+                                savePublish(true);
+                                return;
+                            }
+                            const togglePassword = target.closest('.b3-form__icona-icon[data-action="togglePassword"]');
+                            if (togglePassword) {
+                                const isEye = togglePassword.firstElementChild.getAttribute("xlink:href") === "#iconEye";
+                                togglePassword.firstElementChild.setAttribute("xlink:href", isEye ? "#iconEyeoff" : "#iconEye");
+                                togglePassword.previousElementSibling.setAttribute("type", isEye ? "text" : "password");
+                            }
+                        });
+                    },
+                }),
+            ],
+        },
+    ];
+}
+
+const savePublish = (
+    reloadAccounts: boolean,
+    overrides?: {
+        enable?: boolean;
+        port?: number;
+        authEnable?: boolean;
+    },
+) => {
+    fetchPost("/api/setting/setPublish", {
+        enable: overrides?.enable ?? window.siyuan.config.publish.enable,
+        port: overrides?.port ?? window.siyuan.config.publish.port,
+        auth: {
+            enable: overrides?.authEnable ?? window.siyuan.config.publish.auth.enable,
+            accounts: window.siyuan.config.publish.auth.accounts,
+        },
+    }, (response: IWebSocketData) => {
+        updatePublishConfig(reloadAccounts, response);
+    });
+};
+
+const updatePublishConfig = (
+    reloadAccounts: boolean,
+    response: IWebSocketData,
+) => {
+    let port = 0;
+    if (response.code === 0) {
+        window.siyuan.config.publish = response.data.publish;
+        port = response.data.port;
+        if (reloadAccounts) {
+            renderPublishAuthAccounts();
         }
-        root.querySelector("#exportCACert")?.addEventListener("click", () => {
-            fetchPost("/api/system/exportTLSCACert", {}, (response) => {
-                saveExportFile(response.data.path);
-            });
-        });
-        root.querySelector("#exportCABundle")?.addEventListener("click", () => {
-            fetchPost("/api/system/exportTLSCABundle", {}, (response) => {
-                saveExportFile(response.data.path);
-            });
-        });
-        root.querySelector("#importCABundle")?.addEventListener("click", () => {
-            const input = document.createElement("input");
-            input.type = "file";
-            input.accept = ".zip";
-            input.onchange = () => {
-                if (input.files && input.files[0]) {
-                    const formData = new FormData();
-                    formData.append("file", input.files[0]);
-                    fetch("/api/system/importTLSCABundle", {
-                        method: "POST",
-                        body: formData,
-                    }).then(res => res.json()).then((response) => {
-                        if (response.code === 0) {
-                            showMessage(window.siyuan.languages.importCABundleSuccess);
-                        } else {
-                            showMessage(response.msg, 6000, "error");
-                        }
-                    });
-                }
-            };
-            input.click();
-        });
-        const lockScreenModeElement = root.querySelector("#lockScreenMode") as HTMLInputElement;
-        lockScreenModeElement?.addEventListener("change", () => {
-            fetchPost("/api/system/setFollowSystemLockScreen", {lockScreenMode: lockScreenModeElement.checked ? 1 : 0}, () => {
-                window.siyuan.config.system.lockScreenMode = lockScreenModeElement.checked ? 1 : 0;
-            });
-        });
-        access.bindPublishEvent(root);
-    },
-    bindPublishEvent: (root: Element) => {
-        const publishAuthAccountAdd = root.querySelector<HTMLButtonElement>("#publishAuthAccountAdd");
+    }
+    const publishAddresses = accessSettings.element?.querySelector("#publishAddresses");
+    if (!publishAddresses) {
+        return;
+    }
+    if (port === 0) {
+        publishAddresses.innerHTML = `<div class="ft__error">${window.siyuan.languages.publishServiceNotStarted}</div>`;
+    } else {
+        publishAddresses.innerHTML = `<div class="ft__on-surface">${
+            window.siyuan.config.serverAddrs.map(serverAddr => {
+                serverAddr = serverAddr.substring(0, serverAddr.lastIndexOf(":"));
+                return `<code class="fn__code">${serverAddr}:${port}</code>`;
+            }).join(" ")
+        }</div>`;
+    }
+};
 
-        publishAuthAccountAdd.addEventListener("click", () => {
-            window.siyuan.config.publish.auth.accounts.push({
-                username: "",
-                password: "",
-                memo: "",
-            });
-            access._renderPublishAuthAccounts(root);
-        });
-
-        root.querySelectorAll("input").forEach(item => {
-            item.addEventListener("change", () => {
-                access._savePublish(root);
-            });
-        });
-
-        access._refreshPublish(root);
-    },
-    _refreshPublish: (root: Element) => {
-        fetchPost("/api/setting/getPublish", {}, (response: IWebSocketData) => {
-            access.updatePublishConfig(root, true, response);
-        });
-    },
-    _savePublish: (root: Element, reloadAccounts = true) => {
-        const publishEnable = root.querySelector<HTMLInputElement>("#publishEnable");
-        const publishPort = root.querySelector<HTMLInputElement>("#publishPort");
-        const publishAuthEnable = root.querySelector<HTMLInputElement>("#publishAuthEnable");
-
-        fetchPost("/api/setting/setPublish", {
-            enable: publishEnable.checked,
-            port: publishPort.valueAsNumber,
-            auth: {
-                enable: publishAuthEnable.checked,
-                accounts: window.siyuan.config.publish.auth.accounts,
-            },
-        }, (response: IWebSocketData) => {
-            access.updatePublishConfig(root, reloadAccounts, response);
-        });
-    },
-    updatePublishConfig: (
-        root: Element,
-        reloadAccounts: boolean,
-        response: IWebSocketData,
-    ) => {
-        if (response.code === 0) {
-            window.siyuan.config.publish = response.data.publish;
-            if (reloadAccounts) {
-                access._renderPublishAuthAccounts(root);
-            }
-            access._renderPublishAddressList(root, response.data.port);
-        } else {
-            access._renderPublishAddressList(root, 0);
-        }
-    },
-    _renderPublishAuthAccounts: (
-        root: Element,
-        accounts: Config.IPublishAuthAccount[] = window.siyuan.config.publish.auth.accounts,
-    ) => {
-        const mobile = isMobile();
-        const publishAuthAccounts = root.querySelector<HTMLDivElement>("#publishAuthAccounts");
-        publishAuthAccounts.innerHTML = `<div class="fn__hr"></div><ul class="fn__flex-1">${
-            accounts
-                .map((account, index) => `
+const renderPublishAuthAccounts = () => {
+    const publishAuthAccounts = accessSettings.element?.querySelector("#publishAuthAccounts");
+    if (!publishAuthAccounts) {
+        return;
+    }
+    const removeButtonHtml = isMobile() ?
+        `<button class="b3-button b3-button--outline fn__block" data-action="remove"><svg><use xlink:href="#iconTrashcan"></use></svg>${window.siyuan.languages.delete}</button>`
+        : `<span data-action="remove" class="block__icon block__icon--show"><svg><use xlink:href="#iconTrashcan"></use></svg></span>`;
+    const listItemHtml = window.siyuan.config.publish.auth.accounts.map((account, index) => `
 <li class="b3-label b3-label--inner fn__flex" data-index="${index}">
     <input class="b3-text-field fn__block" data-name="username" value="${account.username}" placeholder="${window.siyuan.languages.userName}">
     <span class="fn__space"></span>
@@ -399,78 +465,7 @@ ${genConfigItemName(window.siyuan.languages.publishServiceAuthAccounts)}
     <span class="fn__space"></span>
     <input class="b3-text-field fn__block" data-name="memo" value="${account.memo}" placeholder="${window.siyuan.languages.memo}">
     <span class="fn__space"></span>
-    ${(() => {
-                    if (mobile) {
-                        return `
-<button class="b3-button b3-button--outline fn__block" data-action="remove">
-    <svg><use xlink:href="#iconTrashcan"></use></svg>${window.siyuan.languages.delete}
-</button>`;
-                    } else {
-                        return `
-<span data-action="remove" class="block__icon block__icon--show">
-    <svg><use xlink:href="#iconTrashcan"></use></svg>
-</span>`;
-                    }
-                })()}
-</li>
-`)
-                .join("")
-        }</ul>`;
-
-        publishAuthAccounts
-            .querySelectorAll("input")
-            .forEach(input => {
-                input.addEventListener("change", () => {
-                    const li = hasClosestByTag(input, "LI");
-                    if (li) {
-                        const index = parseInt(li.dataset.index);
-                        const name = input.dataset.name as keyof Config.IPublishAuthAccount;
-                        if (name in window.siyuan.config.publish.auth.accounts[index]) {
-                            window.siyuan.config.publish.auth.accounts[index][name] = input.value;
-                            access._savePublish(root, false);
-                        }
-                    }
-                });
-            });
-
-        publishAuthAccounts
-            .querySelectorAll('[data-action="remove"]')
-            .forEach(remove => {
-                remove.addEventListener("click", () => {
-                    const li = hasClosestByTag(remove, "LI");
-                    if (li) {
-                        const index = parseInt(li.dataset.index);
-                        window.siyuan.config.publish.auth.accounts.splice(index, 1);
-                        access._savePublish(root);
-                    }
-                });
-            });
-
-        publishAuthAccounts
-            .querySelectorAll('.b3-form__icona-icon[data-action="togglePassword"]')
-            .forEach(togglePassword => {
-                togglePassword.addEventListener("click", () => {
-                    const isEye = togglePassword.firstElementChild.getAttribute("xlink:href") === "#iconEye";
-                    togglePassword.firstElementChild.setAttribute("xlink:href", isEye ? "#iconEyeoff" : "#iconEye");
-                    togglePassword.previousElementSibling.setAttribute("type", isEye ? "text" : "password");
-                });
-            });
-    },
-    _renderPublishAddressList: (
-        root: Element,
-        port: number,
-    ) => {
-        const publishAddresses = root.querySelector<HTMLDivElement>("#publishAddresses");
-        if (port === 0) {
-            publishAddresses.innerText = window.siyuan.languages.publishServiceNotStarted;
-        } else {
-            publishAddresses.innerHTML = `<div class="b3-label__text">${
-                window.siyuan.config.serverAddrs
-                    .map(serverAddr => {
-                        serverAddr = serverAddr.substring(0, serverAddr.lastIndexOf(":"));
-                        return `<code class="fn__code">${serverAddr}:${port}</code>`;
-                    }).join(" ")
-            }</div>`;
-        }
-    },
+    ${removeButtonHtml}
+</li>`).join("");
+    publishAuthAccounts.innerHTML = `<ul class="fn__flex-1">${listItemHtml}</ul>`;
 };

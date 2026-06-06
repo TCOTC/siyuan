@@ -10,6 +10,7 @@ import {buildExportSections, exportSettings} from "./export";
 import {buildSearchSections, searchSettings} from "./searchSettings";
 import {buildKeymapSections, keymapSettings} from "./keymap";
 import {buildSyncSections, syncSettings} from "./sync";
+import {buildAccessSections, accessSettings} from "./access";
 import {mountConfigTab} from "./mountConfigTab";
 import {App} from "../index";
 import {isPhablet} from "../protyle/util/compatibility";
@@ -188,7 +189,7 @@ const applySettingPanelSearch = (panelElement: HTMLElement, query: string) => {
     });
 };
 
-type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search" | "keymap" | "sync">;
+type TConfigTabLangKeys = Exclude<TConfigTab, "editor" | "file" | "appearance" | "flashcard" | "ai" | "export" | "search" | "keymap" | "sync" | "access">;
 
 /**
  * 侧栏标签索引关键词：按一级 Tab 的 `id` 与 `TAB_LANG_KEYS` 的键对应；
@@ -202,14 +203,6 @@ const TAB_LANG_KEYS: Record<TConfigTabLangKeys, string[]> = {
     ],
     assets: [
         "assets", "unreferencedAssets", "unreferencedAV", "missingAssets", "delete", "clearAll", "clearAllAV", "emptyContent",
-    ],
-    access: [
-        "authentication", "configGroupServer", "configGroupPublish",
-        "about5", "about6", "about7", "about8", "about11", "about12", "about13", "about14",
-        "networkServeTLS", "networkServeTLSTip", "networkServeTLSTip2", "exportCACert", "exportCACertTip",
-        "publishService", "publishServiceTip", "publishServicePort", "publishServicePortTip",
-        "publishServiceAddresses", "publishServiceAddressesTip", "publishServiceAuth", "publishServiceAuthTip",
-        "publishServiceAuthAccounts", "publishServiceAuthAccountsTip",
     ],
     app: [
         "application", "configGroupGeneral", "configGroupData", "configGroupMaintenance",
@@ -249,6 +242,8 @@ const getTabSearchStrings = (tabId: TConfigTab): string[] => {
             return collectSettingTabSearchStrings(window.siyuan.languages.keymap, buildKeymapSections());
         case "sync":
             return collectSettingTabSearchStrings(window.siyuan.languages.accountSync, buildSyncSections());
+        case "access":
+            return collectSettingTabSearchStrings(window.siyuan.languages.authentication, buildAccessSections());
     }
     return getLang(TAB_LANG_KEYS[tabId]);
 };
@@ -380,6 +375,9 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
             case "sync":
                 void syncSettings.mount(el, keywords);
                 return;
+            case "access":
+                void accessSettings.mount(el, keywords);
+                return;
         }
     }
 
@@ -435,6 +433,9 @@ const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
                 break;
             case "sync":
                 void syncSettings.mount(container as HTMLElement);
+                break;
+            case "access":
+                void accessSettings.mount(container as HTMLElement);
                 break;
             default:
                 applySettingPanelSearch(container, "");

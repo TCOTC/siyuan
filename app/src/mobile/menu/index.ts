@@ -1,7 +1,6 @@
 import {popSearch} from "./search";
 import {closePanel} from "../util/closePanel";
 import {mountHelp, newDailyNote, newNotebook} from "../../util/mount";
-import {access} from "../../config/access";
 import {exitSiYuan, lockScreen, processSync} from "../../dialog/processSystem";
 import {openHistory} from "../../history/history";
 import {syncGuide} from "../../sync/syncGuide";
@@ -86,9 +85,6 @@ export const initRightMenu = (app: App) => {
     </div>
     <div class="b3-menu__separator"></div>
     ${configSettingsMenuHTML}
-    <div class="b3-menu__item${window.siyuan.config.readonly ? " fn__none" : ""}" id="menuPublish">
-        <svg class="b3-menu__icon"><use xlink:href="#iconPublish"></use></svg><span class="b3-menu__label">${window.siyuan.languages.publish}</span>
-    </div>
     <div class="b3-menu__item" id="menuPlugin">
         <svg class="b3-menu__icon"><use xlink:href="#iconPlugin"></use></svg><span class="b3-menu__label">${window.siyuan.languages.plugin}</span>
     </div>
@@ -180,18 +176,6 @@ export const initRightMenu = (app: App) => {
                 break;
             } else if ((configTab = getConfigTabFromMenuTarget(target))) {
                 openMobileConfigTab(configTab, app);
-                event.preventDefault();
-                event.stopPropagation();
-                break;
-            } else if (target.id === "menuPublish") {
-                openModel({
-                    title: window.siyuan.languages.publish,
-                    icon: "iconPublish",
-                    html: access.genPublishHTML(),
-                    bindEvent(modelMainElement: HTMLElement) {
-                        access.bindPublishEvent(modelMainElement);
-                    }
-                });
                 event.preventDefault();
                 event.stopPropagation();
                 break;

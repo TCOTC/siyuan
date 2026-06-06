@@ -11,7 +11,7 @@ import {assets} from "./assets";
 import {keymapSettings} from "./keymap";
 import {bazaar} from "./bazaar";
 import {syncSettings} from "./sync";
-import {access} from "./access";
+import {accessSettings} from "./access";
 import {appConfig} from "./appConfig";
 import {about} from "./about";
 
@@ -57,9 +57,7 @@ export const mountConfigTab = (type: TConfigTab, containerElement: Element, app:
             void syncSettings.mount(containerElement as HTMLElement);
             break;
         case "access":
-            access.element = containerElement;
-            containerElement.innerHTML = access.genHTML();
-            access.bindEvent();
+            void accessSettings.mount(containerElement as HTMLElement);
             break;
         case "app":
             appConfig.element = containerElement;
