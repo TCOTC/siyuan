@@ -9,7 +9,6 @@ export interface IConfigTabDef {
     id: TConfigTab;
     icon: string;
     title: string;
-    /** 隐藏标签页 */
     hidden?: boolean;
 }
 
@@ -32,23 +31,8 @@ export const getConfigTabDefs = (): IConfigTabDef[] => {
         {id: "keymap", icon: "iconKeymap", title: window.siyuan.languages.keymap},
         {id: "sync", icon: "iconCloud", title: window.siyuan.languages.accountSync},
         {id: "access", icon: "iconLock", title: window.siyuan.languages.authentication},
-        {id: "app", icon: "", title: window.siyuan.languages.application}, // TODO 添加应用设置图标
+        {id: "app", icon: "iconSiYuan", title: window.siyuan.languages.application}, // TODO 添加新图标
         {id: "about", icon: "iconInfo", title: window.siyuan.languages.about},
     ];
     return configTabDefsCache;
-};
-
-export const getConfigTabIcon = (type: TConfigTab): string =>
-    getConfigTabDefs().find(t => t.id === type)?.icon ?? "iconSettings";
-
-export const getConfigTabTitle = (type: TConfigTab): string =>
-    getConfigTabDefs().find(t => t.id === type)?.title ?? "";
-
-/** 侧栏 / 菜单中是否不展示该设置项（与桌面设置标签栏可见性一致） */
-export const isConfigTabMenuHidden = (type: TConfigTab): boolean => {
-    const def = getConfigTabDefs().find(t => t.id === type);
-    if (!def) {
-        return true;
-    }
-    return def.hidden;
 };

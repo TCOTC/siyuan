@@ -14,17 +14,16 @@ import {newFile} from "../../util/newFile";
 import {afterLoadPlugin} from "../../plugin/loader";
 import {commandPanel} from "../../boot/globalEvent/command/panel";
 import {openTopBarMenu} from "../../plugin/openTopBarMenu";
-import {getConfigTabDefs, configTabToMenuId, isConfigTabMenuHidden} from "../../config/tabs";
-import type {TConfigTab} from "../../config/types";
+import {getConfigTabDefs, configTabToMenuId, type IConfigTabDef} from "../../config/tabs";
 import {openMobileConfigTab} from "./openConfigTab";
 import {getCurrentEditor} from "../editor";
 
-const getConfigTabFromMenuTarget = (target: HTMLElement): TConfigTab | undefined => {
+const getConfigTabFromMenuTarget = (target: HTMLElement): IConfigTabDef | undefined => {
     const item = target.closest(".b3-menu__item") as HTMLElement | null;
     if (!item?.id) {
         return undefined;
     }
-    return getConfigTabDefs().find(def => configTabToMenuId(def.id) === item.id)?.id;
+    return getConfigTabDefs().find(def => configTabToMenuId(def.id) === item.id);
 };
 
 export const popMenu = () => {
@@ -37,8 +36,8 @@ export const popMenu = () => {
 
 export const initRightMenu = (app: App) => {
     const menuElement = document.getElementById("menu");
-    const configSettingsMenuHTML = getConfigTabDefs().filter(def => !isConfigTabMenuHidden(def.id)).map(def =>
-        `<div class="b3-menu__item" id="${configTabToMenuId(def.id)}">
+    const configSettingsMenuHTML = getConfigTabDefs().map(def =>
+        `<div class="b3-menu__item${def.hidden ? " fn__none" : ""}" id="${configTabToMenuId(def.id)}">
         <svg class="b3-menu__icon"><use xlink:href="#${def.icon}"></use></svg>
         <span class="b3-menu__label">${def.title}</span>
     </div>`).join("");
@@ -104,7 +103,7 @@ export const initRightMenu = (app: App) => {
     // 只能用 click，否则无法上下滚动 https://github.com/siyuan-note/siyuan/issues/6628
     menuElement.addEventListener("click", (event) => {
         let target = event.target as HTMLElement;
-        let configTab: TConfigTab | undefined;
+        let configTabDef: IConfigTabDef | undefined;
         while (target && !target.isEqualNode(menuElement)) {
             if (target.classList.contains("b3-menu__title")) {
                 closePanel();
@@ -174,8 +173,8 @@ export const initRightMenu = (app: App) => {
                 event.stopPropagation();
                 exitSiYuan();
                 break;
-            } else if ((configTab = getConfigTabFromMenuTarget(target))) {
-                openMobileConfigTab(configTab, app);
+            } else if ((configTabDef = getConfigTabFromMenuTarget(target))) {
+                openMobileConfigTab(configTabDef, app);
                 event.preventDefault();
                 event.stopPropagation();
                 break;

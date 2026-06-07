@@ -1,0 +1,434 @@
+/// #if !BROWSER
+import * as path from "path";
+/// #endif
+import type {PageBuilder} from "../registry/pageBuilder";
+import {Constants} from "../../constants";
+import {resetLayout} from "../../layout/util";
+import {desktopModeCookie} from "../../util/cookie";
+import {isBrowser, isMobile} from "../../util/functions";
+import {fetchPost} from "../../util/fetch";
+import {openSnippets} from "../util/snippets";
+import {confirmDialog} from "../../dialog/confirmDialog";
+import {useShell} from "../../util/pathName";
+import {setStatusBar} from "../util/setStatusBar";
+import {updateHotkeyTip} from "../../protyle/util/compatibility";
+import {Menu} from "../../plugin/Menu";
+import {escapeAttr} from "../../util/escape";
+import {genConfigItemMainHtml, genSwitchRow} from "../ui/render";
+import {applyEditorConfig} from "./editorRuntime";
+import {APPEARANCE_THEME_MODE_ID, appearanceConfigApi} from "./appearanceRuntime";
+import {editorConfigApi} from "./editorRuntime";
+
+export const registerAppearanceContentSection = (p: PageBuilder) => {
+    const s = p.section("content", window.siyuan.languages.configGroupContent);
+
+    s.slot({
+        key: "fontFamily",
+        keywords: [window.siyuan.languages.font, window.siyuan.languages.font1],
+        html: () =>
+            `<div class="fn__flex b3-label config-item config-wrap">
+    ${genConfigItemMainHtml(window.siyuan.languages.font, window.siyuan.languages.font1)}
+    <span class="fn__space"></span>
+    <input
+        class="b3-select fn__flex-center fn__size200"
+        id="editor.fontFamily"
+        data-family="${escapeAttr(window.siyuan.config.editor.fontFamily)}"
+        data-weight="${window.siyuan.config.editor.fontWeight}"
+        data-display="${escapeAttr(window.siyuan.config.editor.fontFamilyDisplay)}"
+        value="${escapeAttr(window.siyuan.config.editor.fontFamilyDisplay || window.siyuan.config.editor.fontFamily || window.siyuan.languages.default)}"
+        readonly
+        style="font-family: ${ window.siyuan.config.editor.fontFamily ? window.siyuan.config.editor.fontFamily + ", " : ""}var(--b3-font-family);
+        ${ window.siyuan.config.editor.fontWeight ? `font-weight: ${window.siyuan.config.editor.fontWeight};` : ""}"
+    >
+</div>`,
+        afterMount: mountAppearanceFontFamily,
+    });
+    s.range("editor.fontSize", {
+        title: window.siyuan.languages.editorFontSize,
+        desc: window.siyuan.languages.fontSizeTip,
+        min: 12,
+        max: 48,
+        step: 1,
+        save: (value) => editorConfigApi.patch("editor.fontSize", value),
+    });
+    s.switch("editor.fontSizeScrollZoom", {
+        title: window.siyuan.languages.fontSizeScrollZoom,
+        desc: window.siyuan.languages.fontSizeScrollZoomTip,
+        save: (value) => editorConfigApi.patch("editor.fontSizeScrollZoom", value),
+    });
+    s.switch("editor.fullWidth", {
+        title: window.siyuan.languages.fullWidth,
+        desc: window.siyuan.languages.fullWidthTip,
+        save: (value) => editorConfigApi.patch("editor.fullWidth", value),
+    });
+    s.switch("editor.justify", {
+        title: window.siyuan.languages.justify,
+        desc: window.siyuan.languages.justifyTip,
+        save: (value) => editorConfigApi.patch("editor.justify", value),
+    });
+    s.switch("editor.rtl", {
+        title: window.siyuan.languages.rtl,
+        desc: window.siyuan.languages.rtlTip,
+        save: (value) => editorConfigApi.patch("editor.rtl", value),
+    });
+};
+
+const mountAppearanceFontFamily = (root: HTMLElement) => {
+    const fontFamilyEl = root.querySelector<HTMLInputElement>(`#${CSS.escape("editor.fontFamily")}`);
+    if (!fontFamilyEl) {
+        return;
+    }
+    fontFamilyEl.addEventListener("click", () => {
+        fetchPost("/api/system/getSysFonts", {}, (response) => {
+            const curFamily = fontFamilyEl.dataset.family || "";
+            const curWeight = parseInt(fontFamilyEl.dataset.weight || "0", 10);
+            const fontMenu = new Menu();
+            fontMenu.addItem({
+                iconHTML: "",
+                checked: curFamily === "",
+                label: `<div style='var(--b3-font-family);'>${window.siyuan.languages.default}</div>`,
+                click: () => {
+                    const family = fontFamilyEl.dataset.family || "";
+                    const weight = parseInt(fontFamilyEl.dataset.weight || "0", 10);
+                    if (family === "" && weight === 0) {
+                        return;
+                    }
+                    fontFamilyEl.value = window.siyuan.languages.default;
+                    fontFamilyEl.dataset.family = "";
+                    fontFamilyEl.dataset.weight = "0";
+                    fontFamilyEl.dataset.display = "";
+                    fontFamilyEl.style.fontFamily = "";
+                    fontFamilyEl.style.fontWeight = "";
+                    persistEditorFont();
+                },
+            });
+            response.data.forEach((item: {family: string; weight: number; displayName: string}) => {
+                fontMenu.addItem({
+                    iconHTML: "",
+                    checked: item.family === curFamily && item.weight === curWeight,
+                    label: `<div style='font-family:"${item.family}", var(--b3-font-family);'>${item.displayName}</div>`,
+                    click: () => {
+                        const family = fontFamilyEl.dataset.family || "";
+                        const weight = parseInt(fontFamilyEl.dataset.weight || "0", 10);
+                        if (family === item.family && weight === item.weight) {
+                            return;
+                        }
+                        fontFamilyEl.value = item.displayName;
+                        fontFamilyEl.dataset.family = item.family;
+                        fontFamilyEl.dataset.weight = String(item.weight);
+                        fontFamilyEl.dataset.display = item.displayName;
+                        fontFamilyEl.style.fontFamily = item.family + ", var(--b3-font-family);";
+                        fontFamilyEl.style.fontWeight = item.weight ? String(item.weight) : "";
+                        persistEditorFont();
+                    },
+                });
+            });
+            const rect = fontFamilyEl.getBoundingClientRect();
+            fontMenu.open({x: rect.left, y: rect.bottom});
+        });
+    });
+
+    function persistEditorFont() {
+        fetchPost(
+            "/api/setting/setEditor",
+            {
+                ...window.siyuan.config.editor,
+                fontFamily: fontFamilyEl.dataset.family || "",
+                fontWeight: parseInt(fontFamilyEl.dataset.weight || "0", 10),
+                fontFamilyDisplay: fontFamilyEl.dataset.display || "",
+            },
+            (response) => {
+                const data = response.data as Config.IEditor;
+                applyEditorConfig(data);
+                fontFamilyEl.value = data.fontFamilyDisplay || data.fontFamily || window.siyuan.languages.default;
+                fontFamilyEl.dataset.family = data.fontFamily;
+                fontFamilyEl.dataset.weight = String(data.fontWeight);
+                fontFamilyEl.dataset.display = data.fontFamilyDisplay;
+                fontFamilyEl.style.fontFamily = `${data.fontFamily ? data.fontFamily + ", " : ""}var(--b3-font-family);`;
+                fontFamilyEl.style.fontWeight = data.fontWeight ? String(data.fontWeight) : "";
+            }
+        );
+    }
+};
+
+export const registerAppearanceInterfaceSection = (p: PageBuilder) => {
+    const browser = isBrowser();
+    const s = p.section("interface", window.siyuan.languages.configGroupInterface);
+
+    s.select("lang", {
+        title: window.siyuan.languages.language,
+        desc: window.siyuan.languages.language1,
+        options: window.siyuan.config.langs.map((lang) => ({
+            value: lang.name,
+            label: `${lang.label} (${lang.name})`,
+        })),
+        value: window.siyuan.config.appearance.lang,
+    });
+    s.select(APPEARANCE_THEME_MODE_ID, {
+        title: window.siyuan.languages.appearance4,
+        desc: window.siyuan.languages.appearance5,
+        options: [
+            {value: 0, label: window.siyuan.languages.themeLight},
+            {value: 1, label: window.siyuan.languages.themeDark},
+            {value: 2, label: window.siyuan.languages.themeOS},
+        ],
+        value: window.siyuan.config.appearance.modeOS ? 2 : window.siyuan.config.appearance.mode,
+        save: (value) => {
+            const themeValue = typeof value === "number" ? value : parseInt(String(value), 10);
+            appearanceConfigApi.saveThemeMode(themeValue);
+        },
+    });
+    s.block({
+        key: "theme",
+        keywords: [
+            window.siyuan.languages.theme,
+            window.siyuan.languages.theme11,
+            window.siyuan.languages.theme12,
+            window.siyuan.languages.appearance9,
+        ],
+        afterMount: (root) => {
+            if (!browser) {
+                root.querySelector("#appearanceOpenTheme")?.addEventListener("click", () => {
+                    useShell("openPath", path.join(window.siyuan.config.system.confDir, "appearance", "themes"));
+                });
+            }
+        },
+    }, (b) => {
+        b.title(window.siyuan.languages.theme);
+        if (!browser) {
+            b.button({
+                id: "appearanceOpenTheme",
+                label: window.siyuan.languages.appearance9,
+                icon: "iconFolder",
+            });
+        }
+        b.select("appearance.themeLight", {
+            desc: window.siyuan.languages.theme11,
+            options: window.siyuan.config.appearance.lightThemes.map((item) => ({
+                value: item.name,
+                label: item.label,
+            })),
+            value: window.siyuan.config.appearance.themeLight,
+        });
+        b.select("appearance.themeDark", {
+            desc: window.siyuan.languages.theme12,
+            options: window.siyuan.config.appearance.darkThemes.map((item) => ({
+                value: item.name,
+                label: item.label,
+            })),
+            value: window.siyuan.config.appearance.themeDark,
+        });
+    });
+    s.block({
+        key: "icon",
+        keywords: [
+            window.siyuan.languages.icon,
+            window.siyuan.languages.theme2,
+            window.siyuan.languages.appearance8,
+        ],
+        afterMount: (root) => {
+            if (!browser) {
+                root.querySelector("#appearanceOpenIcon")?.addEventListener("click", () => {
+                    useShell("openPath", path.join(window.siyuan.config.system.confDir, "appearance", "icons"));
+                });
+            }
+        },
+    }, (b) => {
+        b.title(window.siyuan.languages.icon);
+        if (!browser) {
+            b.button({
+                id: "appearanceOpenIcon",
+                label: window.siyuan.languages.appearance8,
+                icon: "iconFolder",
+            });
+        }
+        b.select("appearance.icon", {
+            desc: window.siyuan.languages.theme2,
+            options: window.siyuan.config.appearance.icons.map((item) => ({
+                value: item.name,
+                label: item.label,
+            })),
+            value: window.siyuan.config.appearance.icon,
+        });
+    });
+    s.block({
+        key: "codeBlockTheme",
+        keywords: [
+            window.siyuan.languages.appearance1,
+            window.siyuan.languages.appearance2,
+            window.siyuan.languages.appearance3,
+        ],
+    }, (b) => {
+        b.title(window.siyuan.languages.appearance1);
+        b.select("appearance.codeBlockThemeLight", {
+            desc: window.siyuan.languages.appearance2,
+            options: Constants.SIYUAN_CONFIG_APPEARANCE_LIGHT_CODE.map(value => ({value})),
+            value: window.siyuan.config.appearance.codeBlockThemeLight,
+        });
+        b.select("appearance.codeBlockThemeDark", {
+            desc: window.siyuan.languages.appearance3,
+            options: Constants.SIYUAN_CONFIG_APPEARANCE_DARK_CODE.map(value => ({value})),
+            value: window.siyuan.config.appearance.codeBlockThemeDark,
+        });
+    });
+};
+
+export const registerAppearanceControlsSection = (p: PageBuilder) => {
+    const s = p.section("controls", window.siyuan.languages.configGroupControls);
+
+    s.select("editor.floatWindowMode", {
+        title: window.siyuan.languages.floatWindowMode,
+        desc: window.siyuan.languages.floatWindowModeTip,
+        options: [
+            {value: 0, label: window.siyuan.languages.floatWindowMode0},
+            {value: 1, label: window.siyuan.languages.floatWindowMode1.replace("${hotkey}", updateHotkeyTip("⌘"))},
+            {value: 2, label: window.siyuan.languages.floatWindowMode2},
+        ],
+        value: window.siyuan.config.editor.floatWindowMode,
+        save: (value) => editorConfigApi.patch("editor.floatWindowMode", value),
+        afterMount: bindFloatWindowModeVisibility,
+    });
+    s.number("editor.floatWindowDelay", {
+        title: window.siyuan.languages.floatWindowDelay,
+        desc: window.siyuan.languages.floatWindowDelayTip,
+        min: 0,
+        max: 2000,
+        unit: "ms",
+        save: (value) => editorConfigApi.patch("editor.floatWindowDelay", value),
+    });
+    s.select("closeButtonBehavior", {
+        title: window.siyuan.languages.appearance10,
+        desc: window.siyuan.languages.appearance12,
+        options: [
+            {value: 0, label: window.siyuan.languages._trayMenu.quit},
+            {value: 1, label: window.siyuan.languages.appearance11},
+        ],
+        value: window.siyuan.config.appearance.closeButtonBehavior === 1 ? 1 : 0,
+    });
+    s.block({
+        key: "statusBar",
+        keywords: [
+            window.siyuan.languages.appearance16,
+            window.siyuan.languages.appearance17,
+            window.siyuan.languages.appearance18,
+        ],
+        afterMount: (root) => {
+            const statusBtn = root.querySelector("#statusBarSetting") as HTMLElement | null;
+            setStatusBar(statusBtn);
+        },
+    }, (b) => {
+        b.title(window.siyuan.languages.appearance16);
+        b.switch("appearance.hideStatusBar", {
+            desc: window.siyuan.languages.appearance17,
+        });
+        b.desc(window.siyuan.languages.appearance18);
+        b.button({
+            id: "statusBarSetting",
+            label: window.siyuan.languages.config,
+            icon: "iconSettings",
+        });
+    });
+    if (isMobile()) {
+        s.slot({
+            key: "desktopMode",
+            keywords: [window.siyuan.languages.desktopMode, window.siyuan.languages.mobileModeTip],
+            html: () => genSwitchRow(
+                "desktopMode",
+                window.siyuan.languages.desktopMode,
+                window.siyuan.languages.mobileModeTip,
+                desktopModeCookie.read(),
+            ),
+            afterMount: (root) => {
+                root.querySelector("#desktopMode")?.addEventListener("change", (event: Event) => {
+                    const checked = (event.target as HTMLInputElement).checked;
+                    desktopModeCookie.set(checked);
+                    window.location.href = "/";
+                });
+            },
+        });
+    }
+    s.button({
+        id: "resetLayout",
+        title: window.siyuan.languages.resetLayout,
+        desc: window.siyuan.languages.appearance6,
+        label: window.siyuan.languages.reset,
+        icon: "iconUndo",
+        afterMount: (root) => {
+            root.querySelector("#resetLayout")?.addEventListener("click", () => {
+                confirmDialog(
+                    "⚠️ " + window.siyuan.languages.reset,
+                    window.siyuan.languages.appearance6,
+                    resetLayout
+                );
+            });
+        },
+    });
+};
+
+const bindFloatWindowModeVisibility = (root: HTMLElement) => {
+    const fwModeEl = root.querySelector<HTMLSelectElement>(`#${CSS.escape("editor.floatWindowMode")}`);
+    const delayRow = root.querySelector(`#${CSS.escape("editor.floatWindowDelay")}`)?.closest(".config-item");
+    if (!fwModeEl || !delayRow) {
+        return;
+    }
+    const handleFloatWindowModeChange = () => {
+        const mode = parseInt(fwModeEl.value, 10);
+        delayRow.classList.toggle("fn__none", mode !== 0);
+    };
+    fwModeEl.addEventListener("change", handleFloatWindowModeChange);
+    handleFloatWindowModeChange();
+};
+
+export const registerAppearancePersonalizationSection = (p: PageBuilder) => {
+    const browser = isBrowser();
+    const s = p.section("personalization", window.siyuan.languages.configGroupPersonalization);
+
+    if (!browser) {
+        s.button({
+            id: "appearanceOpenEmoji",
+            title: window.siyuan.languages.customEmoji,
+            desc: window.siyuan.languages.customEmojiTip,
+            label: window.siyuan.languages.showInFolder,
+            icon: "iconFolder",
+            afterMount: (root) => {
+                root.querySelector("#appearanceOpenEmoji")?.addEventListener("click", () => {
+                    useShell("openPath", path.join(window.siyuan.config.system.dataDir, "emojis"));
+                });
+            },
+        });
+    }
+    s.block({
+        key: "codeSnippet",
+        keywords: [
+            window.siyuan.languages.codeSnippet,
+            window.siyuan.languages.codeSnippetTip,
+            window.siyuan.languages.visitCommunityShare,
+            window.siyuan.languages.config,
+        ],
+        afterMount: mountAppearanceCodeSnippet,
+    }, (b) => {
+        b.title(window.siyuan.languages.codeSnippet);
+        if ("zh_CN" === window.siyuan.config.lang) {
+            b.button({
+                id: "codeSnippetCommunityShare",
+                label: window.siyuan.languages.visitCommunityShare,
+                icon: "iconUpload",
+            });
+        }
+        b.desc(window.siyuan.languages.codeSnippetTip);
+        b.button({
+            id: "codeSnippet",
+            label: window.siyuan.languages.config,
+            icon: "iconSettings",
+        });
+    });
+};
+
+const mountAppearanceCodeSnippet = (root: HTMLElement) => {
+    root.querySelector("#codeSnippetCommunityShare")?.addEventListener("click", () => {
+        window.open("https://ld246.com/tag/code-snippet", "_blank");
+    });
+    root.querySelector("#codeSnippet")?.addEventListener("click", () => {
+        openSnippets();
+    });
+};

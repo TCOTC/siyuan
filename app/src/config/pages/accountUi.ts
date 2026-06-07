@@ -1,78 +1,80 @@
-import {showMessage} from "../dialog/message";
-import {Constants} from "../constants";
-import {fetchPost} from "../util/fetch";
-import {confirmDialog} from "../dialog/confirmDialog";
-import {Dialog} from "../dialog";
-import {isInIOS} from "../protyle/util/compatibility";
-import {isMobile} from "../util/functions";
-import {processSync} from "../dialog/processSystem";
-import {getCloudURL, getIndexURL} from "./util/about";
-import {iOSPurchase} from "../util/iOSPurchase";
-import {hideElements} from "../protyle/ui/hideElements";
-import {closePanel} from "../mobile/util/closePanel";
+import {showMessage} from "../../dialog/message";
+import {Constants} from "../../constants";
+import {fetchPost} from "../../util/fetch";
+import {confirmDialog} from "../../dialog/confirmDialog";
+import {Dialog} from "../../dialog";
+import {isInIOS} from "../../protyle/util/compatibility";
+import {isMobile} from "../../util/functions";
+import {processSync} from "../../dialog/processSystem";
+import {getCloudURL, getIndexURL} from "../util/about";
+import {iOSPurchase} from "../../util/iOSPurchase";
+import {hideElements} from "../../protyle/ui/hideElements";
+import {closePanel} from "../../mobile/util/closePanel";
 import md5 from "blueimp-md5";
-import {customRow, switchRow, type SettingSection} from "./ui/settingRows";
-import {syncSettings} from "./sync";
-import {escapeAttr, escapeHtml} from "../util/escape";
+import type {PageBuilder} from "../registry/pageBuilder";
+import {refreshSyncCloudSpaceGroup, sendSyncSetting, syncTabElement} from "./syncRuntime";
+import {escapeAttr, escapeHtml} from "../../util/escape";
 
-export const buildAccountSection = (): SettingSection => ({
-    title: window.siyuan.languages.configGroupAccount,
-    items: [
-        customRow({
-            keywords: [
-                window.siyuan.languages.account,
-                window.siyuan.languages.accountName,
-                window.siyuan.languages.password,
-                window.siyuan.languages.cloudRegionChina,
-                window.siyuan.languages.cloudRegionNorthAmerica,
-                window.siyuan.languages.captcha,
-                window.siyuan.languages.accountTip,
-                window.siyuan.languages.login,
-                window.siyuan.languages.forgetPassword,
-                window.siyuan.languages.register,
-                window.siyuan.languages.twoFactorCaptcha,
-                window.siyuan.languages.refresh,
-                window.siyuan.languages.manage,
-                window.siyuan.languages.logout,
-                window.siyuan.languages.deactivateUser,
-            ],
-            html: genAccountMainHTML,
-            bind: bindAccountMainEvent,
-        }),
-        customRow({
-            keywords: [
-                window.siyuan.languages.paymentStatus,
-                window.siyuan.languages.account1,
-                window.siyuan.languages.account3,
-                window.siyuan.languages.account4,
-                window.siyuan.languages.account6,
-                window.siyuan.languages.account7,
-                window.siyuan.languages.account8,
-                window.siyuan.languages.account10,
-                window.siyuan.languages.account12,
-                window.siyuan.languages.accountUnpaid,
-                window.siyuan.languages.accountSubscriptionExpired,
-                window.siyuan.languages.onepay,
-                window.siyuan.languages.freeSub,
-                window.siyuan.languages.clickMeToRenew,
-                window.siyuan.languages.activationCode,
-                window.siyuan.languages.activationCodePlaceholder,
-            ],
-            html: genAccountPaymentHTML,
-            bind: bindAccountPaymentEvent,
-        }),
-        ...(isMobile() ? [] : [
-            switchRow({
-                id: "account.displayTitle",
-                title: window.siyuan.languages.accountDisplayTitle,
-            }),
-            switchRow({
-                id: "account.displayVIP",
-                title: window.siyuan.languages.accountDisplayVIP,
-            }),
-        ]),
-    ],
-});
+/** 账号节：由 syncPage 注册 */
+export const registerAccountSection = (p: PageBuilder) => {
+    const s = p.section("account", window.siyuan.languages.configGroupAccount);
+
+    s.slot({
+        key: "accountMain",
+        keywords: [
+            window.siyuan.languages.account,
+            window.siyuan.languages.accountName,
+            window.siyuan.languages.password,
+            window.siyuan.languages.cloudRegionChina,
+            window.siyuan.languages.cloudRegionNorthAmerica,
+            window.siyuan.languages.captcha,
+            window.siyuan.languages.accountTip,
+            window.siyuan.languages.login,
+            window.siyuan.languages.forgetPassword,
+            window.siyuan.languages.register,
+            window.siyuan.languages.twoFactorCaptcha,
+            window.siyuan.languages.refresh,
+            window.siyuan.languages.manage,
+            window.siyuan.languages.logout,
+            window.siyuan.languages.deactivateUser,
+        ],
+        html: genAccountMainHTML,
+        afterMount: bindAccountMainEvent,
+    });
+    s.slot({
+        key: "accountPayment",
+        keywords: [
+            window.siyuan.languages.paymentStatus,
+            window.siyuan.languages.account1,
+            window.siyuan.languages.account3,
+            window.siyuan.languages.account4,
+            window.siyuan.languages.account6,
+            window.siyuan.languages.account7,
+            window.siyuan.languages.account8,
+            window.siyuan.languages.account10,
+            window.siyuan.languages.account12,
+            window.siyuan.languages.accountUnpaid,
+            window.siyuan.languages.accountSubscriptionExpired,
+            window.siyuan.languages.onepay,
+            window.siyuan.languages.freeSub,
+            window.siyuan.languages.clickMeToRenew,
+            window.siyuan.languages.activationCode,
+            window.siyuan.languages.activationCodePlaceholder,
+        ],
+        html: genAccountPaymentHTML,
+        afterMount: bindAccountPaymentEvent,
+    });
+    if (!isMobile()) {
+        s.switch("account.displayTitle", {
+            title: window.siyuan.languages.accountDisplayTitle,
+            save: (value) => sendSyncSetting("account.displayTitle", value),
+        });
+        s.switch("account.displayVIP", {
+            title: window.siyuan.languages.accountDisplayVIP,
+            save: (value) => sendSyncSetting("account.displayVIP", value),
+        });
+    }
+};
 
 const genAccountMainHTML = () => {
     if (!window.siyuan.user) {
@@ -200,7 +202,7 @@ const bindAccountMainEvent = (accountSettingsRoot: Element) => {
             showMessage(window.siyuan.languages.refreshUser, 3000);
             onSetaccount();
             processSync();
-            syncSettings.refreshSyncCloudSpaceGroup(accountSettingsRoot);
+            refreshSyncCloudSpaceGroup(accountSettingsRoot);
         });
     });
     if (accountMainEl.classList.contains("config-account--login")) {
@@ -217,7 +219,7 @@ const bindAccountMainEvent = (accountSettingsRoot: Element) => {
                 renderAccount(accountSettingsRoot);
                 onSetaccount();
                 processSync();
-                syncSettings.refreshSyncCloudSpaceGroup(accountSettingsRoot);
+                refreshSyncCloudSpaceGroup(accountSettingsRoot);
             });
         });
     });
@@ -414,7 +416,7 @@ const bindAccountAuthForm = (
                 debugClearLoginFormPhase();
                 renderAccount(accountSettingsRoot!);
                 onSetaccount();
-                syncSettings.refreshSyncCloudSpaceGroup(accountSettingsRoot!);
+                refreshSyncCloudSpaceGroup(accountSettingsRoot!);
             });
         } else if (mode === "deactivate") {
             confirmDeactivateAccount();
@@ -736,7 +738,7 @@ export function debugMountPanel() {
         }
     };
     const debugRefreshGroup = () => {
-        const accountSettingsRoot = syncSettings.element;
+        const accountSettingsRoot = syncTabElement;
         if (!accountSettingsRoot) {
             return;
         }
@@ -744,7 +746,7 @@ export function debugMountPanel() {
         onSetaccount();
     };
     const debugApplyLoginFormPhase = () => {
-        const accountSettingsRoot = syncSettings.element;
+        const accountSettingsRoot = syncTabElement;
         if (!accountSettingsRoot || window.siyuan.user) {
             return;
         }
@@ -807,9 +809,9 @@ export function debugMountPanel() {
         }
         debugRefreshGroup();
         processSync();
-        const accountSettingsRoot = syncSettings.element;
+        const accountSettingsRoot = syncTabElement;
         if (accountSettingsRoot) {
-            syncSettings.refreshSyncCloudSpaceGroup(accountSettingsRoot);
+            refreshSyncCloudSpaceGroup(accountSettingsRoot);
         }
     };
     /** 从已登录切到未登录 / 两步验证码：清空 user 并重绘登录区 */
@@ -822,9 +824,9 @@ export function debugMountPanel() {
         loginSelect.value = phase;
         debugRefreshGroup();
         processSync();
-        const accountSettingsRoot = syncSettings.element;
+        const accountSettingsRoot = syncTabElement;
         if (accountSettingsRoot) {
-            syncSettings.refreshSyncCloudSpaceGroup(accountSettingsRoot);
+            refreshSyncCloudSpaceGroup(accountSettingsRoot);
         }
         debugApplyLoginFormPhase();
     };
@@ -882,9 +884,9 @@ export function debugMountPanel() {
             debugNicknameRestore = window.siyuan.user?.userNickname?.trim() ?? "";
             debugRefreshGroup();
             processSync();
-            const accountSettingsRoot = syncSettings.element;
+            const accountSettingsRoot = syncTabElement;
             if (accountSettingsRoot) {
-                syncSettings.refreshSyncCloudSpaceGroup(accountSettingsRoot);
+                refreshSyncCloudSpaceGroup(accountSettingsRoot);
             }
             debugApplyLoginFormPhase();
             showMessage(window.siyuan.languages.refreshUser, 3000);

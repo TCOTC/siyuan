@@ -1,38 +1,104 @@
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
 /// #endif
-import {isMac, updateHotkeyTip} from "../protyle/util/compatibility";
-import {matchHotKey} from "../protyle/util/hotKey";
-import {Constants} from "../constants";
-import {hideMessage, showMessage} from "../dialog/message";
-import {fetchPost} from "../util/fetch";
-import {exportLayout} from "../layout/util";
-import {confirmDialog} from "../dialog/confirmDialog";
-import {sendGlobalShortcut, sendUnregisterGlobalShortcut} from "../boot/globalEvent/keydown";
-import {
-    type SettingSection,
-    buttonRow,
-    customRow,
-} from "./ui/settingRows";
-import {filterSettingSections, textMatchesSearch} from "./ui/search";
-import {genSettingTabHtmlFromSections} from "./ui/render";
-import {mountSettingSaveHandlers} from "./ui/save";
-import type {Plugin} from "../plugin";
+import {isMac, updateHotkeyTip} from "../../protyle/util/compatibility";
+import {matchHotKey} from "../../protyle/util/hotKey";
+import {Constants} from "../../constants";
+import {hideMessage, showMessage} from "../../dialog/message";
+import {fetchPost} from "../../util/fetch";
+import {exportLayout} from "../../layout/util";
+import {confirmDialog} from "../../dialog/confirmDialog";
+import {sendGlobalShortcut, sendUnregisterGlobalShortcut} from "../../boot/globalEvent/keydown";
+import {textMatchesSearch} from "../ui/search";
+import {genButtonRowHtml, genConfigGroup} from "../render/render";
+import type {Plugin} from "../../plugin";
 
-export const keymapSettings = {
-    mount: async (root: HTMLElement, searchQuery?: string) => {
-        const allSections = buildKeymapSections();
-        let sections = filterSettingSections(allSections, searchQuery);
-        const query = searchQuery?.trim();
-        // 有搜索词且快捷键列表节展示时，要完整显示页面以便修改完快捷键之后点击按钮执行操作
-        if (query && sections.length > 0) {
-            const hasListSection = sections.some((section) => section.items.some((row) => row.type === "custom"));
-            if (hasListSection) {
-                sections = allSections;
-            }
+const keymapToolbarSearchStrings = (): string[] => [
+    window.siyuan.languages.keymapTip,
+    window.siyuan.languages.keymapTip2,
+    window.siyuan.languages.refresh,
+    window.siyuan.languages.reset,
+];
+
+const genKeymapToolbarHtml = () => genConfigGroup(
+    genButtonRowHtml(
+        "keymapRefreshBtn",
+        window.siyuan.languages.keymapTip,
+        undefined,
+        window.siyuan.languages.refresh,
+        "iconRefresh",
+    ) + genButtonRowHtml(
+        "keymapResetBtn",
+        window.siyuan.languages.keymapTip2,
+        undefined,
+        window.siyuan.languages.reset,
+        "iconUndo",
+    ),
+);
+
+const genKeymapPageHtml = (searchQuery?: string) => {
+    const queryLower = (searchQuery ?? "").trim().toLowerCase();
+    if (!queryLower) {
+        return genKeymapToolbarHtml() + genConfigGroup(genKeymapListHtml());
+    }
+    const toolbarHit = keymapToolbarSearchStrings().some((s) => textMatchesSearch(s, queryLower));
+    const listHit = buildKeymapKeywords().some((k) => textMatchesSearch(k, queryLower));
+    if (listHit) {
+        return genKeymapToolbarHtml() + genConfigGroup(genKeymapListHtml());
+    }
+    if (toolbarHit) {
+        return genKeymapToolbarHtml();
+    }
+    return "";
+};
+
+const bindKeymapToolbar = (root: HTMLElement) => {
+    root.querySelector("#keymapRefreshBtn")?.addEventListener("click", () => {
+        exportLayout({
+            cb() {
+                window.location.reload();
+            },
+            errorExit: false,
+        });
+    });
+    root.querySelector("#keymapResetBtn")?.addEventListener("click", () => {
+        confirmDialog("⚠️ " + window.siyuan.languages.reset, window.siyuan.languages.confirmReset, () => {
+            fetchPost("/api/setting/setKeymap", {
+                data: Constants.SIYUAN_KEYMAP,
+            }, () => {
+                /// #if !BROWSER
+                ipcRenderer.send(Constants.SIYUAN_CMD, {
+                    cmd: "writeLog",
+                    msg: "user reset keymap",
+                });
+                if (window.siyuan.config.keymap.general.toggleWin.default !== window.siyuan.config.keymap.general.toggleWin.custom) {
+                    ipcRenderer.send(Constants.SIYUAN_CMD, {
+                        cmd: "unregisterGlobalShortcut",
+                        accelerator: window.siyuan.config.keymap.general.toggleWin.custom,
+                    });
+                }
+                sendGlobalShortcut(window.siyuan.ws.app);
+                /// #endif
+                exportLayout({
+                    cb() {
+                        window.location.reload();
+                    },
+                    errorExit: false,
+                });
+            });
+        });
+    });
+};
+
+/** 快捷键 Tab 挂载（面板页，不走注册表渲染） */
+export const mountKeymapTab = async (root: HTMLElement, searchQuery?: string) => {
+        root.innerHTML = genKeymapPageHtml(searchQuery);
+        bindKeymapToolbar(root);
+        const keymapList = root.querySelector("#keymapList");
+        if (keymapList) {
+            bindKeymapList(root);
         }
-        root.innerHTML = genSettingTabHtmlFromSections(sections);
-        await mountSettingSaveHandlers(root, sections);
+        const query = searchQuery?.trim();
         if (query) {
             // 设置窗口全局搜索进入快捷键 Tab，仅当命中具体命令名时才写入搜索框并筛选列表，
             // 命中分组名时不写入搜索框，完整展示分组
@@ -52,77 +118,15 @@ export const keymapSettings = {
                 }
             }
         }
-    },
 };
 
-export function buildKeymapSections(): SettingSection[] {
-    return [
-        {
-            items: [
-                buttonRow({
-                    id: "keymapRefreshBtn",
-                    title: window.siyuan.languages.keymapTip,
-                    label: window.siyuan.languages.refresh,
-                    icon: "iconRefresh",
-                    bind: (root) => {
-                        root.querySelector("#keymapRefreshBtn")?.addEventListener("click", () => {
-                            exportLayout({
-                                cb() {
-                                    window.location.reload();
-                                },
-                                errorExit: false,
-                            });
-                        });
-                    },
-                }),
-                buttonRow({
-                    id: "keymapResetBtn",
-                    title: window.siyuan.languages.keymapTip2,
-                    label: window.siyuan.languages.reset,
-                    icon: "iconUndo",
-                    bind: (root) => {
-                        root.querySelector("#keymapResetBtn")?.addEventListener("click", () => {
-                            confirmDialog("⚠️ " + window.siyuan.languages.reset, window.siyuan.languages.confirmReset, () => {
-                                fetchPost("/api/setting/setKeymap", {
-                                    data: Constants.SIYUAN_KEYMAP,
-                                }, () => {
-                                    /// #if !BROWSER
-                                    ipcRenderer.send(Constants.SIYUAN_CMD, {
-                                        cmd: "writeLog",
-                                        msg: "user reset keymap",
-                                    });
-                                    if (window.siyuan.config.keymap.general.toggleWin.default !== window.siyuan.config.keymap.general.toggleWin.custom) {
-                                        ipcRenderer.send(Constants.SIYUAN_CMD, {
-                                            cmd: "unregisterGlobalShortcut",
-                                            accelerator: window.siyuan.config.keymap.general.toggleWin.custom,
-                                        });
-                                    }
-                                    sendGlobalShortcut(window.siyuan.ws.app);
-                                    /// #endif
-                                    exportLayout({
-                                        cb() {
-                                            window.location.reload();
-                                        },
-                                        errorExit: false,
-                                    });
-                                });
-                            });
-                        });
-                    },
-                }),
-            ],
-        },
-        {
-            items: [
-                customRow({
-                    keywords: buildKeymapKeywords(),
-                    html: () => genKeymapListHtml(),
-                    bind: (root) => bindKeymapList(root),
-                }),
-            ],
-        },
-    ];
-}
+export const collectKeymapTabSearchStrings = (): string[] => [
+    window.siyuan.languages.keymap,
+    ...keymapToolbarSearchStrings(),
+    ...buildKeymapKeywords(),
+    ...buildKeymapCommandTexts(),
+    ...buildKeymapPluginDisplayNames(),
+];
 
 const buildKeymapKeywords = (): string[] => [
     // 输入框占位符和按钮文案

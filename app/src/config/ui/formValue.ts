@@ -1,5 +1,4 @@
 import {getAtPath} from "./dotPath";
-import {type SettingRow, findStackControlByControlId} from "./settingRows";
 
 /** 解析并钳制 number / range 数值 */
 const normalizeNumberInputValue = (el: HTMLInputElement): number => {
@@ -8,7 +7,6 @@ const normalizeNumberInputValue = (el: HTMLInputElement): number => {
     const parseNum = (s: string) => (useFloat ? parseFloat(s) : parseInt(s, 10));
     let number = useFloat ? parseFloat(el.value) : parseInt(el.value, 10);
     if (Number.isNaN(number)) {
-        // 无效时回退原配置或默认值 0
         const raw = getAtPath(window.siyuan.config, el.id);
         number = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
     }
@@ -71,36 +69,11 @@ export const syncRangeRowValue = (el: HTMLElement): void => {
     selectEl.value = valueStr;
 };
 
-/**
- * 从 DOM 读出控件值。
- * @param row 当前 Tab 内与 `el.id` 对应的 `SettingRow`；`custom` 内控件通常无行定义，可省略。
- */
-export function readDomValue(el: HTMLElement, row?: SettingRow): unknown {
+/** 从 DOM 读出控件值 */
+export function readDomValue(el: HTMLElement): unknown {
     if (el instanceof HTMLSelectElement) {
-        if (!row) {
-            return parseInt(el.value, 10);
-        }
-        if (row.type === "range") {
-            return parseInt(el.value, 10);
-        }
-        if (row.type === "select") {
-            // 约定同一个 options 里的 value 都是相同类型
-            return row.options.length > 0 && typeof row.options[0].value === "number"
-                ? parseInt(el.value, 10)
-                : el.value;
-        }
-        if (row.type === "stack") {
-            const control = findStackControlByControlId(row, el.id);
-            if (control?.kind === "select") {
-                return control.options.length > 0 && typeof control.options[0].value === "number"
-                    ? parseInt(el.value, 10)
-                    : el.value;
-            }
-        }
-        if (row.type === "notebookSavePath") {
-            return el.value;
-        }
-        return parseInt(el.value, 10);
+        const n = parseInt(el.value, 10);
+        return Number.isNaN(n) ? el.value : n;
     }
     if (el instanceof HTMLTextAreaElement) {
         return el.value;

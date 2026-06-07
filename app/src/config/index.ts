@@ -1,12 +1,12 @@
 /// #if MOBILE
 import {popMenu} from "../mobile/menu";
 /// #else
-import {initConfigSearch, switchConfigTab} from "./search";
+import {initConfigSearch, switchConfigTab} from "./dialog/search";
 import {bindSettingSaveDelegation} from "./ui/save";
 import {Dialog} from "../dialog";
 import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";
-import {getConfigTabDefs, isConfigTabMenuHidden} from "./tabs";
+import {getConfigTabDefs} from "./tabs";
 /// #endif
 
 import type {TConfigTab} from "./types";
@@ -14,9 +14,8 @@ import type {App} from "../index";
 
 /// #if !MOBILE
 const genConfigTabListHTML = (activeTab: TConfigTab) => getConfigTabDefs().map(def => {
-    const hidden = isConfigTabMenuHidden(def.id) ? " fn__none" : "";
     const focus = def.id === activeTab ? " b3-list-item--focus" : "";
-    return `<li data-name="${def.id}" class="b3-list-item${focus}${hidden}"><svg class="b3-list-item__graphic"><use xlink:href="#${def.icon}"></use></svg><span class="b3-list-item__text">${def.title}</span></li>`;
+    return `<li data-name="${def.id}" class="b3-list-item${focus}${def.hidden ? " fn__none" : ""}"><svg class="b3-list-item__graphic"><use xlink:href="#${def.icon}"></use></svg><span class="b3-list-item__text">${def.title}</span></li>`;
 }).join("");
 
 const genConfigTabPanelsHTML = (activeTab: TConfigTab) => getConfigTabDefs()

@@ -1,0 +1,305 @@
+import type {SettingItem} from "../registry/item";
+import type {RowPart, StackLeft, StackLine, StackRight} from "./parts";
+import {getAtPath} from "../ui/dotPath";
+import {buildRangeValues, snapRangeValue} from "../ui/formValue";
+import {genConfigItemMainHtml, genConfigItemName, genSwitchRow} from "../ui/render";
+import type {SwitchQueryItem} from "./parts";
+
+const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config, id));
+const genNumberInputHtml = (
+    id: string,
+    value: number,
+    min?: number,
+    max?: number,
+    step?: string,
+    unit?: string,
+): string => {
+    const fieldClass = unit ? "fn__flex-1" : "fn__flex-center fn__size200";
+    const input = `<input class="b3-text-field ${fieldClass}" id="${id}" type="number" min="${min ?? ""}" max="${max ?? ""}" step="${step ?? ""}" value="${value}"/>`;
+    if (unit) {
+        return `<div class="fn__size200 fn__flex-center fn__flex">${input}<span class="fn__space"></span><span class="ft__on-surface fn__flex-center">${unit}</span></div>`;
+    }
+    return input;
+};
+const genSelectOptionsHtml = <T extends number | string>(
+    id: string,
+    options: {value: T; label?: string}[],
+    current: T,
+): string =>
+    `<select class="b3-select fn__flex-center fn__size200" id="${id}">
+    ${options
+        .map((o) => `<option value="${o.value}" ${current === o.value ? "selected" : ""}>${o.label ?? String(o.value)}</option>`)
+        .join("")}
+</select>`;
+const genRangeRow = (
+    id: string,
+    title: string,
+    desc: string,
+    min: number,
+    max: number,
+    step: number,
+    value: number,
+): string =>
+    `<div class="fn__flex b3-label config-item config-wrap config-wrap--range">
+    ${genConfigItemMainHtml(title, desc)}
+    <span class="fn__space"></span>
+    <div class="config-range__desktop b3-tooltips b3-tooltips__n fn__flex-center" aria-label="${value}">
+        <input class="b3-slider fn__size200" id="${id}" max="${max}" min="${min}" step="${step}" type="range" value="${value}">
+    </div>
+    <select class="config-range__mobile b3-select fn__flex-center fn__size200" data-control-id="${id}">
+    ${buildRangeValues(min, max, step)
+        .map((v) => `<option value="${v}" ${value === v ? "selected" : ""}>${v}</option>`)
+        .join("")}
+    </select>
+</div>`;
+const genTextBlockFieldHtml = (
+    id: string,
+    mode: "input-text" | "input-password" | "textarea",
+    value: string,
+): string => {
+    const spellcheck = window.siyuan.config.editor.spellcheck ? "true" : "false";
+    if (mode === "textarea") {
+        return `<textarea class="b3-text-field fn__block" id="${id}" spellcheck="${spellcheck}">${value}</textarea>`;
+    }
+    if (mode === "input-password") {
+        return `<div class="b3-form__icona fn__block">
+    <input id="${id}" type="password" class="b3-text-field b3-form__icona-input" value="${Lute.EscapeHTMLStr(value)}">
+    <svg class="b3-form__icona-icon" data-action="togglePassword" style="user-select: none;"><use xlink:href="#iconEye"></use></svg>
+</div>`;
+    }
+    return `<input class="b3-text-field fn__block" id="${id}" type="text" spellcheck="${spellcheck}" value="${Lute.EscapeHTMLStr(value)}"/>`;
+};
+
+const genSwitchQueryItemHtml = (item: SwitchQueryItem): string => {
+    switch (item.kind) {
+        case "switch": {
+            const checked = getSwitchChecked(item.id);
+            return `<label class="fn__flex">
+    ${item.icon ? `<svg class="svg"><use xlink:href="#${item.icon}"></use></svg><span class="fn__space"></span>` : ""}
+    <div class="fn__flex-1">${item.label}</div>
+    <span class="fn__space"></span>
+    <input class="b3-switch" id="${item.id}" type="checkbox"${checked ? " checked" : ""}/>
+</label>`;
+        }
+        case "number": {
+            const raw = getAtPath(window.siyuan.config, item.id);
+            const num = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
+            return `<div class="fn__flex label">
+    ${item.label}
+    <span class="fn__flex-1"></span>
+    <input class="b3-text-field" id="${item.id}" type="number" min="${item.min ?? ""}" max="${item.max ?? ""}" value="${num}"/>
+</div>`;
+        }
+    }
+};
+
+const genButtonHtml = (id: string, label: string, icon: string): string =>
+    `<button class="b3-button b3-button--outline fn__flex-center fn__size200" id="${id}">
+        <svg><use xlink:href="#${icon}"></use></svg>
+        ${label}
+    </button>`;
+
+const genSwitchInputHtml = (id: string, checked: boolean): string =>
+    `<input class="b3-switch" id="${id}" type="checkbox"${checked ? " checked" : ""}/>`;
+
+/** 按钮行 */
+export const genButtonRowHtml = (
+    id: string,
+    title: string,
+    desc: string | undefined,
+    label: string,
+    icon: string,
+): string =>
+    `<div class="fn__flex b3-label config-item config-wrap">
+    ${genConfigItemMainHtml(title, desc)}
+    <span class="fn__space"></span>
+    ${genButtonHtml(id, label, icon)}
+</div>`;
+
+/** 双文本框行 */
+export const genTextPairHtml = (
+    title: string,
+    desc: string,
+    leftId: string,
+    leftValue: string,
+    rightId: string,
+    rightValue: string,
+): string =>
+    `<div class="fn__flex b3-label config-item config-wrap">
+    ${genConfigItemMainHtml(title, desc)}
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size96" id="${leftId}" value="${Lute.EscapeHTMLStr(leftValue)}">
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size96" id="${rightId}" value="${Lute.EscapeHTMLStr(rightValue)}">
+</div>`;
+
+const genStackRight = (r: StackRight): string => {
+    switch (r.kind) {
+        case "button":
+            return genButtonHtml(r.id, r.label, r.icon);
+        case "select":
+            return genSelectOptionsHtml(r.id, r.options, r.value);
+        case "number": {
+            const raw = getAtPath(window.siyuan.config, r.id);
+            const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : r.value;
+            return genNumberInputHtml(r.id, value, r.min, r.max, undefined, undefined);
+        }
+        case "switch":
+            return genSwitchInputHtml(r.id, getSwitchChecked(r.id));
+    }
+};
+
+const genStackLeft = (left: StackLeft, hasRight: boolean): string => {
+    if (left.kind === "textBlock") {
+        const raw = getAtPath(window.siyuan.config, left.id);
+        const value = typeof raw === "string" ? raw : left.value;
+        return `<div class="${hasRight ? "fn__flex-1 " : ""}fn__block">${genTextBlockFieldHtml(left.id, left.mode, value)}</div>`;
+    }
+    if (!hasRight) {
+        return left.kind === "title" ? genConfigItemName(left.text) : `<div class="b3-label__text">${left.text}</div>`;
+    }
+    return `<div class="fn__flex-center fn__flex-1${left.kind === "desc" ? " ft__on-surface" : " config-name"}">${left.text}</div>`;
+};
+
+/** 纵向堆叠行 */
+export const genStackHtml = (lines: StackLine[]): string => {
+    const parts: string[] = [];
+    lines.forEach((line, index) => {
+        const {left, right} = line;
+        if (index > 0 && (right || left.kind !== "desc")) {
+            parts.push('<div class="fn__hr--small"></div>');
+        }
+        if (!right) {
+            parts.push(genStackLeft(left, false));
+        } else {
+            const tag = right.kind === "switch" ? "label" : "div";
+            parts.push(`<${tag} class="fn__flex${right.kind === "switch" ? "" : " config-wrap"}">
+    ${genStackLeft(left, true)}
+    <span class="fn__space"></span>
+    ${genStackRight(right)}
+</${tag}>`);
+        }
+    });
+    return `<div class="b3-label config-item">${parts.join("")}</div>`;
+};
+
+/** `config-query` 成组开关 / 数字框 */
+export const genSwitchQueryHtml = (title: string, items: SwitchQueryItem[], footer?: string): string =>
+    `<div class="b3-label config-item">
+    ${genConfigItemName(title)}
+    <div class="config-query">
+        ${items.map(genSwitchQueryItemHtml).join("")}
+    </div>
+    ${footer ? `<div class="fn__hr"></div><div class="fn__flex-1"><div class="b3-label__text">${footer}</div></div>` : ""}
+</div>`;
+const pickMeta = (parts: RowPart[]) => {
+    const title = parts.find((p) => p.kind === "title");
+    const desc = parts.find((p) => p.kind === "desc");
+    return {
+        title: title?.kind === "title" ? title.text : "",
+        desc: desc?.kind === "desc" ? desc.text : undefined,
+    };
+};
+const renderControlParts = (parts: RowPart[]): string => {
+    const {title, desc} = pickMeta(parts);
+    const control = parts.find((p) => p.kind !== "title" && p.kind !== "desc");
+    if (!control) {
+        return "";
+    }
+    const cfg = window.siyuan.config;
+    switch (control.kind) {
+        case "switch":
+            return genSwitchRow(control.id, title, desc, getSwitchChecked(control.id));
+        case "number": {
+            const raw = getAtPath(cfg, control.id);
+            const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
+            return `<div class="fn__flex b3-label config-item config-wrap">
+    ${genConfigItemMainHtml(title, desc)}
+    <span class="fn__space"></span>
+    ${genNumberInputHtml(control.id, value, control.min, control.max, control.step, control.unit)}
+</div>`;
+        }
+        case "range": {
+            const v = getAtPath(cfg, control.id);
+            const raw = typeof v === "number" && !Number.isNaN(v) ? v : control.min;
+            const num = snapRangeValue(raw, control.min, control.max, control.step);
+            return genRangeRow(control.id, title, desc ?? "", control.min, control.max, control.step, num);
+        }
+        case "select": {
+            const raw = getAtPath(cfg, control.id);
+            const firstVal = control.options[0]?.value;
+            const numericSelect = control.options.length > 0 && typeof firstVal === "number";
+            let current: number | string;
+            if (numericSelect) {
+                current = typeof raw === "number" && !Number.isNaN(raw)
+                    ? raw
+                    : typeof firstVal === "number"
+                      ? firstVal
+                      : 0;
+            } else {
+                current = typeof raw === "string"
+                    ? raw
+                    : typeof firstVal === "string"
+                      ? firstVal
+                      : "";
+            }
+            return `<div class="fn__flex b3-label config-item config-wrap">
+    ${genConfigItemMainHtml(title, desc)}
+    <span class="fn__space"></span>
+    ${genSelectOptionsHtml(control.id, control.options, current)}
+</div>`;
+        }
+        case "text": {
+            const val = getAtPath(cfg, control.id);
+            const str = typeof val === "string" ? val : "";
+            return `<div class="fn__flex b3-label config-item config-wrap">
+    ${genConfigItemMainHtml(title, desc ?? "")}
+    <span class="fn__space"></span>
+    <input class="b3-text-field fn__flex-center fn__size200" id="${control.id}" value="${Lute.EscapeHTMLStr(str)}"/>
+</div>`;
+        }
+        case "textBlock": {
+            const raw = getAtPath(cfg, control.id);
+            const str = typeof raw === "string" ? raw : control.value;
+            const blockHtml = `<div class="b3-label config-item">
+    <div class="fn__block">
+        ${genConfigItemName(title)}
+        <div class="b3-label__text">${desc ?? ""}</div>
+        <div class="fn__hr--small"></div>
+        ${genTextBlockFieldHtml(control.id, control.mode, str)}
+    </div>
+</div>`;
+            return blockHtml;
+        }
+    }
+};
+const renderItemHtml = (item: SettingItem): string => {
+    if (item.kind === "slot") {
+        return item.html?.() ?? "";
+    }
+    return renderControlParts(item.parts ?? []);
+};
+export const genConfigGroup = (itemsHtml: string, title?: string): string =>
+    `<div class="config-group">${title ? `<div class="config-title">${title}</div>` : ""}<div class="config-items">${itemsHtml}</div></div>`;
+
+/** 按节分组渲染注册项列表 */
+export const renderGroupedItems = (items: SettingItem[]): string => {
+    const groups = new Map<string, {title: string; items: SettingItem[]}>();
+    for (const item of items) {
+        let group = groups.get(item.sectionKey);
+        if (!group) {
+            group = {title: item.sectionTitle, items: []};
+            groups.set(item.sectionKey, group);
+        }
+        group.items.push(item);
+    }
+    const parts: string[] = [];
+    for (const {title, items: groupItems} of groups.values()) {
+        const itemsHtml = groupItems
+            .sort((a, b) => a.order - b.order)
+            .map((item) => renderItemHtml(item))
+            .join("");
+        parts.push(genConfigGroup(itemsHtml, title));
+    }
+    return parts.join("");
+};
