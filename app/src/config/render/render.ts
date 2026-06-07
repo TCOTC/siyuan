@@ -75,19 +75,19 @@ const genSwitchQueryItemHtml = (item: SwitchQueryItem): string => {
         case "switch": {
             const checked = getSwitchChecked(item.id);
             return `<label class="fn__flex">
+    <input class="b3-switch" id="${item.id}" type="checkbox"${checked ? " checked" : ""}/>
+    <span class="fn__space"></span>
     ${item.icon ? `<svg class="svg"><use xlink:href="#${item.icon}"></use></svg><span class="fn__space"></span>` : ""}
     <div class="fn__flex-1">${item.label}</div>
-    <span class="fn__space"></span>
-    <input class="b3-switch" id="${item.id}" type="checkbox"${checked ? " checked" : ""}/>
 </label>`;
         }
         case "number": {
             const raw = getAtPath(window.siyuan.config, item.id);
             const num = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
-            return `<div class="fn__flex label">
-    ${item.label}
-    <span class="fn__flex-1"></span>
+            return `<div class="fn__flex label fn__flex-1">
     <input class="b3-text-field" id="${item.id}" type="number" min="${item.min ?? ""}" max="${item.max ?? ""}" value="${num}"/>
+    <span class="fn__space"></span>
+    <div>${item.label}</div>
 </div>`;
         }
     }
