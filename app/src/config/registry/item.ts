@@ -1,7 +1,8 @@
 import type {RowPart} from "../render/parts";
 import {readControlPart} from "../render/read";
 
-type SettingItemKind = "control" | "slot";
+export type ControlPart = Exclude<RowPart, {kind: "title"} | {kind: "desc"}>;
+export type SettingItemKind = "full" | "render" | "binding";
 export interface SettingItem {
     id: string;
     tabId: string;
@@ -9,12 +10,14 @@ export interface SettingItem {
     sectionTitle: string;
     order: number;
     kind: SettingItemKind;
-    /** control 项：由 parts 描述一行 UI */
+    /** full 项：由 parts 描述一行 UI，参与 mount、save、搜索 */
     parts?: RowPart[];
-    /** slot 项：自定义 HTML */
+    /** binding 项：复合块内嵌控件的 read / save */
+    part?: ControlPart;
+    /** render 项：自定义 HTML，参与 mount、搜索 */
     html?: () => string;
-    visible?: () => boolean;
-    searchTexts: () => string[];
+    /** 设置搜索关键词；`binding` 项不参与搜索，故无此字段 */
+    searchTexts?: () => string[];
     read?: (el: HTMLElement) => unknown;
     save?: (value: unknown) => void | Promise<void>;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
@@ -29,23 +32,42 @@ export const registerItem = (item: Omit<SettingItem, "order"> & {order?: number}
     });
 };
 
-export const getAllSettingItems = () => [...registry.values()];
+export const getMountableItemsByTabId = (tabId: string) => {
+    const result: SettingItem[] = [];
+    for (const item of registry.values()) {
+        // 参与 mount 渲染与搜索索引的条目（不含 binding）
+        if (item.kind !== "binding" && item.tabId === tabId) {
+            result.push(item);
+        }
+    }
+    return result;
+};
 
 /** change 委托：命中注册表则已处理并返回 true */
 export const tryRouteRegistrySave = (el: HTMLElement, controlId: string): boolean => {
     const item = registry.get(controlId);
-    if (!item || item.kind !== "control" || !item.save) {
+    if (!item?.save) {
         return false;
     }
-    const controlPart = item.parts?.find(
-        (p): p is Exclude<RowPart, {kind: "title"} | {kind: "desc"}> =>
-            p.kind !== "title" && p.kind !== "desc" && p.id === controlId,
-    );
-    const value = item.read
-        ? item.read(el)
-        : controlPart
-          ? readControlPart(controlPart, el)
-          : undefined;
+    let value: unknown;
+    if (item.kind === "binding") {
+        if (!item.part) {
+            return false;
+        }
+        value = item.read ? item.read(el) : readControlPart(item.part, el);
+    } else if (item.kind === "full") {
+        const controlPart = item.parts?.find(
+            (p): p is ControlPart =>
+                p.kind !== "title" && p.kind !== "desc" && p.id === controlId,
+        );
+        value = item.read
+            ? item.read(el)
+            : controlPart
+              ? readControlPart(controlPart, el)
+              : undefined;
+    } else {
+        return false;
+    }
     if (value !== undefined) {
         void item.save(value);
     }

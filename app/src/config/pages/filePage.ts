@@ -3,36 +3,12 @@ import {genNotebookOption} from "../../menus/onGetnotebookconf";
 import {fetchPost} from "../../util/fetch";
 import {editorConfigApi} from "./editorRuntime";
 import {fileConfigApi} from "./fileRuntime";
-import {registerItem} from "../registry/item";
 import type {PageBuilder} from "../registry/pageBuilder";
 import {genConfigItemName} from "../ui/render";
 import {readDomValue} from "../ui/formValue";
 
 const isMobileKernelContainer = () =>
     ["android", "ios", "harmony"].includes(window.siyuan.config.system.container);
-
-/** slot 内嵌控件的手动注册，等同 `registerEmbeddedControl`（不参与 mount 渲染，仅 save / 搜索） */
-const registerHiddenSaveControl = (
-    tabId: "file",
-    sectionKey: string,
-    sectionTitle: string,
-    controlId: string,
-    searchTexts: string[],
-    save: (value: unknown) => void,
-) => {
-    registerItem({
-        id: controlId,
-        tabId,
-        sectionKey,
-        sectionTitle,
-        kind: "control",
-        parts: [{kind: "text", id: controlId}],
-        visible: () => false,
-        searchTexts: () => searchTexts,
-        read: (el) => readDomValue(el),
-        save,
-    });
-};
 
 const genNotebookSavePathHtml = (
     title: string,
@@ -50,6 +26,26 @@ const genNotebookSavePathHtml = (
         <input class="b3-text-field fn__flex-1" id="${pathId}" value="">
     </div>
 </div>`;
+
+const notebookSavePathControls = (
+    selectId: string,
+    patchSelect: (value: unknown) => void,
+    pathId: string,
+    patchPath: (value: unknown) => void,
+) => [
+    {
+        id: selectId,
+        part: {kind: "select" as const, id: selectId, options: [] as {value: number | string; label?: string}[], value: ""},
+        read: (el: HTMLElement) => readDomValue(el),
+        save: patchSelect,
+    },
+    {
+        id: pathId,
+        part: {kind: "text" as const, id: pathId},
+        read: (el: HTMLElement) => readDomValue(el),
+        save: patchPath,
+    },
+];
 
 export const registerFileTabsSection = (p: PageBuilder) => {
     const s = p.section("tabs", window.siyuan.languages.configGroupTabs);
@@ -80,7 +76,6 @@ export const registerFileTabsSection = (p: PageBuilder) => {
 
 export const registerFileNewDocumentSection = (p: PageBuilder) => {
     const s = p.section("newDocument", window.siyuan.languages.configGroupNewDocument);
-    const sectionTitle = window.siyuan.languages.configGroupNewDocument;
 
     s.switch("createDocAtTop", {
         title: window.siyuan.languages.fileTree24,
@@ -89,7 +84,7 @@ export const registerFileNewDocumentSection = (p: PageBuilder) => {
 
     const docCreateTitle = window.siyuan.languages.fileTree12;
     const docCreateDesc = window.siyuan.languages.fileTree13;
-    s.slot({
+    s.composite({
         key: "docCreateSavePath",
         keywords: [docCreateTitle, docCreateDesc],
         html: () => genNotebookSavePathHtml(
@@ -105,17 +100,15 @@ export const registerFileNewDocumentSection = (p: PageBuilder) => {
                 el.value = window.siyuan.config.fileTree.docCreateSavePath;
             }
         },
-    });
-    registerHiddenSaveControl("file", "newDocument", sectionTitle, "fileTree.docCreateSaveBox", [docCreateTitle, docCreateDesc], (v) => {
-        fileConfigApi.patch("docCreateSaveBox", v);
-    });
-    registerHiddenSaveControl("file", "newDocument", sectionTitle, "fileTree.docCreateSavePath", [docCreateTitle, docCreateDesc], (v) => {
-        fileConfigApi.patch("docCreateSavePath", v);
+        controls: notebookSavePathControls(
+            "fileTree.docCreateSaveBox", (v) => fileConfigApi.patch("docCreateSaveBox", v),
+            "fileTree.docCreateSavePath", (v) => fileConfigApi.patch("docCreateSavePath", v),
+        ),
     });
 
     const refCreateTitle = window.siyuan.languages.fileTree5;
     const refCreateDesc = window.siyuan.languages.fileTree6;
-    s.slot({
+    s.composite({
         key: "refCreateSavePath",
         keywords: [refCreateTitle, refCreateDesc],
         html: () => genNotebookSavePathHtml(
@@ -131,18 +124,16 @@ export const registerFileNewDocumentSection = (p: PageBuilder) => {
                 el.value = window.siyuan.config.fileTree.refCreateSavePath;
             }
         },
-    });
-    registerHiddenSaveControl("file", "newDocument", sectionTitle, "fileTree.refCreateSaveBox", [refCreateTitle, refCreateDesc], (v) => {
-        fileConfigApi.patch("refCreateSaveBox", v);
-    });
-    registerHiddenSaveControl("file", "newDocument", sectionTitle, "fileTree.refCreateSavePath", [refCreateTitle, refCreateDesc], (v) => {
-        fileConfigApi.patch("refCreateSavePath", v);
+        controls: notebookSavePathControls(
+            "fileTree.refCreateSaveBox", (v) => fileConfigApi.patch("refCreateSaveBox", v),
+            "fileTree.refCreateSavePath", (v) => fileConfigApi.patch("refCreateSavePath", v),
+        ),
     });
 
     if (!isMobileKernelContainer()) {
         const shorthandTitle = window.siyuan.languages.fileTree26;
         const shorthandDesc = window.siyuan.languages.fileTree27;
-        s.slot({
+        s.composite({
             key: "shorthandSavePath",
             keywords: [shorthandTitle, shorthandDesc],
             html: () => genNotebookSavePathHtml(
@@ -158,19 +149,16 @@ export const registerFileNewDocumentSection = (p: PageBuilder) => {
                     el.value = window.siyuan.config.fileTree.shorthandSavePath;
                 }
             },
-        });
-        registerHiddenSaveControl("file", "newDocument", sectionTitle, "fileTree.shorthandSaveBox", [shorthandTitle, shorthandDesc], (v) => {
-            fileConfigApi.patch("shorthandSaveBox", v);
-        });
-        registerHiddenSaveControl("file", "newDocument", sectionTitle, "fileTree.shorthandSavePath", [shorthandTitle, shorthandDesc], (v) => {
-            fileConfigApi.patch("shorthandSavePath", v);
+            controls: notebookSavePathControls(
+                "fileTree.shorthandSaveBox", (v) => fileConfigApi.patch("shorthandSaveBox", v),
+                "fileTree.shorthandSavePath", (v) => fileConfigApi.patch("shorthandSavePath", v),
+            ),
         });
     }
 };
 
 export const registerFileManagementSection = (p: PageBuilder) => {
     const s = p.section("fileManagement", window.siyuan.languages.configGroupFileManagement);
-    const sectionTitle = window.siyuan.languages.configGroupFileManagement;
 
     s.number("editor.generateHistoryInterval", {
         title: window.siyuan.languages.generateHistory,
@@ -187,7 +175,7 @@ export const registerFileManagementSection = (p: PageBuilder) => {
         window.siyuan.languages.purge,
         window.siyuan.languages.historyRetentionDays,
     ];
-    s.slot({
+    s.composite({
         key: "historyRetention",
         keywords: historyKeywords,
         html: () => `<div class="b3-label config-item">
@@ -228,9 +216,11 @@ export const registerFileManagementSection = (p: PageBuilder) => {
                 );
             });
         },
-    });
-    registerHiddenSaveControl("file", "fileManagement", sectionTitle, "editor.historyRetentionDays", historyKeywords, (v) => {
-        editorConfigApi.patch("historyRetentionDays", v);
+        controls: [{
+            id: "editor.historyRetentionDays",
+            part: {kind: "number", id: "editor.historyRetentionDays", min: 1, max: 3650},
+            save: (v) => editorConfigApi.patch("historyRetentionDays", v),
+        }],
     });
 
     s.number("maxListCount", {

@@ -5,7 +5,7 @@ import {getAtPath} from "../ui/dotPath";
 import {readControlPart} from "../render/read";
 import {bindPasswordIconaToggle} from "../ui/render";
 import {collectTabSearchStrings} from "../filter/itemSearch";
-import {getAllSettingItems, registerItem} from "./item";
+import {getMountableItemsByTabId, registerItem, type ControlPart} from "./item";
 import {mountConfigPage} from "./mount";
 
 export type SaveFn = (value: unknown) => void | Promise<void>;
@@ -71,6 +71,16 @@ type SlotMeta = {
     html: () => string;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
+export type CompositeControlMeta = {
+    /** DOM id 或相对路径（与 `resolveId` 一致） */
+    id: string;
+    part: ControlPart;
+    read?: (el: HTMLElement) => unknown;
+    save?: SaveFn;
+};
+type CompositeMeta = SlotMeta & {
+    controls: CompositeControlMeta[];
+};
 type SwitchQueryMeta = {
     key: string;
     title: string;
@@ -127,41 +137,39 @@ type ButtonMeta = {
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
 
-const registerStackEmbeddedControls = (
-    sb: SectionBuilder<string>,
-    lines: StackLine[],
-    searchTexts: string[],
-) => {
+const stackLinesToControls = (lines: StackLine[]): CompositeControlMeta[] => {
+    const controls: CompositeControlMeta[] = [];
     for (const line of lines) {
         if (line.left.kind === "textBlock") {
-            const controlId = line.left.id;
-            sb.registerEmbeddedControl(
-                controlId,
-                {kind: "textBlock", id: controlId, mode: line.left.mode, value: line.left.value},
-                searchTexts,
-            );
+            controls.push({
+                id: line.left.id,
+                part: {
+                    kind: "textBlock",
+                    id: line.left.id,
+                    mode: line.left.mode,
+                    value: line.left.value,
+                },
+            });
         }
         const right = line.right;
         if (!right || right.kind === "button") {
             continue;
         }
-        const controlId = right.id;
         if (right.kind === "switch") {
-            sb.registerEmbeddedControl(controlId, {kind: "switch", id: controlId}, searchTexts);
+            controls.push({id: right.id, part: {kind: "switch", id: right.id}});
         } else if (right.kind === "number") {
-            sb.registerEmbeddedControl(
-                controlId,
-                {kind: "number", id: controlId, min: right.min, max: right.max},
-                searchTexts,
-            );
+            controls.push({
+                id: right.id,
+                part: {kind: "number", id: right.id, min: right.min, max: right.max},
+            });
         } else if (right.kind === "select") {
-            sb.registerEmbeddedControl(
-                controlId,
-                {kind: "select", id: controlId, options: right.options, value: right.value},
-                searchTexts,
-            );
+            controls.push({
+                id: right.id,
+                part: {kind: "select", id: right.id, options: right.options, value: right.value},
+            });
         }
     }
+    return controls;
 };
 
 const CONFIG_ID_PREFIXES = [
@@ -287,7 +295,7 @@ class SectionBuilder<TId extends string> {
             tabId: this.page.id,
             sectionKey: this.sectionKey,
             sectionTitle: this.sectionTitle,
-            kind: "control",
+            kind: "full",
             parts,
             searchTexts: defaultSearchTexts({title: meta.title, desc: meta.desc, keywords: meta.keywords}),
             read: meta.read,
@@ -295,29 +303,6 @@ class SectionBuilder<TId extends string> {
             afterMount: meta.afterMount,
         });
         return this;
-    }
-
-    /**
-     * 注册复合块内的内嵌子控件：不参与 mount 渲染。
-     */
-    registerEmbeddedControl(
-        controlId: string,
-        part: Exclude<RowPart, {kind: "title"} | {kind: "desc"}>,
-        searchTexts: string[],
-        save?: SaveFn,
-    ) {
-        registerItem({
-            id: controlId,
-            tabId: this.page.id,
-            sectionKey: this.sectionKey,
-            sectionTitle: this.sectionTitle,
-            kind: "control",
-            parts: [part],
-            visible: () => false,
-            searchTexts: () => searchTexts,
-            read: (el) => readControlPart(part, el),
-            save: save ?? ((value) => (this.page.saveDefaults?.patch ?? noopPatch)(controlId, value)),
-        });
     }
 
     switch(path: string, meta: SwitchMeta) {
@@ -389,13 +374,15 @@ class SectionBuilder<TId extends string> {
         const leftStr = typeof leftVal === "string" ? leftVal : "";
         const rightStr = typeof rightVal === "string" ? rightVal : "";
         const key = meta.key ?? `textPair_${meta.leftPath}_${meta.rightPath}`;
-        this.slot({
+        this.composite({
             key,
             keywords: searchTexts,
             html: () => genTextPairHtml(meta.title, meta.desc, leftId, leftStr, rightId, rightStr),
+            controls: [
+                {id: leftId, part: {kind: "text", id: leftId}},
+                {id: rightId, part: {kind: "text", id: rightId}},
+            ],
         });
-        this.registerEmbeddedControl(leftId, {kind: "text", id: leftId}, searchTexts);
-        this.registerEmbeddedControl(rightId, {kind: "text", id: rightId}, searchTexts);
         return this;
     }
 
@@ -404,13 +391,13 @@ class SectionBuilder<TId extends string> {
         configure(builder);
         const lines = builder.getLines();
         const searchTexts = meta.keywords ?? [];
-        this.slot({
+        this.composite({
             key: meta.key,
             keywords: searchTexts,
             html: () => genStackHtml(lines),
             afterMount: meta.afterMount,
+            controls: stackLinesToControls(lines),
         });
-        registerStackEmbeddedControls(this, lines, searchTexts);
         return this;
     }
 
@@ -432,26 +419,28 @@ class SectionBuilder<TId extends string> {
             ...(meta.footer ? [meta.footer] : []),
             ...meta.items.map((item) => item.label),
         ];
-        this.slot({
+        const controls: CompositeControlMeta[] = meta.items.map((item) => {
+            const controlId = resolveId(this.page.namespace, item.id);
+            if (item.kind === "switch") {
+                return {id: controlId, part: {kind: "switch", id: controlId}};
+            }
+            return {
+                id: controlId,
+                part: {kind: "number", id: controlId, min: item.min, max: item.max},
+            };
+        });
+        this.composite({
             key: meta.key,
             keywords: searchTexts,
             html: () => genSwitchQueryHtml(meta.title, meta.items, meta.footer),
+            controls,
         });
-        for (const item of meta.items) {
-            const controlId = resolveId(this.page.namespace, item.id);
-            if (item.kind === "switch") {
-                this.registerEmbeddedControl(controlId, {kind: "switch", id: controlId}, searchTexts);
-            } else {
-                this.registerEmbeddedControl(
-                    controlId,
-                    {kind: "number", id: controlId, min: item.min, max: item.max},
-                    searchTexts,
-                );
-            }
-        }
         return this;
     }
 
+    /**
+     * 纯展示 / 自行绑定事件的块。
+     */
     slot(meta: SlotMeta) {
         const id = `${this.page.namespace}.__slot.${meta.key}`;
         registerItem({
@@ -459,11 +448,38 @@ class SectionBuilder<TId extends string> {
             tabId: this.page.id,
             sectionKey: this.sectionKey,
             sectionTitle: this.sectionTitle,
-            kind: "slot",
+            kind: "render",
             html: meta.html,
             searchTexts: () => [...meta.keywords],
             afterMount: meta.afterMount,
         });
+        return this;
+    }
+
+    /**
+     * 自定义 HTML 块 + 内嵌控件 save：分别声明 render 项与 binding 项。
+     */
+    composite(meta: CompositeMeta) {
+        this.slot({
+            key: meta.key,
+            keywords: meta.keywords,
+            html: meta.html,
+            afterMount: meta.afterMount,
+        });
+        for (const control of meta.controls) {
+            const controlId = resolveId(this.page.namespace, control.id);
+            const part = {...control.part, id: controlId};
+            registerItem({
+                id: controlId,
+                tabId: this.page.id,
+                sectionKey: this.sectionKey,
+                sectionTitle: this.sectionTitle,
+                kind: "binding",
+                part,
+                read: control.read ?? ((el) => readControlPart(part, el)),
+                save: control.save ?? ((value) => (this.page.saveDefaults?.patch ?? noopPatch)(controlId, value)),
+            });
+        }
         return this;
     }
 }
@@ -502,7 +518,7 @@ export const defineConfigPage = <TId extends string>(
         },
         searchStrings: () => {
             ensureRegistered();
-            const items = getAllSettingItems().filter((i) => i.tabId === options.id);
+            const items = getMountableItemsByTabId(options.id);
             return collectTabSearchStrings(options.title(), items);
         },
     };

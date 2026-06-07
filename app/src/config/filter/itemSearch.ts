@@ -21,10 +21,10 @@ export const itemMatchesSearch = (item: SettingItem, queryLower: string): boolea
     if (!queryLower) {
         return true;
     }
-    if (item.searchTexts().some((s) => textMatchesSearch(s, queryLower))) {
+    if (item.searchTexts?.().some((s) => textMatchesSearch(s, queryLower))) {
         return true;
     }
-    if (item.kind === "control" && item.parts) {
+    if (item.kind === "full" && item.parts) {
         return item.parts.some((p) => partSearchStrings(p).some((s) => textMatchesSearch(s, queryLower)));
     }
     return false;
@@ -55,7 +55,9 @@ export const collectTabSearchStrings = (tabTitle: string, items: SettingItem[]):
             sectionTitles.add(item.sectionKey);
             strings.push(item.sectionTitle);
         }
-        strings.push(...item.searchTexts());
+        if (item.searchTexts) {
+            strings.push(...item.searchTexts());
+        }
     }
     return strings;
 };

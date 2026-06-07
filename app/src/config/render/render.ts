@@ -274,7 +274,7 @@ const renderControlParts = (parts: RowPart[]): string => {
     }
 };
 const renderItemHtml = (item: SettingItem): string => {
-    if (item.kind === "slot") {
+    if (item.kind === "render") {
         return item.html?.() ?? "";
     }
     return renderControlParts(item.parts ?? []);
