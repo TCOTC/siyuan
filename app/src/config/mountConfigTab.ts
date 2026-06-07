@@ -12,7 +12,7 @@ import {keymapSettings} from "./keymap";
 import {bazaar} from "./bazaar";
 import {syncSettings} from "./sync";
 import {accessSettings} from "./access";
-import {appSettings} from "./appConfig";
+import {appSettings} from "./app";
 import {aboutSettings} from "./about";
 
 /** 将指定设置页面挂载到容器 */

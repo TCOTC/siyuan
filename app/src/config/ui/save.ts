@@ -7,7 +7,7 @@ import {exportSettings} from "../export";
 import {searchSettings} from "../searchSettings";
 import {syncSettings} from "../sync";
 import {accessSettings} from "../access";
-import {appSettings} from "../appConfig";
+import {appSettings} from "../app";
 import type {SettingSection} from "./settingRows";
 import {syncRangeRowValue} from "./formValue";
 import {bindPasswordIconaToggle} from "./render";

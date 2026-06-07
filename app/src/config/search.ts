@@ -11,7 +11,7 @@ import {buildSearchSections, searchSettings} from "./searchSettings";
 import {buildKeymapSections, keymapSettings} from "./keymap";
 import {buildSyncSections, syncSettings} from "./sync";
 import {buildAccessSections, accessSettings} from "./access";
-import {buildAppSections, appSettings} from "./appConfig";
+import {buildAppSections, appSettings} from "./app";
 import {buildAboutSections, aboutSettings} from "./about";
 import {mountConfigTab} from "./mountConfigTab";
 import {App} from "../index";
