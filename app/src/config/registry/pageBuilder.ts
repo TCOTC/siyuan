@@ -1,5 +1,4 @@
 import type {App} from "../../index";
-import type {TConfigTab} from "../types";
 import type {RowPart, StackLine, SwitchQueryItem} from "../render/parts";
 import {genButtonRowHtml, genStackHtml, genSwitchQueryHtml, genTextPairHtml} from "../render/render";
 import {getAtPath} from "../ui/dotPath";
@@ -13,18 +12,23 @@ export type SaveFn = (value: unknown) => void | Promise<void>;
 export interface ConfigPageSaveDefaults {
     patch: (relOrFullId: string, value: unknown) => void;
 }
-export interface ConfigPageOptions {
-    id: TConfigTab;
+/** 侧栏 / 菜单等壳层字段（define*Page 入参与 `ConfigPage` 返回值均平铺） */
+export interface ConfigPageShell<TId extends string = string> {
+    id: TId;
+    order: number;
+    icon: string;
+    title: () => string;
+    hidden?: () => boolean;
+}
+
+export interface ConfigPageOptions<TId extends string = string> extends ConfigPageShell<TId> {
     namespace: string;
-    tabLabel: () => string;
     saveDefaults?: ConfigPageSaveDefaults;
     /** 注册表 mount 完成后的 Tab 级初始化（如记录根节点、拉取动态数据） */
     afterMount?: (root: HTMLElement, app?: App) => void | Promise<void>;
 }
 
-export interface PanelPageOptions {
-    id: TConfigTab;
-    tabLabel: () => string;
+export interface PanelPageOptions<TId extends string = string> extends ConfigPageShell<TId> {
     searchStrings: () => string[];
     mount: (root: HTMLElement, searchQuery?: string, app?: App) => void | Promise<void>;
 }
@@ -32,7 +36,6 @@ export interface PanelPageOptions {
 type SwitchMeta = {
     title: string;
     desc?: string;
-    visible?: () => boolean;
     read?: (el: HTMLElement) => unknown;
     save?: SaveFn;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
@@ -66,7 +69,6 @@ type SlotMeta = {
     key: string;
     keywords: string[];
     html: () => string;
-    visible?: () => boolean;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
 type SwitchQueryMeta = {
@@ -86,7 +88,6 @@ type TextPairMeta = {
 type BlockMeta = {
     key: string;
     keywords?: string[];
-    visible?: () => boolean;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
 type BlockButtonMeta = {
@@ -123,12 +124,11 @@ type ButtonMeta = {
     label: string;
     icon: string;
     keywords?: string[];
-    visible?: () => boolean;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
 
 const registerStackEmbeddedControls = (
-    sb: SectionBuilder,
+    sb: SectionBuilder<string>,
     lines: StackLine[],
     searchTexts: string[],
 ) => {
@@ -266,29 +266,29 @@ export class BlockBuilder {
     }
 }
 
-class SectionBuilder {
+class SectionBuilder<TId extends string> {
     constructor(
-        private readonly page: ConfigPageOptions,
+        private readonly page: ConfigPageOptions<TId>,
         readonly sectionKey: string,
         readonly sectionTitle: string,
     ) {}
+
+    /**
+     * 注册标准控件：由 `parts` 参与 mount 渲染，并接入 save 路由与设置搜索。
+     */
     private registerControl(
         path: string,
         parts: RowPart[],
         meta: SwitchMeta & {keywords?: string[]},
     ) {
-        if (meta.visible && !meta.visible()) {
-            return this;
-        }
         const id = resolveId(this.page.namespace, path);
         registerItem({
             id,
-            tab: this.page.id,
+            tabId: this.page.id,
             sectionKey: this.sectionKey,
             sectionTitle: this.sectionTitle,
             kind: "control",
             parts,
-            visible: meta.visible,
             searchTexts: defaultSearchTexts({title: meta.title, desc: meta.desc, keywords: meta.keywords}),
             read: meta.read,
             save: meta.save ?? ((value) => (this.page.saveDefaults?.patch ?? noopPatch)(id, value)),
@@ -296,7 +296,10 @@ class SectionBuilder {
         });
         return this;
     }
-    /** slot / stack 内控件：仅参与 save 路由，不单独渲染 */
+
+    /**
+     * 注册复合块内的内嵌子控件：不参与 mount 渲染。
+     */
     registerEmbeddedControl(
         controlId: string,
         part: Exclude<RowPart, {kind: "title"} | {kind: "desc"}>,
@@ -305,7 +308,7 @@ class SectionBuilder {
     ) {
         registerItem({
             id: controlId,
-            tab: this.page.id,
+            tabId: this.page.id,
             sectionKey: this.sectionKey,
             sectionTitle: this.sectionTitle,
             kind: "control",
@@ -316,6 +319,7 @@ class SectionBuilder {
             save: save ?? ((value) => (this.page.saveDefaults?.patch ?? noopPatch)(controlId, value)),
         });
     }
+
     switch(path: string, meta: SwitchMeta) {
         const id = resolveId(this.page.namespace, path);
         return this.registerControl(path, [
@@ -324,6 +328,7 @@ class SectionBuilder {
             {kind: "switch", id},
         ], meta);
     }
+
     number(path: string, meta: NumberMeta) {
         const id = resolveId(this.page.namespace, path);
         return this.registerControl(path, [
@@ -332,6 +337,7 @@ class SectionBuilder {
             {kind: "number", id, min: meta.min, max: meta.max, step: meta.step, unit: meta.unit},
         ], meta);
     }
+
     range(path: string, meta: RangeMeta) {
         const id = resolveId(this.page.namespace, path);
         return this.registerControl(path, [
@@ -340,6 +346,7 @@ class SectionBuilder {
             {kind: "range", id, min: meta.min, max: meta.max, step: meta.step},
         ], meta);
     }
+
     select(path: string, meta: SelectMeta) {
         const id = resolveId(this.page.namespace, path);
         return this.registerControl(path, [
@@ -348,6 +355,7 @@ class SectionBuilder {
             {kind: "select", id, options: meta.options, value: meta.value},
         ], meta);
     }
+
     text(path: string, meta: TextMeta) {
         const id = resolveId(this.page.namespace, path);
         return this.registerControl(path, [
@@ -356,6 +364,7 @@ class SectionBuilder {
             {kind: "text", id},
         ], meta);
     }
+
     textBlock(path: string, meta: TextBlockMeta) {
         const id = resolveId(this.page.namespace, path);
         const afterMount = meta.mode === "input-password"
@@ -370,6 +379,7 @@ class SectionBuilder {
             {kind: "textBlock", id, mode: meta.mode, value: meta.value},
         ], {...meta, afterMount});
     }
+
     textPair(meta: TextPairMeta) {
         const leftId = resolveId(this.page.namespace, meta.leftPath);
         const rightId = resolveId(this.page.namespace, meta.rightPath);
@@ -388,10 +398,8 @@ class SectionBuilder {
         this.registerEmbeddedControl(rightId, {kind: "text", id: rightId}, searchTexts);
         return this;
     }
+
     block(meta: BlockMeta, configure: (b: BlockBuilder) => void) {
-        if (meta.visible && !meta.visible()) {
-            return this;
-        }
         const builder = new BlockBuilder(this.page.namespace);
         configure(builder);
         const lines = builder.getLines();
@@ -399,28 +407,25 @@ class SectionBuilder {
         this.slot({
             key: meta.key,
             keywords: searchTexts,
-            visible: meta.visible,
             html: () => genStackHtml(lines),
             afterMount: meta.afterMount,
         });
         registerStackEmbeddedControls(this, lines, searchTexts);
         return this;
     }
+
     button(meta: ButtonMeta) {
-        if (meta.visible && !meta.visible()) {
-            return this;
-        }
         const searchTexts = meta.keywords ?? [meta.title, meta.desc, meta.label].filter((s): s is string => Boolean(s));
         const key = meta.key ?? `button_${meta.id}`;
         this.slot({
             key,
             keywords: searchTexts,
-            visible: meta.visible,
             html: () => genButtonRowHtml(meta.id, meta.title, meta.desc, meta.label, meta.icon),
             afterMount: meta.afterMount,
         });
         return this;
     }
+
     switchQuery(meta: SwitchQueryMeta) {
         const searchTexts = [
             meta.title,
@@ -446,52 +451,40 @@ class SectionBuilder {
         }
         return this;
     }
+
     slot(meta: SlotMeta) {
-        if (meta.visible && !meta.visible()) {
-            return this;
-        }
         const id = `${this.page.namespace}.__slot.${meta.key}`;
         registerItem({
             id,
-            tab: this.page.id,
+            tabId: this.page.id,
             sectionKey: this.sectionKey,
             sectionTitle: this.sectionTitle,
             kind: "slot",
             html: meta.html,
-            visible: meta.visible,
             searchTexts: () => [...meta.keywords],
             afterMount: meta.afterMount,
         });
         return this;
     }
 }
-export class PageBuilder {
-    constructor(private readonly page: ConfigPageOptions) {}
+export class PageBuilder<TId extends string = string> {
+    constructor(private readonly page: ConfigPageOptions<TId>) {}
     section(sectionKey: string, sectionTitle: string) {
         return new SectionBuilder(this.page, sectionKey, sectionTitle);
     }
 }
 
-export interface ConfigPage {
-    tab: TConfigTab;
+export type ConfigPage<TId extends string = string> = ConfigPageShell<TId> & {
     mount: (root: HTMLElement, searchQuery?: string, app?: App) => Promise<void>;
     searchStrings: () => string[];
-}
+};
 
-/** 集市 / 资源等无注册项的面板 Tab */
-export const definePanelPage = (options: PanelPageOptions): ConfigPage => ({
-    tab: options.id,
-    mount: async (root, searchQuery, app) => {
-        await options.mount(root, searchQuery, app);
-    },
-    searchStrings: options.searchStrings,
-});
-
-/** 定义配置页：setup 在首次 mount / searchStrings 时执行，避免模块加载时 window.siyuan 未就绪 */
-export const defineConfigPage = (
-    options: ConfigPageOptions,
-    setup: (page: PageBuilder) => void,
-): ConfigPage => {
+/** 定义配置页面 */
+export const defineConfigPage = <TId extends string>(
+    options: ConfigPageOptions<TId>,
+    setup: (page: PageBuilder<TId>) => void,
+): ConfigPage<TId> => {
+    const {namespace, saveDefaults, afterMount, ...shell} = options;
     let registered = false;
     const ensureRegistered = () => {
         if (registered) {
@@ -501,16 +494,28 @@ export const defineConfigPage = (
         setup(new PageBuilder(options));
     };
     return {
-        tab: options.id,
+        ...shell,
         mount: async (root, searchQuery, app) => {
             ensureRegistered();
             await mountConfigPage(options.id, root, searchQuery);
-            await options.afterMount?.(root, app);
+            await afterMount?.(root, app);
         },
         searchStrings: () => {
             ensureRegistered();
-            const items = getAllSettingItems().filter((i) => i.tab === options.id);
-            return collectTabSearchStrings(options.tabLabel(), items);
+            const items = getAllSettingItems().filter((i) => i.tabId === options.id);
+            return collectTabSearchStrings(options.title(), items);
         },
+    };
+};
+
+/** 定义无注册项的页面 */
+export const definePanelPage = <TId extends string>(
+    options: PanelPageOptions<TId>,
+): ConfigPage<TId> => {
+    const {searchStrings, mount: panelMount, ...shell} = options;
+    return {
+        ...shell,
+        mount: async (root, searchQuery, app) => panelMount(root, searchQuery, app),
+        searchStrings,
     };
 };

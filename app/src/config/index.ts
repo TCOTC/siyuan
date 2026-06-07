@@ -6,10 +6,10 @@ import {bindSettingSaveDelegation} from "./ui/save";
 import {Dialog} from "../dialog";
 import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";
-import {getConfigTabDefs} from "./tabs";
+import {getConfigTabDefs} from "./registry/pages";
 /// #endif
 
-import type {TConfigTab} from "./types";
+import type {TConfigTab} from "./registry/pages";
 import type {App} from "../index";
 
 /// #if !MOBILE
@@ -74,8 +74,8 @@ const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
     (dialog.element.querySelector(".b3-dialog__container") as HTMLElement).style.maxWidth = "1280px";
     dialog.element.querySelectorAll(".config__side .b3-list-item").forEach(item => {
         item.addEventListener("click", () => {
-            const type = item.getAttribute("data-name") as TConfigTab;
-            switchConfigTab(dialog.element, app, type);
+            const tabId = item.getAttribute("data-name") as TConfigTab;
+            switchConfigTab(dialog.element, app, tabId);
         });
     });
     switchConfigTab(dialog.element, app, initialTab);

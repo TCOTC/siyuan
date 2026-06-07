@@ -1,12 +1,12 @@
 import type {App} from "../../index";
 import {getConfigPage} from "../../config/registry/pages";
 import {bindSettingSaveDelegation} from "../../config/ui/save";
-import type {IConfigTabDef} from "../../config/tabs";
+import type {IConfigTabShell} from "../../config/registry/pages";
 import {isMobile} from "../../util/functions";
 import {openModel} from "./model";
 
 /** 在移动端底栏模型中打开与桌面一致的设置标签页 */
-export const openMobileConfigTab = (def: IConfigTabDef, app: App) => {
+export const openMobileConfigTab = (def: IConfigTabShell, app: App) => {
     if (def.hidden) {
         return;
     }

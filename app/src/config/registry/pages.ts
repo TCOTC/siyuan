@@ -10,8 +10,9 @@ import {mountAccessTab} from "../pages/accessRuntime";
 import {bazaar} from "../bazaar";
 import {assets} from "../assets";
 import {collectKeymapTabSearchStrings, mountKeymapTab} from "../pages/keymapUi";
+import {isHuawei, isInHarmony} from "../../protyle/util/compatibility";
+import {isMobile} from "../../util/functions";
 import {defineConfigPage, definePanelPage, type ConfigPage} from "./pageBuilder";
-import type {TConfigTab} from "../types";
 import {
     registerEditorBehaviorSection,
     registerEditorBlockFeaturesSection,
@@ -58,16 +59,14 @@ import {
     registerAppMaintenanceSection,
 } from "../pages/appPage";
 import {registerAboutInfoSection, registerAboutVersionSection} from "../pages/aboutPage";
-/**
- * 各设置 Tab 的 defineConfigPage / definePanelPage 入口（集中在此文件）。
- * 具体设置项注册见 pages/*Page.ts。
- */
 
 export const editorPage = defineConfigPage(
     {
         id: "editor",
+        order: 0,
+        icon: "iconEdit",
+        title: () => window.siyuan.languages.editor,
         namespace: "editor",
-        tabLabel: () => window.siyuan.languages.editor,
         saveDefaults: editorConfigApi,
     },
     (p) => {
@@ -82,8 +81,10 @@ export const editorPage = defineConfigPage(
 export const filePage = defineConfigPage(
     {
         id: "file",
+        order: 1,
+        icon: "iconFiles",
+        title: () => window.siyuan.languages.fileTree,
         namespace: "fileTree",
-        tabLabel: () => window.siyuan.languages.fileTree,
         saveDefaults: fileConfigApi,
     },
     (p) => {
@@ -94,67 +95,13 @@ export const filePage = defineConfigPage(
     },
 );
 
-export const flashcardPage = defineConfigPage(
-    {
-        id: "flashcard",
-        namespace: "flashcard",
-        tabLabel: () => window.siyuan.languages.riffCard,
-        saveDefaults: flashcardConfigApi,
-    },
-    (p) => {
-        registerFlashcardCreationSection(p);
-        registerFlashcardReviewSection(p);
-        registerFlashcardOthersSection(p);
-    },
-);
-
-export const aiPage = defineConfigPage(
-    {
-        id: "ai",
-        namespace: "ai",
-        tabLabel: () => window.siyuan.languages.ai,
-        saveDefaults: aiConfigApi,
-    },
-    (p) => {
-        registerAiServiceSection(p);
-        registerAiModelSection(p);
-    },
-);
-
-export const exportPage = defineConfigPage(
-    {
-        id: "export",
-        namespace: "export",
-        tabLabel: () => window.siyuan.languages.export,
-        saveDefaults: exportConfigApi,
-    },
-    (p) => {
-        registerExportReferencesSection(p);
-        registerExportFormatSection(p);
-        registerExportPdfSection(p);
-        registerExportImagesSection(p);
-        registerExportPandocSection(p);
-    },
-);
-
-export const searchPage = defineConfigPage(
-    {
-        id: "search",
-        namespace: "search",
-        tabLabel: () => window.siyuan.languages.search,
-        saveDefaults: searchConfigApi,
-    },
-    (p) => {
-        registerSearchQuerySection(p);
-        registerSearchLimitsSection(p);
-    },
-);
-
 export const appearancePage = defineConfigPage(
     {
         id: "appearance",
+        order: 2,
+        icon: "iconTheme",
+        title: () => window.siyuan.languages.appearance,
         namespace: "appearance",
-        tabLabel: () => window.siyuan.languages.appearance,
         saveDefaults: appearanceConfigApi,
     },
     (p) => {
@@ -165,70 +112,12 @@ export const appearancePage = defineConfigPage(
     },
 );
 
-export const syncPage = defineConfigPage(
-    {
-        id: "sync",
-        namespace: "sync",
-        tabLabel: () => window.siyuan.languages.accountSync,
-        saveDefaults: {patch: sendSyncSetting},
-        afterMount: mountSyncTabExtras,
-    },
-    (p) => {
-        registerAccountSection(p);
-        registerSyncSection(p);
-        registerRepoSection(p);
-    },
-);
-
-export const accessPage = defineConfigPage(
-    {
-        id: "access",
-        namespace: "access",
-        tabLabel: () => window.siyuan.languages.authentication,
-        afterMount: mountAccessTab,
-    },
-    (p) => {
-        registerAccessAuthSection(p);
-        registerAccessServerSection(p);
-        registerAccessPublishSection(p);
-    },
-);
-
-export const appPage = defineConfigPage(
-    {
-        id: "app",
-        namespace: "system",
-        tabLabel: () => window.siyuan.languages.application,
-    },
-    (p) => {
-        registerAppGeneralSection(p);
-        registerAppDataSection(p);
-        registerAppMaintenanceSection(p);
-    },
-);
-
-export const aboutPage = defineConfigPage(
-    {
-        id: "about",
-        namespace: "about",
-        tabLabel: () => window.siyuan.languages.about,
-    },
-    (p) => {
-        registerAboutVersionSection(p);
-        registerAboutInfoSection(p);
-    },
-);
-
-export const keymapPage = definePanelPage({
-    id: "keymap",
-    tabLabel: () => window.siyuan.languages.keymap,
-    searchStrings: collectKeymapTabSearchStrings,
-    mount: mountKeymapTab,
-});
-
 export const bazaarPage = definePanelPage({
     id: "bazaar",
-    tabLabel: () => window.siyuan.languages.bazaar,
+    order: 3,
+    icon: "iconBazaar",
+    title: () => window.siyuan.languages.bazaar,
+    hidden: () => !!(isMobile() || isHuawei() || isInHarmony()),
     searchStrings: () => [
         window.siyuan.languages.bazaar,
         window.siyuan.languages.plugin,
@@ -247,9 +136,42 @@ export const bazaarPage = definePanelPage({
     },
 });
 
+export const flashcardPage = defineConfigPage(
+    {
+        id: "flashcard",
+        order: 4,
+        icon: "iconRiffCard",
+        title: () => window.siyuan.languages.riffCard,
+        namespace: "flashcard",
+        saveDefaults: flashcardConfigApi,
+    },
+    (p) => {
+        registerFlashcardCreationSection(p);
+        registerFlashcardReviewSection(p);
+        registerFlashcardOthersSection(p);
+    },
+);
+
+export const aiPage = defineConfigPage(
+    {
+        id: "ai",
+        order: 5,
+        icon: "iconSparkles",
+        title: () => window.siyuan.languages.ai,
+        namespace: "ai",
+        saveDefaults: aiConfigApi,
+    },
+    (p) => {
+        registerAiServiceSection(p);
+        registerAiModelSection(p);
+    },
+);
+
 export const assetsPage = definePanelPage({
     id: "assets",
-    tabLabel: () => window.siyuan.languages.assets,
+    order: 6,
+    icon: "iconImage",
+    title: () => window.siyuan.languages.assets,
     searchStrings: () => [
         window.siyuan.languages.assets,
         window.siyuan.languages.unreferencedAssets,
@@ -265,21 +187,153 @@ export const assetsPage = definePanelPage({
     },
 });
 
-const configPages: Partial<Record<TConfigTab, ConfigPage>> = {
+export const exportPage = defineConfigPage(
+    {
+        id: "export",
+        order: 7,
+        icon: "iconUpload",
+        title: () => window.siyuan.languages.export,
+        namespace: "export",
+        saveDefaults: exportConfigApi,
+    },
+    (p) => {
+        registerExportReferencesSection(p);
+        registerExportFormatSection(p);
+        registerExportPdfSection(p);
+        registerExportImagesSection(p);
+        registerExportPandocSection(p);
+    },
+);
+
+export const searchPage = defineConfigPage(
+    {
+        id: "search",
+        order: 8,
+        icon: "iconSearch",
+        title: () => window.siyuan.languages.search,
+        namespace: "search",
+        saveDefaults: searchConfigApi,
+    },
+    (p) => {
+        registerSearchQuerySection(p);
+        registerSearchLimitsSection(p);
+    },
+);
+
+export const keymapPage = definePanelPage({
+    id: "keymap",
+    order: 9,
+    icon: "iconKeymap",
+    title: () => window.siyuan.languages.keymap,
+    searchStrings: collectKeymapTabSearchStrings,
+    mount: mountKeymapTab,
+});
+
+export const syncPage = defineConfigPage(
+    {
+        id: "sync",
+        order: 10,
+        icon: "iconCloud",
+        title: () => window.siyuan.languages.accountSync,
+        namespace: "sync",
+        saveDefaults: {patch: sendSyncSetting},
+        afterMount: mountSyncTabExtras,
+    },
+    (p) => {
+        registerAccountSection(p);
+        registerSyncSection(p);
+        registerRepoSection(p);
+    },
+);
+
+export const accessPage = defineConfigPage(
+    {
+        id: "access",
+        order: 11,
+        icon: "iconLock",
+        title: () => window.siyuan.languages.authentication,
+        namespace: "access",
+        afterMount: mountAccessTab,
+    },
+    (p) => {
+        registerAccessAuthSection(p);
+        registerAccessServerSection(p);
+        registerAccessPublishSection(p);
+    },
+);
+
+export const appPage = defineConfigPage(
+    {
+        id: "app",
+        order: 12,
+        icon: "iconSiYuan",
+        title: () => window.siyuan.languages.application,
+        namespace: "system",
+    },
+    (p) => {
+        registerAppGeneralSection(p);
+        registerAppDataSection(p);
+        registerAppMaintenanceSection(p);
+    },
+);
+
+export const aboutPage = defineConfigPage(
+    {
+        id: "about",
+        order: 13,
+        icon: "iconInfo",
+        title: () => window.siyuan.languages.about,
+        namespace: "about",
+    },
+    (p) => {
+        registerAboutVersionSection(p);
+        registerAboutInfoSection(p);
+    },
+);
+
+const configPages = {
     editor: editorPage,
     file: filePage,
+    appearance: appearancePage,
+    bazaar: bazaarPage,
     flashcard: flashcardPage,
     ai: aiPage,
+    assets: assetsPage,
     export: exportPage,
     search: searchPage,
-    appearance: appearancePage,
+    keymap: keymapPage,
     sync: syncPage,
     access: accessPage,
     app: appPage,
     about: aboutPage,
-    keymap: keymapPage,
-    bazaar: bazaarPage,
-    assets: assetsPage,
-};
+} as const;
+
+export type TConfigTab = keyof typeof configPages;
+
+/** 侧栏 / 菜单展示用（`title` 为求值后的文案） */
+export interface IConfigTabShell {
+    id: TConfigTab;
+    icon: string;
+    title: string;
+    hidden?: boolean;
+}
 
 export const getConfigPage = (id: TConfigTab): ConfigPage | undefined => configPages[id];
+
+let configTabShellCache: IConfigTabShell[] | undefined;
+
+export const getConfigTabDefs = (): IConfigTabShell[] => {
+    if (configTabShellCache) {
+        return configTabShellCache;
+    }
+    configTabShellCache = (Object.keys(configPages) as TConfigTab[])
+        .map((id) => ({id, page: configPages[id]}))
+        .sort((a, b) => a.page.order - b.page.order)
+        .map(({id, page}) => ({
+            id,
+            icon: page.icon,
+            title: page.title(),
+            hidden: page.hidden?.(),
+        }));
+    return configTabShellCache;
+};

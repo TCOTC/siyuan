@@ -21,16 +21,17 @@ export const registerEditorBehaviorSection = (p: PageBuilder) => {
         desc: browser ? window.siyuan.languages.spellcheckTip : window.siyuan.languages.spellcheckTip2,
         afterMount: bindSpellcheckLanguagesVisibility,
     });
-    s.slot({
-        key: "spellcheckLanguages",
-        visible: () => !browser,
-        keywords: [
-            window.siyuan.languages.spellcheck,
-            window.siyuan.languages.spellcheckTip2,
-        ],
-        html: () => `<div class="fn__flex b3-label config-item fn__none"><div class="b3-chips" id="editor.spellcheckLanguages"></div></div>`,
-        afterMount: bindSpellcheckLanguagesChips,
-    });
+    if (!browser) {
+        s.slot({
+            key: "spellcheckLanguages",
+            keywords: [
+                window.siyuan.languages.spellcheck,
+                window.siyuan.languages.spellcheckTip2,
+            ],
+            html: () => `<div class="fn__flex b3-label config-item fn__none"><div class="b3-chips" id="editor.spellcheckLanguages"></div></div>`,
+            afterMount: bindSpellcheckLanguagesChips,
+        });
+    }
     s.range("codeTabSpaces", {
         title: window.siyuan.languages.md29,
         desc: window.siyuan.languages.md30,

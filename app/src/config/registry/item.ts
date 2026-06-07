@@ -1,11 +1,10 @@
-import type {TConfigTab} from "../types";
 import type {RowPart} from "../render/parts";
 import {readControlPart} from "../render/read";
 
-export type SettingItemKind = "control" | "slot";
+type SettingItemKind = "control" | "slot";
 export interface SettingItem {
     id: string;
-    tab: TConfigTab;
+    tabId: string;
     sectionKey: string;
     sectionTitle: string;
     order: number;
@@ -21,7 +20,7 @@ export interface SettingItem {
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 }
 
-const registry = new Map<string, SettingItem>();
+const registry = new Map<SettingItem["id"], SettingItem>();
 let orderSeq = 0;
 export const registerItem = (item: Omit<SettingItem, "order"> & {order?: number}) => {
     registry.set(item.id, {
@@ -30,12 +29,7 @@ export const registerItem = (item: Omit<SettingItem, "order"> & {order?: number}
     });
 };
 
-export const getSettingItem = (id: string) => registry.get(id);
 export const getAllSettingItems = () => [...registry.values()];
-export const clearSettingRegistry = () => {
-    registry.clear();
-    orderSeq = 0;
-};
 
 /** change 委托：命中注册表则已处理并返回 true */
 export const tryRouteRegistrySave = (el: HTMLElement, controlId: string): boolean => {
@@ -44,7 +38,8 @@ export const tryRouteRegistrySave = (el: HTMLElement, controlId: string): boolea
         return false;
     }
     const controlPart = item.parts?.find(
-        (p) => p.kind !== "title" && p.kind !== "desc" && p.id === controlId,
+        (p): p is Exclude<RowPart, {kind: "title"} | {kind: "desc"}> =>
+            p.kind !== "title" && p.kind !== "desc" && p.id === controlId,
     );
     const value = item.read
         ? item.read(el)

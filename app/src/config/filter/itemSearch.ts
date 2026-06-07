@@ -6,7 +6,7 @@ const partSearchStrings = (part: RowPart): string[] => {
     switch (part.kind) {
         case "title":
         case "desc":
-            // TODO title 可能含 HTML（如快捷键 <code>），收集检索串时应转为纯文本
+            // TODO 文案可能含 HTML（如快捷键 <code>），收集检索串时应转为纯文本
             return [part.text];
         case "select":
             return part.options.map((o) => o.label ?? String(o.value));
@@ -46,10 +46,9 @@ export const filterItemsBySearch = (items: SettingItem[], searchQuery?: string):
     );
 };
 
-/** 侧栏 / 一级 Tab 命中用的检索串列表（由 ConfigPage.searchStrings 调用） */
-export const collectTabSearchStrings = (tabLabel: string, items: SettingItem[]): string[] => {
+export const collectTabSearchStrings = (tabTitle: string, items: SettingItem[]): string[] => {
     // TODO 在此或注册时：strip HTML、检索串统一 toLowerCase 一次，供 textMatchesSearch 直接比对
-    const strings: string[] = [tabLabel];
+    const strings: string[] = [tabTitle];
     const sectionTitles = new Set<string>();
     for (const item of items) {
         if (item.sectionTitle && !sectionTitles.has(item.sectionKey)) {

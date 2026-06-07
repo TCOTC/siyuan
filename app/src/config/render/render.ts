@@ -283,7 +283,7 @@ export const genConfigGroup = (itemsHtml: string, title?: string): string =>
     `<div class="config-group">${title ? `<div class="config-title">${title}</div>` : ""}<div class="config-items">${itemsHtml}</div></div>`;
 
 /** 按节分组渲染注册项列表 */
-export const renderGroupedItems = (items: SettingItem[]): string => {
+export const genGroupedItems = (items: SettingItem[]): string => {
     const groups = new Map<string, {title: string; items: SettingItem[]}>();
     for (const item of items) {
         let group = groups.get(item.sectionKey);

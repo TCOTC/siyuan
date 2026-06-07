@@ -11,9 +11,9 @@ import {readDomValue} from "../ui/formValue";
 const isMobileKernelContainer = () =>
     ["android", "ios", "harmony"].includes(window.siyuan.config.system.container);
 
-/** 仅用于 change 路由：控件在 slot HTML 内，不参与渲染 */
+/** slot 内嵌控件的手动注册，等同 `registerEmbeddedControl`（不参与 mount 渲染，仅 save / 搜索） */
 const registerHiddenSaveControl = (
-    tab: "file",
+    tabId: "file",
     sectionKey: string,
     sectionTitle: string,
     controlId: string,
@@ -22,7 +22,7 @@ const registerHiddenSaveControl = (
 ) => {
     registerItem({
         id: controlId,
-        tab,
+        tabId,
         sectionKey,
         sectionTitle,
         kind: "control",

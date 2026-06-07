@@ -1,24 +1,15 @@
-import type {TConfigTab} from "../types";
-import {getConfigTabDefs} from "../tabs";
+import {getConfigTabDefs, type TConfigTab} from "../registry/pages";
 import {textMatchesSearch} from "../ui/search";
 import {getConfigPage} from "../registry/pages";
 import {App} from "../../index";
 import {isPhablet} from "../../protyle/util/compatibility";
 
-const getTabSearchStrings = (tabId: TConfigTab): string[] => {
-    const page = getConfigPage(tabId);
-    if (page) {
-        return page.searchStrings();
-    }
-    // TODO 集市 / 资源等无注册项面板：迁移后用 panels/* 的 searchStrings()，勿再硬编码 TAB_LANG_KEYS
-    return [];
-};
-
 export const initConfigSearch = (element: HTMLElement, app: App) => {
     const tabSearchStrings = getConfigTabDefs().map((def) => ({
         id: def.id,
         // TODO 侧栏检索串：searchStrings() 结果宜缓存，注册项或界面语言变更时失效，避免每次 input 重复收集
-        strings: getTabSearchStrings(def.id),
+        // TODO 集市 / 资源等无注册项面板：迁移后用 panels/* 的 searchStrings()，勿再硬编码 TAB_LANG_KEYS
+        strings: getConfigPage(def.id)?.searchStrings() || [],
     }));
     const inputElement = element.querySelector(".b3-form__icon input") as HTMLInputElement;
     if (!isPhablet()) {
@@ -71,9 +62,9 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
         });
 
         if (currentTabElement) {
-            const tabType = currentTabElement.getAttribute("data-name") as TConfigTab;
-            if (tabType) {
-                switchConfigTab(element, app, tabType);
+            const tabId = currentTabElement.getAttribute("data-name") as TConfigTab;
+            if (tabId) {
+                switchConfigTab(element, app, tabId);
             }
         } else {
             element.querySelectorAll(".config__tab-container").forEach((item) => {
@@ -94,13 +85,13 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
 };
 
 /** 切换一级设置 Tab（已迁移 Tab 走 registry） */
-export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TConfigTab) => {
-    const page = getConfigPage(type);
+export const switchConfigTab = (dialogElement: HTMLElement, app: App, tabId: TConfigTab) => {
+    const page = getConfigPage(tabId);
     if (!page) {
         // TODO 未迁移 Tab 恢复旧 mount
         return;
     }
-    const containerElement = dialogElement.querySelector(`.config__tab-container[data-name="${type}"]`) as HTMLElement | null;
+    const containerElement = dialogElement.querySelector(`.config__tab-container[data-name="${tabId}"]`) as HTMLElement | null;
     if (!containerElement) {
         return;
     }
@@ -108,7 +99,7 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, type: TCon
         container.classList.toggle("fn__none", container !== containerElement);
     });
     dialogElement.querySelectorAll(".config__side .b3-list-item").forEach((item) => {
-        item.classList.toggle("b3-list-item--focus", item.getAttribute("data-name") === type);
+        item.classList.toggle("b3-list-item--focus", item.getAttribute("data-name") === tabId);
     });
     const searchInput = dialogElement.querySelector(".b3-form__icon input") as HTMLInputElement | null;
     const keywords = (searchInput?.value ?? "").trim();
