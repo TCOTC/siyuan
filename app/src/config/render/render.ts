@@ -1,8 +1,15 @@
 import type {MountableSettingItem} from "../registry/item";
-import {getGroupsByTabId} from "../registry/group";
 import {getMountableItemsByGroup} from "../registry/item";
+import {getGroupsByTabId} from "../registry/group";
 import type {StringControl} from "../registry/control";
-import {isConfigControl, type RowPart, type StackLeft, type StackLine, type StackRight, type SwitchQueryItem} from "./parts";
+import {
+    isConfigControl,
+    type RowPart,
+    type StackLeft,
+    type StackLine,
+    type StackRight,
+    type SwitchQueryItem
+} from "./parts";
 import {escapeAttr} from "../../util/escape";
 import {buildRangeValues} from "../registry/domIO";
 import {genConfigItemMainHtml, genConfigItemName, genSwitchRow} from "./fragments";
@@ -227,7 +234,7 @@ const renderControlParts = (parts: RowPart[]): string => {
     <input class="b3-text-field fn__flex-center fn__size200" id="${control.id}" value="${Lute.EscapeHTMLStr(control.read() as string)}"/>
 </div>`;
         case "textBlock": {
-            const blockHtml = `<div class="b3-label config-item">
+            return `<div class="b3-label config-item">
     <div class="fn__block">
         ${genConfigItemName(title)}
         <div class="b3-label__text">${desc ?? ""}</div>
@@ -235,7 +242,6 @@ const renderControlParts = (parts: RowPart[]): string => {
         ${genTextBlockFieldHtml(control.id, control.mode, control.read() as string)}
     </div>
 </div>`;
-            return blockHtml;
         }
     }
 };
