@@ -18,7 +18,7 @@ import {hasClosestByAttribute} from "../protyle/util/hasClosest";
 import {BlockPanel} from "../block/Panel";
 import {Setting} from "./Setting";
 import {clearOBG} from "../layout/dock/util";
-import {configTabToMenuId} from "../config/menuIds";
+import {configTabToMenuId} from "../config/registry/tabs";
 import {Constants} from "../constants";
 import {uninstall} from "./uninstall";
 import {addPluginDock, afterLoadPlugin, loadPlugins} from "./loader";
