@@ -1,4 +1,4 @@
-import {tryRouteRegistrySave} from "../registry/item";
+import {getSettingItem} from "../registry/item";
 import {syncRangeRowValue} from "./formValue";
 
 const settingSaveBoundWraps = new WeakSet<HTMLElement>();
@@ -26,7 +26,15 @@ const onSettingTabWrapChange = (event: Event) => {
     }
     syncRangeRowValue(el);
     const controlId = el.id || el.getAttribute("data-control-id");
-    if (controlId) {
-        tryRouteRegistrySave(el, controlId);
+    if (!controlId) {
+        return;
+    }
+    const item = getSettingItem(controlId);
+    if (!item?.save || item.kind === "render" || !item.read) {
+        return;
+    }
+    const value = item.read(el);
+    if (value !== undefined) {
+        void item.save(value);
     }
 };

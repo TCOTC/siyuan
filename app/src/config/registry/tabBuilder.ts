@@ -3,10 +3,10 @@ import type {RowPart, StackLine, SwitchQueryItem} from "../render/parts";
 import {genButtonRowHtml, genStackHtml, genSwitchQueryHtml, genTextPairHtml} from "../render/render";
 import type {ConfigValue} from "../ui/configValue";
 import {configBooleanValue, configNumberValue, configSelectValue, configStringValue} from "../ui/configValue";
-import {readControlPart} from "../render/read";
+import {readControlPart, type ControlPart} from "../render/read";
 import {bindPasswordIconaToggle} from "../ui/render";
 import {registerGroup} from "./group";
-import {registerItem, RegisterSettingItem, type ControlPart} from "./item";
+import {registerItem, RegisterSettingItem} from "./item";
 
 export type SaveFn = (value: unknown) => void | Promise<void>;
 
@@ -200,8 +200,6 @@ const resolveId = (namespace: string, path: string) => {
     return `${namespace}.${path}`;
 };
 
-const noopPatch = () => {};
-
 const defaultSearchTexts = (meta: {title?: string; desc?: string; keywords?: string[]}) => {
     if (meta.keywords) {
         return () => [...meta.keywords!];
@@ -298,8 +296,11 @@ export class GroupBuilder<TId extends string> {
             kind: "full",
             rowParts,
             searchTexts: defaultSearchTexts({title: meta.title, desc: meta.desc, keywords: meta.keywords}),
-            read: meta.read,
-            save: meta.save ?? ((value) => (this.tab.defaultSave ?? noopPatch)(id, value)),
+            read: meta.read ?? ((el) => {
+                const part = rowParts.find((p): p is ControlPart => "id" in p && p.id === id);
+                return part ? readControlPart(part, el) : undefined;
+            }),
+            save: meta.save ?? this.tab.defaultSave?.bind(null, id),
             afterMount: meta.afterMount,
         } as RegisterSettingItem);
         return this;
@@ -476,7 +477,7 @@ export class GroupBuilder<TId extends string> {
                 kind: "binding",
                 controlPart,
                 read: control.read ?? ((el) => readControlPart(controlPart, el)),
-                save: control.save ?? ((value) => (this.tab.defaultSave ?? noopPatch)(controlId, value)),
+                save: control.save ?? this.tab.defaultSave?.bind(null, controlId),
             } as RegisterSettingItem);
         }
         return this;

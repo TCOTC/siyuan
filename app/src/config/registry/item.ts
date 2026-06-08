@@ -1,8 +1,6 @@
 import type {RowPart} from "../render/parts";
-import {readControlPart} from "../render/read";
+import type {ControlPart} from "../render/read";
 import {buildItemSearchIndex} from "../search/normalize";
-
-export type ControlPart = Exclude<RowPart, {kind: "title"} | {kind: "desc"}>;
 
 type SettingItemBase = {
     id: string;
@@ -85,30 +83,4 @@ export const getMountableItemsByGroup = (tabId: string) => {
     return itemsByGroup;
 };
 
-/** change 委托：命中注册表则已处理并返回 true */
-export const tryRouteRegistrySave = (el: HTMLElement, controlId: string): boolean => {
-    const item = registry.get(controlId);
-    if (!item?.save) {
-        return false;
-    }
-    let value: unknown;
-    if (item.kind === "binding") {
-        value = item.read ? item.read(el) : readControlPart(item.controlPart, el);
-    } else if (item.kind === "full") {
-        const controlPart = item.rowParts.find(
-            (p): p is ControlPart =>
-                p.kind !== "title" && p.kind !== "desc" && p.id === controlId,
-        );
-        value = item.read
-            ? item.read(el)
-            : controlPart
-              ? readControlPart(controlPart, el)
-              : undefined;
-    } else {
-        return false;
-    }
-    if (value !== undefined) {
-        void item.save(value);
-    }
-    return true;
-};
+export const getSettingItem = (id: string) => registry.get(id);

@@ -1,8 +1,10 @@
 import type {RowPart} from "./parts";
 import {readDomValue} from "../ui/formValue";
 
+export type ControlPart = Exclude<RowPart, {kind: "title"} | {kind: "desc"}>;
+
 /** 按控件部件从 DOM 读值（与 ui/formValue 约定一致） */
-export const readControlPart = (part: Exclude<RowPart, {kind: "title"} | {kind: "desc"}>, el: HTMLElement): unknown => {
+export const readControlPart = (part: ControlPart, el: HTMLElement): unknown => {
     switch (part.kind) {
         case "switch":
             return (el as HTMLInputElement).checked;
