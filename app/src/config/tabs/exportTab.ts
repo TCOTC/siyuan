@@ -1,13 +1,13 @@
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
 /// #endif
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {TabBuilder} from "../registry/tabBuilder";
 import {Constants} from "../../constants";
 import {isBrowser} from "../../util/functions";
 import {useShell} from "../../util/pathName";
 import {exportConfigApi} from "./exportRuntime";
 
-export const registerExportReferencesGroup = (p: PageBuilder) => {
+export const registerExportReferencesGroup = (p: TabBuilder) => {
     const s = p.group("references", window.siyuan.languages.configGroupReferences);
 
     s.switch("includeSubDocs", {
@@ -37,7 +37,7 @@ export const registerExportReferencesGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerExportFormatGroup = (p: PageBuilder) => {
+export const registerExportFormatGroup = (p: TabBuilder) => {
     const s = p.group("format", window.siyuan.languages.configGroupFormat);
 
     s.switch("markdownYFM", {
@@ -74,7 +74,7 @@ export const registerExportFormatGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerExportPdfGroup = (p: PageBuilder) => {
+export const registerExportPdfGroup = (p: TabBuilder) => {
     if (isBrowser()) {
         return;
     }
@@ -112,7 +112,7 @@ export const registerExportPdfGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerExportImagesGroup = (p: PageBuilder) => {
+export const registerExportImagesGroup = (p: TabBuilder) => {
     const s = p.group("images", window.siyuan.languages.configGroupImages);
 
     s.block({
@@ -136,7 +136,7 @@ export const registerExportImagesGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerExportPandocGroup = (p: PageBuilder) => {
+export const registerExportPandocGroup = (p: TabBuilder) => {
     if (isBrowser()) {
         return;
     }
@@ -194,7 +194,7 @@ const mountExportPandocStack = (root: HTMLElement) => {
     });
 };
 
-export const registerExportPage = (p: PageBuilder) => {
+export const registerExportTab = (p: TabBuilder) => {
     registerExportReferencesGroup(p);
     registerExportFormatGroup(p);
     registerExportPdfGroup(p);

@@ -6,10 +6,10 @@ import {bindSettingSaveDelegation} from "./ui/save";
 import {Dialog} from "../dialog";
 import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";
-import {getConfigTabDefs} from "./registry/pages";
+import {getConfigTabDefs} from "./registry/tabs";
 /// #endif
 
-import type {TConfigTab} from "./registry/pages";
+import type {TConfigTab} from "./registry/tabs";
 import type {App} from "../index";
 
 /// #if !MOBILE

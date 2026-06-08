@@ -1,5 +1,5 @@
-import {getConfigTabDefs, type TConfigTab} from "../registry/pages";
-import {getConfigPage} from "../registry/pages";
+import {getConfigTabDefs, type TConfigTab} from "../registry/tabs";
+import {getConfigTab} from "../registry/tabs";
 import {App} from "../../index";
 import {isPhablet} from "../../protyle/util/compatibility";
 
@@ -19,8 +19,8 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
 
         const matchedTabIds = new Set<TConfigTab>();
         for (const def of getConfigTabDefs()) {
-            const page = getConfigPage(def.id);
-            if (page?.matchesSearch(keywords)) {
+            const tab = getConfigTab(def.id);
+            if (tab?.matchesSearch(keywords)) {
                 matchedTabIds.add(def.id);
             }
         }
@@ -71,8 +71,8 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
 
 /** 切换一级设置 Tab（已迁移 Tab 走 registry） */
 export const switchConfigTab = (dialogElement: HTMLElement, app: App, tabId: TConfigTab) => {
-    const page = getConfigPage(tabId);
-    if (!page) {
+    const tab = getConfigTab(tabId);
+    if (!tab) {
         // TODO 未迁移 Tab 恢复旧 mount
         return;
     }
@@ -89,7 +89,7 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, tabId: TCo
     const searchInput = dialogElement.querySelector(".b3-form__icon input") as HTMLInputElement | null;
     const keywords = (searchInput?.value ?? "").trim();
 
-    void page.mount(containerElement, keywords || undefined, app);
+    void tab.mount(containerElement, keywords || undefined, app);
 };
 
 /** 清空设置搜索：侧栏复原并取消内容区 fn__none 过滤（不 remount）。 */
@@ -98,19 +98,19 @@ const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
         item.style.display = "";
     });
     getConfigTabDefs().forEach((def) => {
-        const page = getConfigPage(def.id);
-        if (!page) {
+        const tab = getConfigTab(def.id);
+        if (!tab) {
             return;
         }
         const container = dialogElement.querySelector(`.config__tab-container[data-name="${def.id}"]`) as HTMLElement | null;
         if (container?.innerHTML) {
-            void page.mount(container, undefined, app);
+            void tab.mount(container, undefined, app);
         }
     });
     const focusLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
     const tabFromFocus = focusLi?.getAttribute("data-name") as TConfigTab | undefined;
     const tabToShow =
-        tabFromFocus && getConfigPage(tabFromFocus)
+        tabFromFocus && getConfigTab(tabFromFocus)
             ? tabFromFocus
             : "editor";
     switchConfigTab(dialogElement, app, tabToShow);

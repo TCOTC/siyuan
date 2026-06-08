@@ -1,6 +1,6 @@
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {TabBuilder} from "../registry/tabBuilder";
 
-export const registerSearchQueryGroup = (p: PageBuilder) => {
+export const registerSearchQueryGroup = (p: TabBuilder) => {
     const s = p.group("query", "");
 
     s.switchQuery({
@@ -68,7 +68,7 @@ export const registerSearchQueryGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerSearchLimitsGroup = (p: PageBuilder) => {
+export const registerSearchLimitsGroup = (p: TabBuilder) => {
     const s = p.group("limits", "");
 
     s.number("limit", {
@@ -83,7 +83,7 @@ export const registerSearchLimitsGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerSearchPage = (p: PageBuilder) => {
+export const registerSearchTab = (p: TabBuilder) => {
     registerSearchQueryGroup(p);
     registerSearchLimitsGroup(p);
 };

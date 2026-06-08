@@ -36,7 +36,7 @@ const genKeymapToolbarHtml = () => genConfigGroup(
     ),
 );
 
-const genKeymapPageHtml = () => genKeymapToolbarHtml() + genConfigGroup(genKeymapListHtml());
+const genKeymapTabHtml = () => genKeymapToolbarHtml() + genConfigGroup(genKeymapListHtml());
 
 const bindKeymapToolbar = (root: HTMLElement) => {
     root.querySelector("#keymapRefreshBtn")?.addEventListener("click", () => {
@@ -79,7 +79,7 @@ const bindKeymapToolbar = (root: HTMLElement) => {
 /** 快捷键 Tab 挂载（面板页，不走注册表渲染） */
 export const mountKeymapTab = async (root: HTMLElement, searchQuery?: string) => {
     if (root.innerHTML === "") {
-        root.innerHTML = genKeymapPageHtml();
+        root.innerHTML = genKeymapTabHtml();
         bindKeymapToolbar(root);
         const keymapList = root.querySelector("#keymapList");
         if (keymapList) {

@@ -1,6 +1,6 @@
 import IAppearance = Config.IAppearance;
 import {exportLayout} from "../../layout/util";
-import {appearanceConfigApi} from "../pages/appearanceRuntime";
+import {appearanceConfigApi} from "../tabs/appearanceRuntime";
 import {adjustDockPadding} from "../../layout/dock/util";
 
 export const updateAppearance = async (data: IAppearance) => {

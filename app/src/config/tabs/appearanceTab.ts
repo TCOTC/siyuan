@@ -1,7 +1,7 @@
 /// #if !BROWSER
 import * as path from "path";
 /// #endif
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {TabBuilder} from "../registry/tabBuilder";
 import {Constants} from "../../constants";
 import {resetLayout} from "../../layout/util";
 import {desktopModeCookie} from "../../util/cookie";
@@ -18,7 +18,7 @@ import {genConfigItemMainHtml, genSwitchRow} from "../ui/render";
 import {editorConfigApi} from "./editorRuntime";
 import {appearanceThemeModeValue, saveThemeMode} from "./appearanceRuntime";
 
-export const registerAppearanceContentGroup = (p: PageBuilder) => {
+export const registerAppearanceContentGroup = (p: TabBuilder) => {
     const s = p.group("content", window.siyuan.languages.configGroupContent);
 
     s.slot({
@@ -150,7 +150,7 @@ const mountAppearanceFontFamily = (root: HTMLElement) => {
     }
 };
 
-export const registerAppearanceInterfaceGroup = (p: PageBuilder) => {
+export const registerAppearanceInterfaceGroup = (p: TabBuilder) => {
     const browser = isBrowser();
     const s = p.group("interface", window.siyuan.languages.configGroupInterface);
 
@@ -266,7 +266,7 @@ export const registerAppearanceInterfaceGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerAppearanceControlsGroup = (p: PageBuilder) => {
+export const registerAppearanceControlsGroup = (p: TabBuilder) => {
     const s = p.group("controls", window.siyuan.languages.configGroupControls);
 
     s.select("editor.floatWindowMode", {
@@ -370,7 +370,7 @@ const bindFloatWindowModeVisibility = (root: HTMLElement) => {
     handleFloatWindowModeChange();
 };
 
-export const registerAppearancePersonalizationGroup = (p: PageBuilder) => {
+export const registerAppearancePersonalizationGroup = (p: TabBuilder) => {
     const browser = isBrowser();
     const s = p.group("personalization", window.siyuan.languages.configGroupPersonalization);
 
@@ -424,7 +424,7 @@ const mountAppearanceCodeSnippet = (root: HTMLElement) => {
     });
 };
 
-export const registerAppearancePage = (p: PageBuilder) => {
+export const registerAppearanceTab = (p: TabBuilder) => {
     registerAppearanceContentGroup(p);
     registerAppearanceInterfaceGroup(p);
     registerAppearanceControlsGroup(p);

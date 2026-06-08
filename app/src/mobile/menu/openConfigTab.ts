@@ -1,7 +1,7 @@
 import type {App} from "../../index";
-import {getConfigPage} from "../../config/registry/pages";
+import {getConfigTab, type TConfigTab} from "../../config/registry/tabs";
+import type {IConfigTabShell} from "../../config/registry/registry";
 import {bindSettingSaveDelegation} from "../../config/ui/save";
-import type {IConfigTabShell, TConfigTab} from "../../config/registry/pages";
 import {isMobile} from "../../util/functions";
 import {openModel} from "./model";
 
@@ -17,9 +17,9 @@ export const openMobileConfigTab = (def: IConfigTabShell<TConfigTab>, app: App) 
         bindEvent(modelMainElement: HTMLElement) {
             const root = modelMainElement.firstElementChild as HTMLElement;
             bindSettingSaveDelegation(root);
-            const page = getConfigPage(def.id);
-            if (page) {
-                void page.mount(root, undefined, app);
+            const tab = getConfigTab(def.id);
+            if (tab) {
+                void tab.mount(root, undefined, app);
             }
         }
     });

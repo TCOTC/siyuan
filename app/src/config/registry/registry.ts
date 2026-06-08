@@ -2,25 +2,25 @@ import type {App} from "../../index";
 import {registryTabMatchesSearch, stringsMatchQuery} from "../search/match";
 import {normalizeSearchText} from "../search/normalize";
 import {
-    PageBuilder,
-    type ConfigPageOptions,
-    type ConfigPageShell,
-    type PanelPageOptions,
-} from "./pageBuilder";
-import {applyConfigPageSearch, mountConfigPage} from "./mount";
+    TabBuilder,
+    type ConfigTabOptions,
+    type ConfigTabShell,
+    type PanelTabOptions,
+} from "./tabBuilder";
+import {applyConfigTabSearch, mountConfigTab} from "./mount";
 
-export type {ConfigPageOptions, PanelPageOptions, ConfigPageShell} from "./pageBuilder";
+export type {ConfigTabOptions, PanelTabOptions, ConfigTabShell} from "./tabBuilder";
 
-export type ConfigPage = ConfigPageShell & {
+export type ConfigTab = ConfigTabShell & {
     mount: (root: HTMLElement, searchQuery?: string, app?: App) => Promise<void>;
     matchesSearch: (queryLower: string) => boolean;
 };
 
 export class RegistryBuilder {
-    page<TId extends string>(
-        options: ConfigPageOptions<TId>,
-        register: (page: PageBuilder<TId>) => void,
-    ): ConfigPage {
+    tab<TId extends string>(
+        options: ConfigTabOptions<TId>,
+        register: (tab: TabBuilder<TId>) => void,
+    ): ConfigTab {
         const {afterMount, ...shell} = options;
         let registered = false;
         const ensureRegistered = () => {
@@ -28,17 +28,17 @@ export class RegistryBuilder {
                 return;
             }
             registered = true;
-            register(new PageBuilder(options));
+            register(new TabBuilder(options));
         };
         return {
             ...shell,
             mount: async (root, searchQuery, app) => {
                 ensureRegistered();
                 if (root.innerHTML === "") {
-                    await mountConfigPage(options.id, root);
+                    await mountConfigTab(options.id, root);
                     await afterMount?.(root, app);
                 }
-                applyConfigPageSearch(root, options.id, options.title(), searchQuery);
+                applyConfigTabSearch(root, options.id, options.title(), searchQuery);
             },
             matchesSearch: (queryLower) => {
                 ensureRegistered();
@@ -48,8 +48,8 @@ export class RegistryBuilder {
     }
 
     panel<TId extends string>(
-        options: PanelPageOptions<TId>
-    ): ConfigPage {
+        options: PanelTabOptions<TId>
+    ): ConfigTab {
         const {searchStrings, mount: panelMount, ...shell} = options;
         const panelSearchIndex = () =>
             searchStrings().map(normalizeSearchText).filter((s) => s.length > 0);
@@ -67,8 +67,8 @@ export class RegistryBuilder {
     }
 }
 
-/** 声明设置 Tab 注册表；返回 `{ tabId: ConfigPage }` 供推导 `TConfigTab` */
-export const defineConfigRegistry = <T extends Record<string, ConfigPage>>(
+/** 声明设置 Tab 注册表；返回 `{ tabId: ConfigTab }` 供推导 `TConfigTab` */
+export const defineConfigRegistry = <T extends Record<string, ConfigTab>>(
     setup: (registry: RegistryBuilder) => T,
 ): T => setup(new RegistryBuilder());
 
@@ -81,23 +81,23 @@ export interface IConfigTabShell<TId extends string = string> {
 
 let configTabShellCache: IConfigTabShell<string>[] | undefined;
 
-export const buildConfigTabDefs = <T extends Record<string, ConfigPage>>(
-    pages: T,
+export const buildConfigTabDefs = <T extends Record<string, ConfigTab>>(
+    tabs: T,
 ): IConfigTabShell<keyof T & string>[] => {
     if (configTabShellCache) {
         return configTabShellCache as IConfigTabShell<keyof T & string>[];
     }
-    configTabShellCache = (Object.keys(pages) as (keyof T & string)[]).map((id) => {
-        const page = pages[id];
+    configTabShellCache = (Object.keys(tabs) as (keyof T & string)[]).map((id) => {
+        const tab = tabs[id];
         return {
             id,
-            icon: page.icon,
-            title: page.title(),
-            hidden: page.hidden?.(),
+            icon: tab.icon,
+            title: tab.title(),
+            hidden: tab.hidden?.(),
         };
     });
     return configTabShellCache as IConfigTabShell<keyof T & string>[];
 };
 
-export const getConfigPageFrom = (pages: Record<string, ConfigPage>, id: string): ConfigPage | undefined =>
-    pages[id as keyof typeof pages];
+export const getConfigTabFrom = (tabs: Record<string, ConfigTab>, id: string): ConfigTab | undefined =>
+    tabs[id as keyof typeof tabs];

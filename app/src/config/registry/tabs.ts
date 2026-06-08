@@ -1,52 +1,52 @@
-import {editorConfigApi} from "../pages/editorRuntime";
-import {fileConfigApi} from "../pages/fileRuntime";
-import {flashcardConfigApi} from "../pages/flashcardRuntime";
-import {aiConfigApi} from "../pages/aiRuntime";
-import {exportConfigApi} from "../pages/exportRuntime";
-import {searchConfigApi} from "../pages/searchRuntime";
-import {appearanceConfigApi} from "../pages/appearanceRuntime";
-import {mountSyncTabExtras, patchSyncConfig} from "../pages/syncRuntime";
-import {mountAccessTab} from "../pages/accessRuntime";
+import {editorConfigApi} from "../tabs/editorRuntime";
+import {fileConfigApi} from "../tabs/fileRuntime";
+import {flashcardConfigApi} from "../tabs/flashcardRuntime";
+import {aiConfigApi} from "../tabs/aiRuntime";
+import {exportConfigApi} from "../tabs/exportRuntime";
+import {searchConfigApi} from "../tabs/searchRuntime";
+import {appearanceConfigApi} from "../tabs/appearanceRuntime";
+import {mountSyncTabExtras, patchSyncConfig} from "../tabs/syncRuntime";
+import {mountAccessTab} from "../tabs/accessRuntime";
 import {bazaar} from "../bazaar";
 import {assets} from "../assets";
-import {collectKeymapTabSearchStrings, mountKeymapTab} from "../pages/keymapUi";
+import {collectKeymapTabSearchStrings, mountKeymapTab} from "../tabs/keymapUi";
 import {isHuawei, isInHarmony} from "../../protyle/util/compatibility";
 import {isMobile} from "../../util/functions";
-import {defineConfigRegistry, buildConfigTabDefs, getConfigPageFrom, type ConfigPage, type IConfigTabShell} from "./registry";
-import {registerEditorPage} from "../pages/editorPage";
-import {registerFilePage} from "../pages/filePage";
-import {registerFlashcardPage} from "../pages/flashcardPage";
-import {registerAiPage} from "../pages/aiPage";
-import {registerExportPage} from "../pages/exportPage";
-import {registerSearchPage} from "../pages/searchPage";
-import {registerAppearancePage} from "../pages/appearancePage";
-import {registerSyncPage} from "../pages/syncPage";
-import {registerAccessPage} from "../pages/accessPage";
-import {registerAppPage} from "../pages/appPage";
-import {registerAboutPage} from "../pages/aboutPage";
+import {defineConfigRegistry, buildConfigTabDefs, getConfigTabFrom, type ConfigTab, type IConfigTabShell} from "./registry";
+import {registerEditorTab} from "../tabs/editorTab";
+import {registerFileTab} from "../tabs/fileTab";
+import {registerFlashcardTab} from "../tabs/flashcardTab";
+import {registerAiTab} from "../tabs/aiTab";
+import {registerExportTab} from "../tabs/exportTab";
+import {registerSearchTab} from "../tabs/searchTab";
+import {registerAppearanceTab} from "../tabs/appearanceTab";
+import {registerSyncTab} from "../tabs/syncTab";
+import {registerAccessTab} from "../tabs/accessTab";
+import {registerAppTab} from "../tabs/appTab";
+import {registerAboutTab} from "../tabs/aboutTab";
 
-export const configPages = defineConfigRegistry((r) => ({
-    editor: r.page({
+export const configTabs = defineConfigRegistry((r) => ({
+    editor: r.tab({
         id: "editor",
         icon: "iconEdit",
         title: () => window.siyuan.languages.editor,
         namespace: "editor",
         defaultSave: editorConfigApi.patch,
-    }, registerEditorPage),
-    file: r.page({
+    }, registerEditorTab),
+    file: r.tab({
         id: "file",
         icon: "iconFiles",
         title: () => window.siyuan.languages.fileTree,
         namespace: "fileTree",
         defaultSave: fileConfigApi.patch,
-    }, registerFilePage),
-    appearance: r.page({
+    }, registerFileTab),
+    appearance: r.tab({
         id: "appearance",
         icon: "iconTheme",
         title: () => window.siyuan.languages.appearance,
         namespace: "appearance",
         defaultSave: appearanceConfigApi.patch,
-    }, registerAppearancePage),
+    }, registerAppearanceTab),
     bazaar: r.panel({
         id: "bazaar",
         icon: "iconBazaar",
@@ -69,20 +69,20 @@ export const configPages = defineConfigRegistry((r) => ({
             }
         },
     }),
-    flashcard: r.page({
+    flashcard: r.tab({
         id: "flashcard",
         icon: "iconRiffCard",
         title: () => window.siyuan.languages.riffCard,
         namespace: "flashcard",
         defaultSave: flashcardConfigApi.patch,
-    }, registerFlashcardPage),
-    ai: r.page({
+    }, registerFlashcardTab),
+    ai: r.tab({
         id: "ai",
         icon: "iconSparkles",
         title: () => window.siyuan.languages.ai,
         namespace: "ai",
         defaultSave: aiConfigApi.patch,
-    }, registerAiPage),
+    }, registerAiTab),
     assets: r.panel({
         id: "assets",
         icon: "iconImage",
@@ -101,20 +101,20 @@ export const configPages = defineConfigRegistry((r) => ({
             }
         },
     }),
-    export: r.page({
+    export: r.tab({
         id: "export",
         icon: "iconUpload",
         title: () => window.siyuan.languages.export,
         namespace: "export",
         defaultSave: exportConfigApi.patch,
-    }, registerExportPage),
-    search: r.page({
+    }, registerExportTab),
+    search: r.tab({
         id: "search",
         icon: "iconSearch",
         title: () => window.siyuan.languages.search,
         namespace: "search",
         defaultSave: searchConfigApi.patch,
-    }, registerSearchPage),
+    }, registerSearchTab),
     keymap: r.panel({
         id: "keymap",
         icon: "iconKeymap",
@@ -122,40 +122,38 @@ export const configPages = defineConfigRegistry((r) => ({
         searchStrings: collectKeymapTabSearchStrings,
         mount: mountKeymapTab,
     }),
-    sync: r.page({
+    sync: r.tab({
         id: "sync",
         icon: "iconCloud",
         title: () => window.siyuan.languages.accountSync,
         namespace: "sync",
         defaultSave: patchSyncConfig,
         afterMount: mountSyncTabExtras,
-    }, registerSyncPage),
-    access: r.page({
+    }, registerSyncTab),
+    access: r.tab({
         id: "access",
         icon: "iconLock",
         title: () => window.siyuan.languages.authentication,
         namespace: "access",
         afterMount: mountAccessTab,
-    }, registerAccessPage),
-    app: r.page({
+    }, registerAccessTab),
+    app: r.tab({
         id: "app",
         icon: "iconSiYuan",
         title: () => window.siyuan.languages.application,
         namespace: "system",
-    }, registerAppPage),
-    about: r.page({
+    }, registerAppTab),
+    about: r.tab({
         id: "about",
         icon: "iconInfo",
         title: () => window.siyuan.languages.about,
         namespace: "about",
-    }, registerAboutPage),
+    }, registerAboutTab),
 }));
 
-export type TConfigTab = keyof typeof configPages;
+export type TConfigTab = keyof typeof configTabs;
 
-export type {ConfigPage, IConfigTabShell} from "./registry";
+export const getConfigTab = (id: TConfigTab): ConfigTab | undefined =>
+    getConfigTabFrom(configTabs, id);
 
-export const getConfigPage = (id: TConfigTab): ConfigPage | undefined =>
-    getConfigPageFrom(configPages, id);
-
-export const getConfigTabDefs = (): IConfigTabShell<TConfigTab>[] => buildConfigTabDefs(configPages);
+export const getConfigTabDefs = (): IConfigTabShell<TConfigTab>[] => buildConfigTabDefs(configTabs);

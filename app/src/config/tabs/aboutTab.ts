@@ -1,11 +1,11 @@
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {TabBuilder} from "../registry/tabBuilder";
 import {Constants} from "../../constants";
 import {isBrowser} from "../../util/functions";
 import {fetchPost} from "../../util/fetch";
 import {getCloudURL} from "../util/about";
 import {sendAppSetting} from "./appRuntime";
 
-export const registerAboutVersionGroup = (p: PageBuilder) => {
+export const registerAboutVersionGroup = (p: TabBuilder) => {
     const s = p.group("version", "");
 
     s.slot({
@@ -69,7 +69,7 @@ const mountAboutVersionSlot = (root: HTMLElement) => {
     });
 };
 
-export const registerAboutInfoGroup = (p: PageBuilder) => {
+export const registerAboutInfoGroup = (p: TabBuilder) => {
     const s = p.group("info", "");
 
     s.slot({
@@ -124,7 +124,7 @@ export const registerAboutInfoGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerAboutPage = (p: PageBuilder) => {
+export const registerAboutTab = (p: TabBuilder) => {
     registerAboutVersionGroup(p);
     registerAboutInfoGroup(p);
 };

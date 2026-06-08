@@ -11,12 +11,12 @@ import {iOSPurchase} from "../../util/iOSPurchase";
 import {hideElements} from "../../protyle/ui/hideElements";
 import {closePanel} from "../../mobile/util/closePanel";
 import md5 from "blueimp-md5";
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {TabBuilder} from "../registry/tabBuilder";
 import {patchSyncConfig, refreshSyncCloudSpaceGroup, syncTabElement} from "./syncRuntime";
 import {escapeAttr, escapeHtml} from "../../util/escape";
 
-/** 账号节：由 syncPage 注册 */
-export const registerAccountGroup = (p: PageBuilder) => {
+/** 账号节：由 syncTab 注册 */
+export const registerAccountGroup = (p: TabBuilder) => {
     const s = p.group("account", window.siyuan.languages.configGroupAccount);
 
     s.slot({

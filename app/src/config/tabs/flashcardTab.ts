@@ -1,7 +1,7 @@
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {TabBuilder} from "../registry/tabBuilder";
 
-/** 闪卡 Tab：各组注册实现（由 registry/pages.ts 中的 registry 调用） */
-export const registerFlashcardCreationGroup = (p: PageBuilder) => {
+/** 闪卡 Tab：各组注册实现（由 registry/tabs.ts 中的 registry 调用） */
+export const registerFlashcardCreationGroup = (p: TabBuilder) => {
     const s = p.group("creation", window.siyuan.languages.configGroupCardCreation);
 
     s.switch("mark", {
@@ -22,7 +22,7 @@ export const registerFlashcardCreationGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerFlashcardReviewGroup = (p: PageBuilder) => {
+export const registerFlashcardReviewGroup = (p: TabBuilder) => {
     const s = p.group("review", window.siyuan.languages.configGroupReview);
 
     s.select("reviewMode", {
@@ -64,7 +64,7 @@ export const registerFlashcardReviewGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerFlashcardOthersGroup = (p: PageBuilder) => {
+export const registerFlashcardOthersGroup = (p: TabBuilder) => {
     const s = p.group("others", window.siyuan.languages.configGroupOthers);
 
     s.switch("deck", {
@@ -73,7 +73,7 @@ export const registerFlashcardOthersGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerFlashcardPage = (p: PageBuilder) => {
+export const registerFlashcardTab = (p: TabBuilder) => {
     registerFlashcardCreationGroup(p);
     registerFlashcardReviewGroup(p);
     registerFlashcardOthersGroup(p);

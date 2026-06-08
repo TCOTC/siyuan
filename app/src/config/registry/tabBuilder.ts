@@ -10,15 +10,15 @@ import {registerItem, type ControlPart} from "./item";
 
 export type SaveFn = (value: unknown) => void | Promise<void>;
 
-/** 侧栏 / 菜单等壳层字段（`RegistryBuilder.page` / `panel` 入参均平铺） */
-export interface ConfigPageShell<TId extends string = string> {
+/** 侧栏 / 菜单等壳层字段（`RegistryBuilder.tab` / `panel` 入参均平铺） */
+export interface ConfigTabShell<TId extends string = string> {
     id: TId;
     icon: string;
     title: () => string;
     hidden?: () => boolean;
 }
 
-export interface ConfigPageOptions<TId extends string = string> extends ConfigPageShell<TId> {
+export interface ConfigTabOptions<TId extends string = string> extends ConfigTabShell<TId> {
     namespace: string;
     /** 控件未指定 save 时，按控件 id 提交配置变更 */
     defaultSave?: (controlId: string, value: unknown) => void;
@@ -26,7 +26,7 @@ export interface ConfigPageOptions<TId extends string = string> extends ConfigPa
     afterMount?: (root: HTMLElement, app?: App) => void | Promise<void>;
 }
 
-export interface PanelPageOptions<TId extends string = string> extends ConfigPageShell<TId> {
+export interface PanelTabOptions<TId extends string = string> extends ConfigTabShell<TId> {
     searchStrings: () => string[];
     mount: (root: HTMLElement, searchQuery?: string, app?: App) => void | Promise<void>;
 }
@@ -278,7 +278,7 @@ export class BlockBuilder {
 
 export class GroupBuilder<TId extends string> {
     constructor(
-        private readonly page: ConfigPageOptions<TId>,
+        private readonly tab: ConfigTabOptions<TId>,
         readonly groupKey: string,
     ) {}
 
@@ -290,23 +290,23 @@ export class GroupBuilder<TId extends string> {
         parts: RowPart[],
         meta: ControlMetaBase,
     ) {
-        const id = resolveId(this.page.namespace, path);
+        const id = resolveId(this.tab.namespace, path);
         registerItem({
             id,
-            tabId: this.page.id,
+            tabId: this.tab.id,
             groupKey: this.groupKey,
             kind: "full",
             parts,
             searchTexts: defaultSearchTexts({title: meta.title, desc: meta.desc, keywords: meta.keywords}),
             read: meta.read,
-            save: meta.save ?? ((value) => (this.page.defaultSave ?? noopPatch)(id, value)),
+            save: meta.save ?? ((value) => (this.tab.defaultSave ?? noopPatch)(id, value)),
             afterMount: meta.afterMount,
         });
         return this;
     }
 
     switch(path: string, meta: SwitchMeta) {
-        const id = resolveId(this.page.namespace, path);
+        const id = resolveId(this.tab.namespace, path);
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
             ...(meta.desc ? [{kind: "desc" as const, text: meta.desc}] : []),
@@ -315,7 +315,7 @@ export class GroupBuilder<TId extends string> {
     }
 
     number(path: string, meta: NumberMeta) {
-        const id = resolveId(this.page.namespace, path);
+        const id = resolveId(this.tab.namespace, path);
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
             {kind: "desc", text: meta.desc ?? ""},
@@ -324,7 +324,7 @@ export class GroupBuilder<TId extends string> {
     }
 
     range(path: string, meta: RangeMeta) {
-        const id = resolveId(this.page.namespace, path);
+        const id = resolveId(this.tab.namespace, path);
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
             {kind: "desc", text: meta.desc ?? ""},
@@ -333,7 +333,7 @@ export class GroupBuilder<TId extends string> {
     }
 
     select(path: string, meta: SelectMeta) {
-        const id = resolveId(this.page.namespace, path);
+        const id = resolveId(this.tab.namespace, path);
         const value = meta.value ?? configSelectValue(id, meta.options);
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
@@ -343,7 +343,7 @@ export class GroupBuilder<TId extends string> {
     }
 
     text(path: string, meta: TextMeta) {
-        const id = resolveId(this.page.namespace, path);
+        const id = resolveId(this.tab.namespace, path);
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
             {kind: "desc", text: meta.desc},
@@ -352,7 +352,7 @@ export class GroupBuilder<TId extends string> {
     }
 
     textBlock(path: string, meta: TextBlockMeta) {
-        const id = resolveId(this.page.namespace, path);
+        const id = resolveId(this.tab.namespace, path);
         const value = meta.value ?? configStringValue(id);
         const afterMount = meta.mode === "input-password"
             ? async (root: HTMLElement) => {
@@ -368,8 +368,8 @@ export class GroupBuilder<TId extends string> {
     }
 
     textPair(meta: TextPairMeta) {
-        const leftId = resolveId(this.page.namespace, meta.leftPath);
-        const rightId = resolveId(this.page.namespace, meta.rightPath);
+        const leftId = resolveId(this.tab.namespace, meta.leftPath);
+        const rightId = resolveId(this.tab.namespace, meta.rightPath);
         const searchTexts = meta.keywords ?? [meta.title, meta.desc];
         const leftValue = configStringValue(leftId);
         const rightValue = configStringValue(rightId);
@@ -387,7 +387,7 @@ export class GroupBuilder<TId extends string> {
     }
 
     block(meta: BlockMeta, configure: (b: BlockBuilder) => void) {
-        const builder = new BlockBuilder(this.page.namespace);
+        const builder = new BlockBuilder(this.tab.namespace);
         configure(builder);
         const lines = builder.getLines();
         const searchTexts = meta.keywords ?? [];
@@ -422,7 +422,7 @@ export class GroupBuilder<TId extends string> {
         const items: SwitchQueryItem[] = [];
         const controls: CompositeControlMeta[] = [];
         for (const item of meta.items) {
-            const id = resolveId(this.page.namespace, item.id);
+            const id = resolveId(this.tab.namespace, item.id);
             items.push({...item, id});
             controls.push(
                 item.kind === "switch"
@@ -443,10 +443,10 @@ export class GroupBuilder<TId extends string> {
      * 纯展示 / 自行绑定事件的块。
      */
     slot(meta: SlotMeta) {
-        const id = `${this.page.namespace}.__slot.${meta.key}`;
+        const id = `${this.tab.namespace}.__slot.${meta.key}`;
         registerItem({
             id,
-            tabId: this.page.id,
+            tabId: this.tab.id,
             groupKey: this.groupKey,
             kind: "render",
             html: meta.html,
@@ -467,26 +467,26 @@ export class GroupBuilder<TId extends string> {
             afterMount: meta.afterMount,
         });
         for (const control of meta.controls) {
-            const controlId = resolveId(this.page.namespace, control.id);
+            const controlId = resolveId(this.tab.namespace, control.id);
             const part = {...control.part, id: controlId};
             registerItem({
                 id: controlId,
-                tabId: this.page.id,
+                tabId: this.tab.id,
                 groupKey: this.groupKey,
                 kind: "binding",
                 part,
                 read: control.read ?? ((el) => readControlPart(part, el)),
-                save: control.save ?? ((value) => (this.page.defaultSave ?? noopPatch)(controlId, value)),
+                save: control.save ?? ((value) => (this.tab.defaultSave ?? noopPatch)(controlId, value)),
             });
         }
         return this;
     }
 }
-export class PageBuilder<TId extends string = string> {
-    constructor(private readonly page: ConfigPageOptions<TId>) {}
+export class TabBuilder<TId extends string = string> {
+    constructor(private readonly tab: ConfigTabOptions<TId>) {}
 
     group(groupKey: string, groupTitle: string) {
-        registerGroup(this.page.id, groupKey, groupTitle);
-        return new GroupBuilder(this.page, groupKey);
+        registerGroup(this.tab.id, groupKey, groupTitle);
+        return new GroupBuilder(this.tab, groupKey);
     }
 }

@@ -1,4 +1,4 @@
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {TabBuilder} from "../registry/tabBuilder";
 import {registerAccountGroup} from "./accountUi";
 import {Constants} from "../../constants";
 import {fetchPost} from "../../util/fetch";
@@ -12,7 +12,7 @@ import {genConfigItemMainHtml, genConfigItemName} from "../ui/render";
 import {getSyncProviderConfigKeywords} from "./syncUi";
 import {patchSyncConfig} from "./syncRuntime";
 
-export const registerSyncGroup = (p: PageBuilder) => {
+export const registerSyncGroup = (p: TabBuilder) => {
     const s = p.group("sync", window.siyuan.languages.configGroupSync);
 
     s.select("sync.provider", {
@@ -107,7 +107,7 @@ const mountSyncCloudDir = (root: HTMLElement) => {
     }
 };
 
-export const registerRepoGroup = (p: PageBuilder) => {
+export const registerRepoGroup = (p: TabBuilder) => {
     const s = p.group("repo", window.siyuan.languages.configGroupLocalDataRepo);
 
     s.slot({
@@ -247,7 +247,7 @@ const mountRepoKey = (root: HTMLElement) => {
     });
 };
 
-export const registerSyncPage = (p: PageBuilder) => {
+export const registerSyncTab = (p: TabBuilder) => {
     registerAccountGroup(p);
     registerSyncGroup(p);
     registerRepoGroup(p);

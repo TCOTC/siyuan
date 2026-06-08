@@ -33,7 +33,7 @@ import {ipcRenderer} from "electron";
 /// #endif
 import {App} from "../../../index";
 import {Constants} from "../../../constants";
-import {editorConfigApi} from "../../../config/pages/editorRuntime";
+import {editorConfigApi} from "../../../config/tabs/editorRuntime";
 import {lockScreen} from "../../../dialog/processSystem";
 import {newFile} from "../../../util/newFile";
 import {openCard} from "../../../card/openCard";

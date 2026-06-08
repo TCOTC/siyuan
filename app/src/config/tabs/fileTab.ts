@@ -3,7 +3,7 @@ import {genNotebookOption} from "../../menus/onGetnotebookconf";
 import {fetchPost} from "../../util/fetch";
 import {editorConfigApi} from "./editorRuntime";
 import {fileConfigApi} from "./fileRuntime";
-import type {CompositeControlMeta, PageBuilder} from "../registry/pageBuilder";
+import type {CompositeControlMeta, TabBuilder} from "../registry/tabBuilder";
 import {genConfigItemName} from "../ui/render";
 import {readDomValue} from "../ui/formValue";
 
@@ -47,7 +47,7 @@ const notebookSavePathControls = (
     },
 ];
 
-export const registerFileTabsGroup = (p: PageBuilder) => {
+export const registerFileTabsGroup = (p: TabBuilder) => {
     const s = p.group("tabs", window.siyuan.languages.configGroupTabs);
 
     s.switch("alwaysSelectOpenedFile", {
@@ -74,7 +74,7 @@ export const registerFileTabsGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerFileNewDocumentGroup = (p: PageBuilder) => {
+export const registerFileNewDocumentGroup = (p: TabBuilder) => {
     const s = p.group("newDocument", window.siyuan.languages.configGroupNewDocument);
 
     s.switch("createDocAtTop", {
@@ -157,7 +157,7 @@ export const registerFileNewDocumentGroup = (p: PageBuilder) => {
     }
 };
 
-export const registerFileManagementGroup = (p: PageBuilder) => {
+export const registerFileManagementGroup = (p: TabBuilder) => {
     const s = p.group("fileManagement", window.siyuan.languages.configGroupFileManagement);
 
     s.number("editor.generateHistoryInterval", {
@@ -255,7 +255,7 @@ export const registerFileManagementGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerFileOthersGroup = (p: PageBuilder) => {
+export const registerFileOthersGroup = (p: TabBuilder) => {
     const s = p.group("others", window.siyuan.languages.configGroupOthers);
 
     s.number("recentDocsMaxListCount", {
@@ -266,7 +266,7 @@ export const registerFileOthersGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerFilePage = (p: PageBuilder) => {
+export const registerFileTab = (p: TabBuilder) => {
     registerFileTabsGroup(p);
     registerFileNewDocumentGroup(p);
     registerFileManagementGroup(p);

@@ -2,7 +2,7 @@
 import {ipcRenderer} from "electron";
 import * as path from "path";
 /// #endif
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {TabBuilder} from "../registry/tabBuilder";
 import {Constants} from "../../constants";
 import {fetchPost} from "../../util/fetch";
 import {exportLayout} from "../../layout/util";
@@ -21,7 +21,7 @@ const genImportUploadButtonHtml = (inputId: string, label: string): string =>
     ${label}
 </button>`;
 
-export const registerAppGeneralGroup = (p: PageBuilder) => {
+export const registerAppGeneralGroup = (p: TabBuilder) => {
     const s = p.group("general", window.siyuan.languages.configGroupGeneral);
 
     if (!isBrowser() && !window.siyuan.config.system.isMicrosoftStore && window.siyuan.config.system.container === "std" && window.siyuan.config.system.os !== "linux") {
@@ -102,7 +102,7 @@ const mountNetworkProxy = (root: HTMLElement) => {
     });
 };
 
-export const registerAppDataGroup = (p: PageBuilder) => {
+export const registerAppDataGroup = (p: TabBuilder) => {
     const s = p.group("data", window.siyuan.languages.configGroupData);
 
     s.button({
@@ -198,7 +198,7 @@ const mountExportData = (root: HTMLElement) => {
     });
 };
 
-export const registerAppMaintenanceGroup = (p: PageBuilder) => {
+export const registerAppMaintenanceGroup = (p: TabBuilder) => {
     const s = p.group("maintenance", window.siyuan.languages.configGroupMaintenance);
 
     s.button({
@@ -253,7 +253,7 @@ export const registerAppMaintenanceGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerAppPage = (p: PageBuilder) => {
+export const registerAppTab = (p: TabBuilder) => {
     registerAppGeneralGroup(p);
     registerAppDataGroup(p);
     registerAppMaintenanceGroup(p);

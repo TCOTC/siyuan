@@ -46,7 +46,7 @@ const setSyncModeRelatedConfigItemVisible = (root: Element) => {
     root.querySelector(`#${CSS.escape("sync.perception")}`)?.closest(".config-item")?.classList.toggle("fn__none", !(isProviderOfficialAutoSync && window.siyuan.config.sync.provider === 0 && window.siyuan.config.system.container !== "docker"));
 };
 
-/** 同步提供商配置区检索关键词（供 syncPage 注册 slot） */
+/** 同步提供商配置区检索关键词（供 syncTab 注册 slot） */
 export const getSyncProviderConfigKeywords = (): string[] => buildProviderConfigKeywords();
 
 type SyncProviderConfigKey = Extract<keyof Config.ISync, "s3" | "webdav" | "local">;

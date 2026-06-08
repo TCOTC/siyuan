@@ -1,4 +1,4 @@
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {TabBuilder} from "../registry/tabBuilder";
 import {fetchPost} from "../../util/fetch";
 import {Dialog} from "../../dialog";
 import {Constants} from "../../constants";
@@ -12,7 +12,7 @@ import {genConfigItemMainHtml} from "../ui/render";
 import {renderPublishAuthAccounts, savePublish, sendAccessSetting, updatePublishConfig} from "./accessRuntime";
 import {sendAppSetting} from "./appRuntime";
 
-export const registerAccessAuthGroup = (p: PageBuilder) => {
+export const registerAccessAuthGroup = (p: TabBuilder) => {
     const hideOnWeb = isBrowser() && !isInMobileApp();
     if (hideOnWeb) {
         return;
@@ -91,7 +91,7 @@ const bindApiTokenInput = (root: HTMLElement) => {
     });
 };
 
-export const registerAccessServerGroup = (p: PageBuilder) => {
+export const registerAccessServerGroup = (p: TabBuilder) => {
     const hideOnWeb = isBrowser() && !isInMobileApp();
     if (hideOnWeb) {
         return;
@@ -211,7 +211,7 @@ export const registerAccessServerGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerAccessPublishGroup = (p: PageBuilder) => {
+export const registerAccessPublishGroup = (p: TabBuilder) => {
     const s = p.group("publish", window.siyuan.languages.configGroupPublish);
 
     s.switch("publish.enable", {
@@ -316,7 +316,7 @@ const mountPublishAuthAccounts = (root: HTMLElement) => {
     });
 };
 
-export const registerAccessPage = (p: PageBuilder) => {
+export const registerAccessTab = (p: TabBuilder) => {
     registerAccessAuthGroup(p);
     registerAccessServerGroup(p);
     registerAccessPublishGroup(p);

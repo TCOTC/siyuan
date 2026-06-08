@@ -2,13 +2,13 @@ import {updateHotkeyTip} from "../../protyle/util/compatibility";
 import {Constants} from "../../constants";
 import {isBrowser} from "../../util/functions";
 import {editorConfigApi} from "./editorRuntime";
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {TabBuilder} from "../registry/tabBuilder";
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
 /// #endif
 
-/** 编辑器 Tab：各组注册实现（由 registry/pages.ts 中的 registry 调用） */
-export const registerEditorBehaviorGroup = (p: PageBuilder) => {
+/** 编辑器 Tab：各组注册实现（由 registry/tabs.ts 中的 registry 调用） */
+export const registerEditorBehaviorGroup = (p: TabBuilder) => {
     const browser = isBrowser();
     const s = p.group("behavior", window.siyuan.languages.configGroupBehavior);
     const readOnlyKeymap = window.siyuan.config.keymap.general.editReadonly.custom;
@@ -97,7 +97,7 @@ const bindSpellcheckLanguagesChips = async (root: HTMLElement) => {
     /// #endif
 };
 
-export const registerEditorBlockFeaturesGroup = (p: PageBuilder) => {
+export const registerEditorBlockFeaturesGroup = (p: TabBuilder) => {
     const s = p.group("blockFeatures", window.siyuan.languages.configGroupBlockFeatures);
     s.switch("displayNetImgMark", {
         title: window.siyuan.languages.md7,
@@ -134,7 +134,7 @@ export const registerEditorBlockFeaturesGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerEditorBidirectionalGroup = (p: PageBuilder) => {
+export const registerEditorBidirectionalGroup = (p: TabBuilder) => {
     const s = p.group("bidirectional", window.siyuan.languages.configGroupBidirectionalLinks);
     s.switch("onlySearchForDoc", {
         title: window.siyuan.languages.onlySearchForDoc,
@@ -178,7 +178,7 @@ export const registerEditorBidirectionalGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerEditorMarkdownInlineGroup = (p: PageBuilder) => {
+export const registerEditorMarkdownInlineGroup = (p: TabBuilder) => {
     const s = p.group("markdownInline", window.siyuan.languages.configGroupMarkdownInlineSyntax);
     s.switch("markdown.inlineAsterisk", {
         title: window.siyuan.languages.editorMarkdownInlineAsterisk,
@@ -214,7 +214,7 @@ export const registerEditorMarkdownInlineGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerEditorAdvancedGroup = (p: PageBuilder) => {
+export const registerEditorAdvancedGroup = (p: TabBuilder) => {
     const s = p.group("advanced", window.siyuan.languages.configGroupAdvanced);
     s.text("plantUMLServePath", {
         title: window.siyuan.languages.md39,
@@ -235,7 +235,7 @@ export const registerEditorAdvancedGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerEditorPage = (p: PageBuilder) => {
+export const registerEditorTab = (p: TabBuilder) => {
     registerEditorBehaviorGroup(p);
     registerEditorBlockFeaturesGroup(p);
     registerEditorBidirectionalGroup(p);

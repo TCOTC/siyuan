@@ -6,7 +6,7 @@ import {resizeTopBar, saveLayout} from "../layout/util";
 /// #endif
 import {API} from "./API";
 import {getFrontend, isMobile, isWindow} from "../util/functions";
-import {configTabToMenuId} from "../config/tabs";
+import {configTabToMenuId} from "../config/menuIds";
 import {Constants} from "../constants";
 import {uninstall} from "./uninstall";
 import {setStorageVal} from "../protyle/util/compatibility";

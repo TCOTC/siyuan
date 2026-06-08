@@ -1,6 +1,6 @@
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {TabBuilder} from "../registry/tabBuilder";
 
-export const registerAiServiceGroup = (p: PageBuilder) => {
+export const registerAiServiceGroup = (p: TabBuilder) => {
     const s = p.group("service", window.siyuan.languages.configGroupServiceConnection);
 
     s.select("openAI.apiProvider", {
@@ -51,7 +51,7 @@ const bindApiProviderToggle = (root: HTMLElement) => {
     toggleVersionWrap();
 };
 
-export const registerAiModelGroup = (p: PageBuilder) => {
+export const registerAiModelGroup = (p: TabBuilder) => {
     const s = p.group("model", window.siyuan.languages.configGroupModelParameters);
 
     s.textBlock("openAI.apiModel", {
@@ -105,7 +105,7 @@ export const registerAiModelGroup = (p: PageBuilder) => {
     });
 };
 
-export const registerAiPage = (p: PageBuilder) => {
+export const registerAiTab = (p: TabBuilder) => {
     registerAiServiceGroup(p);
     registerAiModelGroup(p);
 };
