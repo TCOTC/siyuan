@@ -3,43 +3,61 @@ import {readControlPart} from "../render/read";
 import {buildItemSearchIndex} from "../search/normalize";
 
 export type ControlPart = Exclude<RowPart, {kind: "title"} | {kind: "desc"}>;
-export type SettingItemKind = "full" | "render" | "binding";
-export interface SettingItem {
+
+type SettingItemBase = {
     id: string;
     tabId: string;
     groupKey: string;
-    kind: SettingItemKind;
-    /** full 项：由 parts 描述一行 UI，参与 mount、save、搜索 */
-    parts?: RowPart[];
-    /** binding 项：复合块内嵌控件的 read / save */
-    part?: ControlPart;
-    /** render 项：自定义 HTML，参与 mount、搜索 */
-    html?: () => string;
-    /** 设置搜索关键词；`binding` 项不参与搜索，故无此字段 */
-    searchTexts?: () => string[];
     /** 条目检索串（注册时 normalize） */
     searchIndex: readonly string[];
     read?: (el: HTMLElement) => unknown;
     save?: (value: unknown) => void | Promise<void>;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
-}
+};
+
+/** 标准控件行：由 rowParts 描述整行 UI，参与 mount、save、搜索 */
+export type FullSettingItem = SettingItemBase & {
+    kind: "full";
+    rowParts: RowPart[];
+    searchTexts?: () => string[];
+};
+
+/** 自定义 HTML 块：参与 mount、搜索 */
+export type RenderSettingItem = SettingItemBase & {
+    kind: "render";
+    html: () => string;
+    searchTexts?: () => string[];
+};
+
+/** 复合块内嵌控件：仅参与 read / save 路由 */
+export type BindingSettingItem = SettingItemBase & {
+    kind: "binding";
+    controlPart: ControlPart;
+};
+
+export type SettingItem = FullSettingItem | RenderSettingItem | BindingSettingItem;
+export type MountableSettingItem = FullSettingItem | RenderSettingItem;
+export type RegisterSettingItem =
+    | Omit<FullSettingItem, "searchIndex">
+    | Omit<RenderSettingItem, "searchIndex">
+    | Omit<BindingSettingItem, "searchIndex">;
 
 const registry = new Map<SettingItem["id"], SettingItem>();
-const itemsByGroupCache = new Map<string, Map<string, SettingItem[]>>();
+const itemsByGroupCache = new Map<string, Map<string, MountableSettingItem[]>>();
 
-export const registerItem = (item: Omit<SettingItem, "searchIndex">) => {
+export const registerItem = (item: RegisterSettingItem) => {
     registry.set(item.id, {
         ...item,
-        searchIndex: buildItemSearchIndex(item),
-    });
+        searchIndex: buildItemSearchIndex(item)
+    } as SettingItem);
     if (item.kind !== "binding") {
         itemsByGroupCache.delete(item.tabId);
     }
 };
 
 /** 按 registerItem 调用顺序（Map 插入序）返回可挂载条目；不含 binding */
-export const getMountableItemsByTabId = (tabId: string) => {
-    const result: SettingItem[] = [];
+export const getMountableItemsByTabId = (tabId: string): MountableSettingItem[] => {
+    const result: MountableSettingItem[] = [];
     for (const item of registry.values()) {
         if (item.kind !== "binding" && item.tabId === tabId) {
             result.push(item);
@@ -54,7 +72,7 @@ export const getMountableItemsByGroup = (tabId: string) => {
     if (itemsByGroup) {
         return itemsByGroup;
     }
-    itemsByGroup = new Map<string, SettingItem[]>();
+    itemsByGroup = new Map<string, MountableSettingItem[]>();
     for (const item of getMountableItemsByTabId(tabId)) {
         const groupItems = itemsByGroup.get(item.groupKey);
         if (groupItems) {
@@ -75,12 +93,9 @@ export const tryRouteRegistrySave = (el: HTMLElement, controlId: string): boolea
     }
     let value: unknown;
     if (item.kind === "binding") {
-        if (!item.part) {
-            return false;
-        }
-        value = item.read ? item.read(el) : readControlPart(item.part, el);
+        value = item.read ? item.read(el) : readControlPart(item.controlPart, el);
     } else if (item.kind === "full") {
-        const controlPart = item.parts?.find(
+        const controlPart = item.rowParts.find(
             (p): p is ControlPart =>
                 p.kind !== "title" && p.kind !== "desc" && p.id === controlId,
         );

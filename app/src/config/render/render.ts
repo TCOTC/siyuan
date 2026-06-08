@@ -1,4 +1,4 @@
-import type {SettingItem} from "../registry/item";
+import type {MountableSettingItem} from "../registry/item";
 import {getGroupsByTabId} from "../registry/group";
 import {getMountableItemsByGroup} from "../registry/item";
 import type {RowPart, StackLeft, StackLine, StackRight} from "./parts";
@@ -260,8 +260,8 @@ const tagConfigItemRoot = (html: string, itemId: string): string => {
     return html.slice(0, tagEnd) + ` data-config-item-id="${escapeAttr(itemId)}"` + html.slice(tagEnd);
 };
 
-const renderItemHtml = (item: SettingItem): string => {
-    const html = item.kind === "render" ? (item.html?.() ?? "") : renderControlParts(item.parts ?? []);
+const renderItemHtml = (item: MountableSettingItem): string => {
+    const html = item.kind === "render" ? item.html() : renderControlParts(item.rowParts);
     return tagConfigItemRoot(html, item.id);
 };
 

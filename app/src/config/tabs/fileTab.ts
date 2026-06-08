@@ -35,13 +35,13 @@ const notebookSavePathControls = (
 ): CompositeControlMeta[] => [
     {
         id: selectId,
-        part: {kind: "select" as const, id: selectId},
+        controlPart: {kind: "select" as const, id: selectId},
         read: (el: HTMLElement) => readDomValue(el),
         save: patchSelect,
     },
     {
         id: pathId,
-        part: {kind: "text" as const, id: pathId},
+        controlPart: {kind: "text" as const, id: pathId},
         read: (el: HTMLElement) => readDomValue(el),
         save: patchPath,
     },
@@ -218,7 +218,7 @@ export const registerFileManagementGroup = (p: TabBuilder) => {
         },
         controls: [{
             id: "editor.historyRetentionDays",
-            part: {
+            controlPart: {
                 kind: "number",
                 id: "editor.historyRetentionDays",
                 min: 1,

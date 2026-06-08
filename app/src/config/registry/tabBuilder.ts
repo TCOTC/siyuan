@@ -6,7 +6,7 @@ import {configBooleanValue, configNumberValue, configSelectValue, configStringVa
 import {readControlPart} from "../render/read";
 import {bindPasswordIconaToggle} from "../ui/render";
 import {registerGroup} from "./group";
-import {registerItem, type ControlPart} from "./item";
+import {registerItem, RegisterSettingItem, type ControlPart} from "./item";
 
 export type SaveFn = (value: unknown) => void | Promise<void>;
 
@@ -79,7 +79,7 @@ type SlotMeta = {
 export type CompositeControlMeta = {
     /** DOM id 或相对路径（与 `resolveId` 一致） */
     id: string;
-    part: ControlPart;
+    controlPart: ControlPart;
     read?: (el: HTMLElement) => unknown;
     save?: SaveFn;
 };
@@ -147,7 +147,7 @@ const stackLinesToControls = (lines: StackLine[]): CompositeControlMeta[] => {
         if (line.left.kind === "textBlock") {
             controls.push({
                 id: line.left.id,
-                part: {
+                controlPart: {
                     kind: "textBlock",
                     id: line.left.id,
                     mode: line.left.mode,
@@ -160,16 +160,16 @@ const stackLinesToControls = (lines: StackLine[]): CompositeControlMeta[] => {
             continue;
         }
         if (right.kind === "switch") {
-            controls.push({id: right.id, part: {kind: "switch", id: right.id, value: right.value}});
+            controls.push({id: right.id, controlPart: {kind: "switch", id: right.id, value: right.value}});
         } else if (right.kind === "number") {
             controls.push({
                 id: right.id,
-                part: {kind: "number", id: right.id, value: right.value, min: right.min, max: right.max},
+                controlPart: {kind: "number", id: right.id, value: right.value, min: right.min, max: right.max},
             });
         } else if (right.kind === "select") {
             controls.push({
                 id: right.id,
-                part: {kind: "select", id: right.id, options: right.options, value: right.value},
+                controlPart: {kind: "select", id: right.id, options: right.options, value: right.value},
             });
         }
     }
@@ -283,11 +283,11 @@ export class GroupBuilder<TId extends string> {
     ) {}
 
     /**
-     * 注册标准控件：由 `parts` 参与 mount 渲染，并接入 save 路由与设置搜索。
+     * 注册标准控件：由 `rowParts` 参与 mount 渲染，并接入 save 路由与设置搜索。
      */
     private registerControl(
         path: string,
-        parts: RowPart[],
+        rowParts: RowPart[],
         meta: ControlMetaBase,
     ) {
         const id = resolveId(this.tab.namespace, path);
@@ -296,12 +296,12 @@ export class GroupBuilder<TId extends string> {
             tabId: this.tab.id,
             groupKey: this.groupKey,
             kind: "full",
-            parts,
+            rowParts,
             searchTexts: defaultSearchTexts({title: meta.title, desc: meta.desc, keywords: meta.keywords}),
             read: meta.read,
             save: meta.save ?? ((value) => (this.tab.defaultSave ?? noopPatch)(id, value)),
             afterMount: meta.afterMount,
-        });
+        } as RegisterSettingItem);
         return this;
     }
 
@@ -379,8 +379,8 @@ export class GroupBuilder<TId extends string> {
             keywords: searchTexts,
             html: () => genTextPairHtml(meta.title, meta.desc, leftId, leftValue, rightId, rightValue),
             controls: [
-                {id: leftId, part: {kind: "text", id: leftId, value: leftValue}},
-                {id: rightId, part: {kind: "text", id: rightId, value: rightValue}},
+                {id: leftId, controlPart: {kind: "text", id: leftId, value: leftValue}},
+                {id: rightId, controlPart: {kind: "text", id: rightId, value: rightValue}},
             ],
         });
         return this;
@@ -426,8 +426,8 @@ export class GroupBuilder<TId extends string> {
             items.push({...item, id});
             controls.push(
                 item.kind === "switch"
-                    ? {id, part: {kind: "switch", id}}
-                    : {id, part: {kind: "number", id, min: item.min, max: item.max}},
+                    ? {id, controlPart: {kind: "switch", id}}
+                    : {id, controlPart: {kind: "number", id, min: item.min, max: item.max}},
             );
         }
         this.composite({
@@ -452,7 +452,7 @@ export class GroupBuilder<TId extends string> {
             html: meta.html,
             searchTexts: () => [...meta.keywords],
             afterMount: meta.afterMount,
-        });
+        } as RegisterSettingItem);
         return this;
     }
 
@@ -468,16 +468,16 @@ export class GroupBuilder<TId extends string> {
         });
         for (const control of meta.controls) {
             const controlId = resolveId(this.tab.namespace, control.id);
-            const part = {...control.part, id: controlId};
+            const controlPart = {...control.controlPart, id: controlId};
             registerItem({
                 id: controlId,
                 tabId: this.tab.id,
                 groupKey: this.groupKey,
                 kind: "binding",
-                part,
-                read: control.read ?? ((el) => readControlPart(part, el)),
+                controlPart,
+                read: control.read ?? ((el) => readControlPart(controlPart, el)),
                 save: control.save ?? ((value) => (this.tab.defaultSave ?? noopPatch)(controlId, value)),
-            });
+            } as RegisterSettingItem);
         }
         return this;
     }

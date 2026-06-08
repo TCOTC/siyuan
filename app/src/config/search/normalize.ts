@@ -28,12 +28,12 @@ const collectPartSearchStrings = (part: RowPart): string[] => {
 /** 注册时构建条目检索索引（已 normalize） */
 export const buildItemSearchIndex = (item: {
     kind: string;
-    parts?: RowPart[];
+    rowParts?: RowPart[];
     searchTexts?: () => string[];
 }): readonly string[] => {
     const strings: string[] = [];
-    if (item.kind === "full" && item.parts) {
-        for (const part of item.parts) {
+    if (item.kind === "full" && item.rowParts) {
+        for (const part of item.rowParts) {
             strings.push(...collectPartSearchStrings(part));
         }
     }

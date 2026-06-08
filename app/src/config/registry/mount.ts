@@ -14,10 +14,10 @@ export const mountConfigTab = async (tabId: string, root: HTMLElement) => {
         await item.afterMount?.(root);
     }
     for (const item of tabItems) {
-        if (item.kind !== "full" || !item.parts) {
+        if (item.kind !== "full") {
             continue;
         }
-        for (const part of item.parts) {
+        for (const part of item.rowParts) {
             if (part.kind !== "range") {
                 continue;
             }
