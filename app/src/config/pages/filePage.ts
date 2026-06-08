@@ -3,7 +3,7 @@ import {genNotebookOption} from "../../menus/onGetnotebookconf";
 import {fetchPost} from "../../util/fetch";
 import {editorConfigApi} from "./editorRuntime";
 import {fileConfigApi} from "./fileRuntime";
-import type {PageBuilder} from "../registry/pageBuilder";
+import type {CompositeControlMeta, PageBuilder} from "../registry/pageBuilder";
 import {genConfigItemName} from "../ui/render";
 import {readDomValue} from "../ui/formValue";
 
@@ -32,10 +32,10 @@ const notebookSavePathControls = (
     patchSelect: (value: unknown) => void,
     pathId: string,
     patchPath: (value: unknown) => void,
-) => [
+): CompositeControlMeta[] => [
     {
         id: selectId,
-        part: {kind: "select" as const, id: selectId, options: [] as {value: number | string; label?: string}[], value: ""},
+        part: {kind: "select" as const, id: selectId},
         read: (el: HTMLElement) => readDomValue(el),
         save: patchSelect,
     },
@@ -47,8 +47,8 @@ const notebookSavePathControls = (
     },
 ];
 
-export const registerFileTabsSection = (p: PageBuilder) => {
-    const s = p.section("tabs", window.siyuan.languages.configGroupTabs);
+export const registerFileTabsGroup = (p: PageBuilder) => {
+    const s = p.group("tabs", window.siyuan.languages.configGroupTabs);
 
     s.switch("alwaysSelectOpenedFile", {
         title: window.siyuan.languages.selectOpen,
@@ -74,8 +74,8 @@ export const registerFileTabsSection = (p: PageBuilder) => {
     });
 };
 
-export const registerFileNewDocumentSection = (p: PageBuilder) => {
-    const s = p.section("newDocument", window.siyuan.languages.configGroupNewDocument);
+export const registerFileNewDocumentGroup = (p: PageBuilder) => {
+    const s = p.group("newDocument", window.siyuan.languages.configGroupNewDocument);
 
     s.switch("createDocAtTop", {
         title: window.siyuan.languages.fileTree24,
@@ -157,8 +157,8 @@ export const registerFileNewDocumentSection = (p: PageBuilder) => {
     }
 };
 
-export const registerFileManagementSection = (p: PageBuilder) => {
-    const s = p.section("fileManagement", window.siyuan.languages.configGroupFileManagement);
+export const registerFileManagementGroup = (p: PageBuilder) => {
+    const s = p.group("fileManagement", window.siyuan.languages.configGroupFileManagement);
 
     s.number("editor.generateHistoryInterval", {
         title: window.siyuan.languages.generateHistory,
@@ -218,7 +218,12 @@ export const registerFileManagementSection = (p: PageBuilder) => {
         },
         controls: [{
             id: "editor.historyRetentionDays",
-            part: {kind: "number", id: "editor.historyRetentionDays", min: 1, max: 3650},
+            part: {
+                kind: "number",
+                id: "editor.historyRetentionDays",
+                min: 1,
+                max: 3650,
+            },
             save: (v) => editorConfigApi.patch("historyRetentionDays", v),
         }],
     });
@@ -250,8 +255,8 @@ export const registerFileManagementSection = (p: PageBuilder) => {
     });
 };
 
-export const registerFileOthersSection = (p: PageBuilder) => {
-    const s = p.section("others", window.siyuan.languages.configGroupOthers);
+export const registerFileOthersGroup = (p: PageBuilder) => {
+    const s = p.group("others", window.siyuan.languages.configGroupOthers);
 
     s.number("recentDocsMaxListCount", {
         title: window.siyuan.languages.recentDocsMaxListCount,
@@ -259,4 +264,11 @@ export const registerFileOthersSection = (p: PageBuilder) => {
         min: 32,
         max: 256,
     });
+};
+
+export const registerFilePage = (p: PageBuilder) => {
+    registerFileTabsGroup(p);
+    registerFileNewDocumentGroup(p);
+    registerFileManagementGroup(p);
+    registerFileOthersGroup(p);
 };

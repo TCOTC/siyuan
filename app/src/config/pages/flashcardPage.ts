@@ -1,8 +1,8 @@
 import type {PageBuilder} from "../registry/pageBuilder";
 
-/** 闪卡 Tab：各节注册实现（由 registry/pages.ts 中的 defineConfigPage 调用） */
-export const registerFlashcardCreationSection = (p: PageBuilder) => {
-    const s = p.section("creation", window.siyuan.languages.configGroupCardCreation);
+/** 闪卡 Tab：各组注册实现（由 registry/pages.ts 中的 registry 调用） */
+export const registerFlashcardCreationGroup = (p: PageBuilder) => {
+    const s = p.group("creation", window.siyuan.languages.configGroupCardCreation);
 
     s.switch("mark", {
         title: window.siyuan.languages.flashcardMark,
@@ -22,8 +22,8 @@ export const registerFlashcardCreationSection = (p: PageBuilder) => {
     });
 };
 
-export const registerFlashcardReviewSection = (p: PageBuilder) => {
-    const s = p.section("review", window.siyuan.languages.configGroupReview);
+export const registerFlashcardReviewGroup = (p: PageBuilder) => {
+    const s = p.group("review", window.siyuan.languages.configGroupReview);
 
     s.select("reviewMode", {
         title: window.siyuan.languages.reviewMode,
@@ -33,7 +33,6 @@ export const registerFlashcardReviewSection = (p: PageBuilder) => {
             {value: 1, label: window.siyuan.languages.reviewMode1},
             {value: 2, label: window.siyuan.languages.reviewMode2},
         ],
-        value: window.siyuan.config.flashcard.reviewMode,
     });
     s.number("newCardLimit", {
         title: window.siyuan.languages.flashcardNewCardLimit,
@@ -62,15 +61,20 @@ export const registerFlashcardReviewSection = (p: PageBuilder) => {
         title: window.siyuan.languages.flashcardFSRSParamWeights,
         desc: window.siyuan.languages.flashcardFSRSParamWeightsTip,
         mode: "input-text",
-        value: window.siyuan.config.flashcard.weights,
     });
 };
 
-export const registerFlashcardOthersSection = (p: PageBuilder) => {
-    const s = p.section("others", window.siyuan.languages.configGroupOthers);
+export const registerFlashcardOthersGroup = (p: PageBuilder) => {
+    const s = p.group("others", window.siyuan.languages.configGroupOthers);
 
     s.switch("deck", {
         title: window.siyuan.languages.flashcardDeck,
         desc: window.siyuan.languages.flashcardDeckTip,
     });
+};
+
+export const registerFlashcardPage = (p: PageBuilder) => {
+    registerFlashcardCreationGroup(p);
+    registerFlashcardReviewGroup(p);
+    registerFlashcardOthersGroup(p);
 };

@@ -12,12 +12,12 @@ import {hideElements} from "../../protyle/ui/hideElements";
 import {closePanel} from "../../mobile/util/closePanel";
 import md5 from "blueimp-md5";
 import type {PageBuilder} from "../registry/pageBuilder";
-import {refreshSyncCloudSpaceGroup, sendSyncSetting, syncTabElement} from "./syncRuntime";
+import {patchSyncConfig, refreshSyncCloudSpaceGroup, syncTabElement} from "./syncRuntime";
 import {escapeAttr, escapeHtml} from "../../util/escape";
 
 /** 账号节：由 syncPage 注册 */
-export const registerAccountSection = (p: PageBuilder) => {
-    const s = p.section("account", window.siyuan.languages.configGroupAccount);
+export const registerAccountGroup = (p: PageBuilder) => {
+    const s = p.group("account", window.siyuan.languages.configGroupAccount);
 
     s.slot({
         key: "accountMain",
@@ -67,11 +67,11 @@ export const registerAccountSection = (p: PageBuilder) => {
     if (!isMobile()) {
         s.switch("account.displayTitle", {
             title: window.siyuan.languages.accountDisplayTitle,
-            save: (value) => sendSyncSetting("account.displayTitle", value),
+            save: (value) => patchSyncConfig("account.displayTitle", value),
         });
         s.switch("account.displayVIP", {
             title: window.siyuan.languages.accountDisplayVIP,
-            save: (value) => sendSyncSetting("account.displayVIP", value),
+            save: (value) => patchSyncConfig("account.displayVIP", value),
         });
     }
 };

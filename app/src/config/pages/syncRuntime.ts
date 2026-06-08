@@ -31,8 +31,8 @@ export const refreshSyncCloudSpaceGroup = (root: Element) => {
     }
 };
 
-/** 账号同步 Tab：按控件 id 路由到各 API */
-export const sendSyncSetting = (controlId: string, value: unknown) => {
+/** 账号同步 Tab：按控件 id 提交配置并更新本地运行时 */
+export const patchSyncConfig = (controlId: string, value: unknown) => {
     switch (controlId) {
         case "account.displayTitle": {
             const displayTitle = Boolean(value) as Config.IAccount["displayTitle"];

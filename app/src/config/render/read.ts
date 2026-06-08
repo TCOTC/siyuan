@@ -10,8 +10,9 @@ export const readControlPart = (part: Exclude<RowPart, {kind: "title"} | {kind: 
         case "range":
             return readDomValue(el);
         case "select": {
-            const numeric = part.options.length > 0 && typeof part.options[0].value === "number";
-            return numeric ? parseInt((el as HTMLSelectElement).value, 10) : (el as HTMLSelectElement).value;
+            const options = part.options ?? [];
+            const num = options.length > 0 && typeof options[0].value === "number";
+            return num ? parseInt((el as HTMLSelectElement).value, 10) : (el as HTMLSelectElement).value;
         }
         case "text":
         case "textBlock":

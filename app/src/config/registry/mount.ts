@@ -1,20 +1,18 @@
-import {filterItemsBySearch} from "../filter/itemSearch";
+import {computeConfigSearchVisibility} from "../search/match";
 import {genGroupedItems} from "../render/render";
 import {getMountableItemsByTabId} from "./item";
 import {syncRangeRowValue} from "../ui/formValue";
 
-export const mountConfigPage = async (tabId: string, root: HTMLElement, searchQuery?: string) => {
-    const tabItems = getMountableItemsByTabId(tabId).sort((a, b) => a.order - b.order);
-    const items = filterItemsBySearch(tabItems, searchQuery);
+/** 首次挂载：渲染全部注册项并执行 afterMount */
+export const mountConfigPage = async (tabId: string, root: HTMLElement) => {
+    const tabItems = getMountableItemsByTabId(tabId);
 
-    root.innerHTML = genGroupedItems(items);
+    root.innerHTML = genGroupedItems(tabId);
 
-    for (const item of items) {
-        // TODO sync 等 Tab：若 afterMount 会请求接口，搜索导致反复 remount 时应加 if (!searchQuery) 等守卫
+    for (const item of tabItems) {
         await item.afterMount?.(root);
     }
-
-    for (const item of items) {
+    for (const item of tabItems) {
         if (item.kind !== "full" || !item.parts) {
             continue;
         }
@@ -28,4 +26,46 @@ export const mountConfigPage = async (tabId: string, root: HTMLElement, searchQu
             }
         }
     }
+};
+
+/** 设置搜索：切换注册项 / 分组的显隐，不重建 DOM，因为有的设置项在挂载的时候会请求数据，避免搜索时重复请求 */
+export const applyConfigPageSearch = (
+    root: HTMLElement,
+    tabId: string,
+    tabTitle: string,
+    searchQuery?: string,
+) => {
+    const query = (searchQuery ?? "").trim();
+    if (!query) {
+        clearConfigPageSearch(root);
+        return;
+    }
+    const visibility = computeConfigSearchVisibility(tabId, tabTitle, query);
+    root.querySelectorAll("[data-config-group-key]").forEach((groupEl) => {
+        const groupKey = groupEl.getAttribute("data-config-group-key");
+        const groupVisible = groupKey && visibility.visibleGroupKeys.has(groupKey);
+        groupEl.classList.toggle("config-search-hidden", !groupVisible);
+        if (!groupVisible) {
+            return;
+        }
+
+        let lastVisibleItem: Element | null = null;
+        groupEl.querySelectorAll("[data-config-item-id]").forEach((itemEl) => {
+            itemEl.classList.remove("config-item--last-visible");
+            const itemId = itemEl.getAttribute("data-config-item-id");
+            const itemVisible = itemId && visibility.visibleItemIds.has(itemId);
+            itemEl.classList.toggle("config-search-hidden", !itemVisible);
+            if (itemVisible) {
+                lastVisibleItem = itemEl;
+            }
+        });
+        // 标记每组最后一个未隐藏条目，不显示 border-bottom
+        lastVisibleItem?.classList.add("config-item--last-visible");
+    });
+};
+
+export const clearConfigPageSearch = (root: HTMLElement) => {
+    root.querySelectorAll("[data-config-group-key], [data-config-item-id]").forEach((el) => {
+        el.classList.remove("config-search-hidden", "config-item--last-visible");
+    });
 };

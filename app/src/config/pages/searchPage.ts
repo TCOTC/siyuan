@@ -1,7 +1,7 @@
 import type {PageBuilder} from "../registry/pageBuilder";
 
-export const registerSearchQuerySection = (p: PageBuilder) => {
-    const s = p.section("query", "");
+export const registerSearchQueryGroup = (p: PageBuilder) => {
+    const s = p.group("query", "");
 
     s.switchQuery({
         key: "blockType",
@@ -68,8 +68,8 @@ export const registerSearchQuerySection = (p: PageBuilder) => {
     });
 };
 
-export const registerSearchLimitsSection = (p: PageBuilder) => {
-    const s = p.section("limits", "");
+export const registerSearchLimitsGroup = (p: PageBuilder) => {
+    const s = p.group("limits", "");
 
     s.number("limit", {
         title: window.siyuan.languages.searchLimit,
@@ -81,4 +81,9 @@ export const registerSearchLimitsSection = (p: PageBuilder) => {
         title: window.siyuan.languages.searchCaseSensitive,
         desc: window.siyuan.languages.searchCaseSensitive1,
     });
+};
+
+export const registerSearchPage = (p: PageBuilder) => {
+    registerSearchQueryGroup(p);
+    registerSearchLimitsGroup(p);
 };

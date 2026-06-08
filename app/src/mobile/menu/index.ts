@@ -14,12 +14,12 @@ import {newFile} from "../../util/newFile";
 import {afterLoadPlugin} from "../../plugin/loader";
 import {commandPanel} from "../../boot/globalEvent/command/panel";
 import {openTopBarMenu} from "../../plugin/openTopBarMenu";
-import {getConfigTabDefs, type IConfigTabShell} from "../../config/registry/pages";
+import {getConfigTabDefs, type IConfigTabShell, type TConfigTab} from "../../config/registry/pages";
 import {configTabToMenuId} from "../../config/tabs";
 import {openMobileConfigTab} from "./openConfigTab";
 import {getCurrentEditor} from "../editor";
 
-const getConfigTabFromMenuTarget = (target: HTMLElement): IConfigTabShell | undefined => {
+const getConfigTabFromMenuTarget = (target: HTMLElement): IConfigTabShell<TConfigTab> | undefined => {
     const item = target.closest(".b3-menu__item") as HTMLElement | null;
     if (!item?.id) {
         return undefined;
@@ -104,7 +104,7 @@ export const initRightMenu = (app: App) => {
     // 只能用 click，否则无法上下滚动 https://github.com/siyuan-note/siyuan/issues/6628
     menuElement.addEventListener("click", (event) => {
         let target = event.target as HTMLElement;
-        let configTabDef: IConfigTabShell | undefined;
+        let configTabDef: IConfigTabShell<TConfigTab> | undefined;
         while (target && !target.isEqualNode(menuElement)) {
             if (target.classList.contains("b3-menu__title")) {
                 closePanel();

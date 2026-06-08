@@ -1343,7 +1343,7 @@ export const windowKeyDown = (app: App, event: KeyboardEvent) => {
     }
     if (matchHotKey(window.siyuan.config.keymap.general.editReadonly.custom, event)) {
         event.preventDefault();
-        editorConfigApi.send("editor.readOnly", !window.siyuan.config.editor.readOnly);
+        editorConfigApi.patch("editor.readOnly", !window.siyuan.config.editor.readOnly);
         return;
     }
     if (matchHotKey(window.siyuan.config.keymap.general.lockScreen.custom, event)) {

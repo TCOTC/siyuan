@@ -15,12 +15,11 @@ import {updateHotkeyTip} from "../../protyle/util/compatibility";
 import {Menu} from "../../plugin/Menu";
 import {escapeAttr} from "../../util/escape";
 import {genConfigItemMainHtml, genSwitchRow} from "../ui/render";
-import {applyEditorConfig} from "./editorRuntime";
-import {APPEARANCE_THEME_MODE_ID, appearanceConfigApi} from "./appearanceRuntime";
 import {editorConfigApi} from "./editorRuntime";
+import {appearanceThemeModeValue, saveThemeMode} from "./appearanceRuntime";
 
-export const registerAppearanceContentSection = (p: PageBuilder) => {
-    const s = p.section("content", window.siyuan.languages.configGroupContent);
+export const registerAppearanceContentGroup = (p: PageBuilder) => {
+    const s = p.group("content", window.siyuan.languages.configGroupContent);
 
     s.slot({
         key: "fontFamily",
@@ -139,7 +138,7 @@ const mountAppearanceFontFamily = (root: HTMLElement) => {
             },
             (response) => {
                 const data = response.data as Config.IEditor;
-                applyEditorConfig(data);
+                editorConfigApi.apply(data);
                 fontFamilyEl.value = data.fontFamilyDisplay || data.fontFamily || window.siyuan.languages.default;
                 fontFamilyEl.dataset.family = data.fontFamily;
                 fontFamilyEl.dataset.weight = String(data.fontWeight);
@@ -151,9 +150,9 @@ const mountAppearanceFontFamily = (root: HTMLElement) => {
     }
 };
 
-export const registerAppearanceInterfaceSection = (p: PageBuilder) => {
+export const registerAppearanceInterfaceGroup = (p: PageBuilder) => {
     const browser = isBrowser();
-    const s = p.section("interface", window.siyuan.languages.configGroupInterface);
+    const s = p.group("interface", window.siyuan.languages.configGroupInterface);
 
     s.select("lang", {
         title: window.siyuan.languages.language,
@@ -162,9 +161,8 @@ export const registerAppearanceInterfaceSection = (p: PageBuilder) => {
             value: lang.name,
             label: `${lang.label} (${lang.name})`,
         })),
-        value: window.siyuan.config.appearance.lang,
     });
-    s.select(APPEARANCE_THEME_MODE_ID, {
+    s.select("__themeMode", {
         title: window.siyuan.languages.appearance4,
         desc: window.siyuan.languages.appearance5,
         options: [
@@ -172,10 +170,10 @@ export const registerAppearanceInterfaceSection = (p: PageBuilder) => {
             {value: 1, label: window.siyuan.languages.themeDark},
             {value: 2, label: window.siyuan.languages.themeOS},
         ],
-        value: window.siyuan.config.appearance.modeOS ? 2 : window.siyuan.config.appearance.mode,
+        value: appearanceThemeModeValue,
         save: (value) => {
             const themeValue = typeof value === "number" ? value : parseInt(String(value), 10);
-            appearanceConfigApi.saveThemeMode(themeValue);
+            saveThemeMode(themeValue);
         },
     });
     s.block({
@@ -208,7 +206,6 @@ export const registerAppearanceInterfaceSection = (p: PageBuilder) => {
                 value: item.name,
                 label: item.label,
             })),
-            value: window.siyuan.config.appearance.themeLight,
         });
         b.select("appearance.themeDark", {
             desc: window.siyuan.languages.theme12,
@@ -216,7 +213,6 @@ export const registerAppearanceInterfaceSection = (p: PageBuilder) => {
                 value: item.name,
                 label: item.label,
             })),
-            value: window.siyuan.config.appearance.themeDark,
         });
     });
     s.block({
@@ -248,7 +244,6 @@ export const registerAppearanceInterfaceSection = (p: PageBuilder) => {
                 value: item.name,
                 label: item.label,
             })),
-            value: window.siyuan.config.appearance.icon,
         });
     });
     s.block({
@@ -263,18 +258,16 @@ export const registerAppearanceInterfaceSection = (p: PageBuilder) => {
         b.select("appearance.codeBlockThemeLight", {
             desc: window.siyuan.languages.appearance2,
             options: Constants.SIYUAN_CONFIG_APPEARANCE_LIGHT_CODE.map(value => ({value})),
-            value: window.siyuan.config.appearance.codeBlockThemeLight,
         });
         b.select("appearance.codeBlockThemeDark", {
             desc: window.siyuan.languages.appearance3,
             options: Constants.SIYUAN_CONFIG_APPEARANCE_DARK_CODE.map(value => ({value})),
-            value: window.siyuan.config.appearance.codeBlockThemeDark,
         });
     });
 };
 
-export const registerAppearanceControlsSection = (p: PageBuilder) => {
-    const s = p.section("controls", window.siyuan.languages.configGroupControls);
+export const registerAppearanceControlsGroup = (p: PageBuilder) => {
+    const s = p.group("controls", window.siyuan.languages.configGroupControls);
 
     s.select("editor.floatWindowMode", {
         title: window.siyuan.languages.floatWindowMode,
@@ -284,7 +277,6 @@ export const registerAppearanceControlsSection = (p: PageBuilder) => {
             {value: 1, label: window.siyuan.languages.floatWindowMode1.replace("${hotkey}", updateHotkeyTip("⌘"))},
             {value: 2, label: window.siyuan.languages.floatWindowMode2},
         ],
-        value: window.siyuan.config.editor.floatWindowMode,
         save: (value) => editorConfigApi.patch("editor.floatWindowMode", value),
         afterMount: bindFloatWindowModeVisibility,
     });
@@ -303,7 +295,6 @@ export const registerAppearanceControlsSection = (p: PageBuilder) => {
             {value: 0, label: window.siyuan.languages._trayMenu.quit},
             {value: 1, label: window.siyuan.languages.appearance11},
         ],
-        value: window.siyuan.config.appearance.closeButtonBehavior === 1 ? 1 : 0,
     });
     s.block({
         key: "statusBar",
@@ -379,9 +370,9 @@ const bindFloatWindowModeVisibility = (root: HTMLElement) => {
     handleFloatWindowModeChange();
 };
 
-export const registerAppearancePersonalizationSection = (p: PageBuilder) => {
+export const registerAppearancePersonalizationGroup = (p: PageBuilder) => {
     const browser = isBrowser();
-    const s = p.section("personalization", window.siyuan.languages.configGroupPersonalization);
+    const s = p.group("personalization", window.siyuan.languages.configGroupPersonalization);
 
     if (!browser) {
         s.button({
@@ -431,4 +422,11 @@ const mountAppearanceCodeSnippet = (root: HTMLElement) => {
     root.querySelector("#codeSnippet")?.addEventListener("click", () => {
         openSnippets();
     });
+};
+
+export const registerAppearancePage = (p: PageBuilder) => {
+    registerAppearanceContentGroup(p);
+    registerAppearanceInterfaceGroup(p);
+    registerAppearanceControlsGroup(p);
+    registerAppearancePersonalizationGroup(p);
 };

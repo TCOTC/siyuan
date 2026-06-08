@@ -1,13 +1,23 @@
 import {exportLayout} from "../../layout/util";
 import {fetchPost} from "../../util/fetch";
 import {loadAssets} from "../../util/assets";
-import {mergeRecordByDottedPath} from "../ui/dotPath";
+import {createConfigNamespaceApi} from "../util/namespaceApi";
 
-/** mode 和 modeOS 两项配置的合并控件 ID */
-export const APPEARANCE_THEME_MODE_ID = "appearance.ThemeMode";
+/** 主题模式下拉框初值：合并 mode / modeOS */
+export const appearanceThemeModeValue = (): number =>
+    window.siyuan.config.appearance.modeOS ? 2 : window.siyuan.config.appearance.mode;
 
-/** 将内核返回的外观配置应用到当前前端实例 */
-export const applyAppearanceConfig = (data: Config.IAppearance) => {
+/** 主题模式选择：合并 mode / modeOS 后提交 */
+export const saveThemeMode = (value: number) => {
+    const OSThemeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? 1 : 0;
+    fetchPost("/api/setting/setAppearance", {
+        ...window.siyuan.config.appearance,
+        mode: (value === 2 ? OSThemeMode : value) as Config.IAppearance["mode"],
+        modeOS: value === 2,
+    });
+};
+
+const applyAppearanceConfig = (data: Config.IAppearance) => {
     if (data.lang !== window.siyuan.config.appearance.lang) {
         void exportLayout({
             cb() {
@@ -22,42 +32,15 @@ export const applyAppearanceConfig = (data: Config.IAppearance) => {
     loadAssets(data);
     document.querySelector("#barMode use")?.setAttribute(
         "xlink:href",
-        `#icon${window.siyuan.config.appearance.modeOS ? "Mode" : window.siyuan.config.appearance.mode === 0 ? "Light" : "Dark"}`
+        `${window.siyuan.config.appearance.modeOS ? "#iconMode" : window.siyuan.config.appearance.mode === 0 ? "#iconLight" : "#iconDark"}`
     );
 };
 
-const postAppearanceConfig = (payload: Config.IAppearance) => {
-    // 当前修改外观设置之后内核会推送到所有前端实例，无需手动 apply
-    fetchPost("/api/setting/setAppearance", payload);
-};
-
-const mergeAndPost = (rel: string, value: unknown) => {
-    if (!rel) {
-        return;
-    }
-    const prev = window.siyuan.config.appearance as unknown as Record<string, unknown>;
-    const payload = mergeRecordByDottedPath(prev, rel, value) as unknown as Config.IAppearance;
-    postAppearanceConfig(payload);
-};
-
 /** 外观 Tab 命名空间：设置面板注册项 save */
-export const appearanceConfigApi = {
-    patch(relOrFullId: string, value: unknown) {
-        const rel = relOrFullId.startsWith("appearance.")
-            ? relOrFullId.slice("appearance.".length)
-            : relOrFullId;
-        mergeAndPost(rel, value);
-    },
-
-    /** 主题模式选择：合并 mode / modeOS 后提交 */
-    saveThemeMode(value: number) {
-        const OSThemeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? 1 : 0;
-        postAppearanceConfig({
-            ...window.siyuan.config.appearance,
-            mode: value === 2 ? OSThemeMode : value,
-            modeOS: value === 2,
-        });
-    },
-
-    apply: applyAppearanceConfig,
-};
+export const appearanceConfigApi = createConfigNamespaceApi<Config.IAppearance>({
+    namespace: "appearance",
+    getConfig: () => window.siyuan.config.appearance,
+    setConfig: applyAppearanceConfig,
+    apiPath: "/api/setting/setAppearance",
+    applyFromResponse: false,
+});

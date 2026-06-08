@@ -7,10 +7,10 @@ import type {PageBuilder} from "../registry/pageBuilder";
 import {ipcRenderer} from "electron";
 /// #endif
 
-/** 编辑器 Tab：各节注册实现（由 registry/pages.ts 中的 defineConfigPage 调用） */
-export const registerEditorBehaviorSection = (p: PageBuilder) => {
+/** 编辑器 Tab：各组注册实现（由 registry/pages.ts 中的 registry 调用） */
+export const registerEditorBehaviorGroup = (p: PageBuilder) => {
     const browser = isBrowser();
-    const s = p.section("behavior", window.siyuan.languages.configGroupBehavior);
+    const s = p.group("behavior", window.siyuan.languages.configGroupBehavior);
     const readOnlyKeymap = window.siyuan.config.keymap.general.editReadonly.custom;
     s.switch("readOnly", {
         title: `${window.siyuan.languages.editReadonly} <code class="fn__code${readOnlyKeymap ? "" : " fn__none"}">${updateHotkeyTip(readOnlyKeymap)}</code>`,
@@ -97,8 +97,8 @@ const bindSpellcheckLanguagesChips = async (root: HTMLElement) => {
     /// #endif
 };
 
-export const registerEditorBlockFeaturesSection = (p: PageBuilder) => {
-    const s = p.section("blockFeatures", window.siyuan.languages.configGroupBlockFeatures);
+export const registerEditorBlockFeaturesGroup = (p: PageBuilder) => {
+    const s = p.group("blockFeatures", window.siyuan.languages.configGroupBlockFeatures);
     s.switch("displayNetImgMark", {
         title: window.siyuan.languages.md7,
         desc: window.siyuan.languages.md8,
@@ -119,7 +119,6 @@ export const registerEditorBlockFeaturesSection = (p: PageBuilder) => {
             {value: 1, label: window.siyuan.languages.showHeadingOnlyTitle},
             {value: 2, label: window.siyuan.languages.showHeadingOnlyBlocks},
         ],
-        value: window.siyuan.config.editor.headingEmbedMode,
     });
     s.switch("codeLineWrap", {
         title: window.siyuan.languages.md31,
@@ -135,8 +134,8 @@ export const registerEditorBlockFeaturesSection = (p: PageBuilder) => {
     });
 };
 
-export const registerEditorBidirectionalSection = (p: PageBuilder) => {
-    const s = p.section("bidirectional", window.siyuan.languages.configGroupBidirectionalLinks);
+export const registerEditorBidirectionalGroup = (p: PageBuilder) => {
+    const s = p.group("bidirectional", window.siyuan.languages.configGroupBidirectionalLinks);
     s.switch("onlySearchForDoc", {
         title: window.siyuan.languages.onlySearchForDoc,
         desc: window.siyuan.languages.onlySearchForDocTip,
@@ -155,13 +154,11 @@ export const registerEditorBidirectionalSection = (p: PageBuilder) => {
         title: window.siyuan.languages.md9,
         desc: window.siyuan.languages.md36,
         mode: "textarea",
-        value: window.siyuan.config.editor.virtualBlockRefInclude,
     });
     s.textBlock("virtualBlockRefExclude", {
         title: window.siyuan.languages.md35,
         desc: window.siyuan.languages.md41,
         mode: "textarea",
-        value: window.siyuan.config.editor.virtualBlockRefExclude,
     });
     s.switch("backlinkContainChildren", {
         title: window.siyuan.languages.backlinkContainChildren,
@@ -181,8 +178,8 @@ export const registerEditorBidirectionalSection = (p: PageBuilder) => {
     });
 };
 
-export const registerEditorMarkdownInlineSection = (p: PageBuilder) => {
-    const s = p.section("markdownInline", window.siyuan.languages.configGroupMarkdownInlineSyntax);
+export const registerEditorMarkdownInlineGroup = (p: PageBuilder) => {
+    const s = p.group("markdownInline", window.siyuan.languages.configGroupMarkdownInlineSyntax);
     s.switch("markdown.inlineAsterisk", {
         title: window.siyuan.languages.editorMarkdownInlineAsterisk,
         desc: window.siyuan.languages.editorMarkdownInlineAsteriskTip,
@@ -217,8 +214,8 @@ export const registerEditorMarkdownInlineSection = (p: PageBuilder) => {
     });
 };
 
-export const registerEditorAdvancedSection = (p: PageBuilder) => {
-    const s = p.section("advanced", window.siyuan.languages.configGroupAdvanced);
+export const registerEditorAdvancedGroup = (p: PageBuilder) => {
+    const s = p.group("advanced", window.siyuan.languages.configGroupAdvanced);
     s.text("plantUMLServePath", {
         title: window.siyuan.languages.md39,
         desc: window.siyuan.languages.md40,
@@ -227,7 +224,6 @@ export const registerEditorAdvancedSection = (p: PageBuilder) => {
         title: window.siyuan.languages.katexMacros,
         desc: window.siyuan.languages.katexMacrosTip,
         mode: "textarea",
-        value: window.siyuan.config.editor.katexMacros,
     });
     s.switch("allowSVGScript", {
         title: window.siyuan.languages.allowSVGScript,
@@ -237,4 +233,12 @@ export const registerEditorAdvancedSection = (p: PageBuilder) => {
         title: window.siyuan.languages.allowHTMLBLockScript,
         desc: window.siyuan.languages.allowHTMLBLockScriptTip,
     });
+};
+
+export const registerEditorPage = (p: PageBuilder) => {
+    registerEditorBehaviorGroup(p);
+    registerEditorBlockFeaturesGroup(p);
+    registerEditorBidirectionalGroup(p);
+    registerEditorMarkdownInlineGroup(p);
+    registerEditorAdvancedGroup(p);
 };

@@ -1,7 +1,7 @@
 import type {PageBuilder} from "../registry/pageBuilder";
 
-export const registerAiServiceSection = (p: PageBuilder) => {
-    const s = p.section("service", window.siyuan.languages.configGroupServiceConnection);
+export const registerAiServiceGroup = (p: PageBuilder) => {
+    const s = p.group("service", window.siyuan.languages.configGroupServiceConnection);
 
     s.select("openAI.apiProvider", {
         title: window.siyuan.languages.apiProvider,
@@ -10,38 +10,32 @@ export const registerAiServiceSection = (p: PageBuilder) => {
             {value: "OpenAI"},
             {value: "Azure"},
         ],
-        value: window.siyuan.config.ai.openAI.apiProvider,
         afterMount: bindApiProviderToggle,
     });
     s.textBlock("openAI.apiBaseURL", {
         title: window.siyuan.languages.apiBaseURL,
         desc: window.siyuan.languages.apiBaseURLTip,
         mode: "input-text",
-        value: window.siyuan.config.ai.openAI.apiBaseURL,
     });
     s.textBlock("openAI.apiKey", {
         title: window.siyuan.languages.apiKey,
         desc: window.siyuan.languages.apiKeyTip,
         mode: "input-password",
-        value: window.siyuan.config.ai.openAI.apiKey,
     });
     s.textBlock("openAI.apiVersion", {
         title: window.siyuan.languages.apiVersion,
         desc: window.siyuan.languages.apiVersionTip,
         mode: "input-text",
-        value: window.siyuan.config.ai.openAI.apiVersion,
     });
     s.textBlock("openAI.apiProxy", {
         title: window.siyuan.languages.apiProxy,
         desc: window.siyuan.languages.apiProxyTip,
         mode: "input-text",
-        value: window.siyuan.config.ai.openAI.apiProxy,
     });
     s.textBlock("openAI.apiUserAgent", {
         title: "User-Agent",
         desc: window.siyuan.languages.apiUserAgentTip,
         mode: "input-text",
-        value: window.siyuan.config.ai.openAI.apiUserAgent,
     });
 };
 
@@ -57,14 +51,13 @@ const bindApiProviderToggle = (root: HTMLElement) => {
     toggleVersionWrap();
 };
 
-export const registerAiModelSection = (p: PageBuilder) => {
-    const s = p.section("model", window.siyuan.languages.configGroupModelParameters);
+export const registerAiModelGroup = (p: PageBuilder) => {
+    const s = p.group("model", window.siyuan.languages.configGroupModelParameters);
 
     s.textBlock("openAI.apiModel", {
         title: window.siyuan.languages.apiModel,
         desc: window.siyuan.languages.apiModelTip,
         mode: "input-text",
-        value: window.siyuan.config.ai.openAI.apiModel,
     });
     s.number("openAI.apiTimeout", {
         title: window.siyuan.languages.apiTimeout,
@@ -110,4 +103,9 @@ export const registerAiModelSection = (p: PageBuilder) => {
         min: 0,
         max: 10,
     });
+};
+
+export const registerAiPage = (p: PageBuilder) => {
+    registerAiServiceGroup(p);
+    registerAiModelGroup(p);
 };

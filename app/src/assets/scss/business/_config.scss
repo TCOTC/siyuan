@@ -45,6 +45,14 @@
   &-items {
     background-color: var(--b3-theme-surface);
     border-radius: var(--b3-border-radius-b);
+
+    .config-item.config-item--last-visible {
+      border-bottom: 0;
+    }
+  }
+
+  &-search-hidden {
+    display: none;
   }
 
   &-wrap {

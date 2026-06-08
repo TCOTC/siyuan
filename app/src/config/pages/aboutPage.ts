@@ -5,8 +5,8 @@ import {fetchPost} from "../../util/fetch";
 import {getCloudURL} from "../util/about";
 import {sendAppSetting} from "./appRuntime";
 
-export const registerAboutVersionSection = (p: PageBuilder) => {
-    const s = p.section("version", "");
+export const registerAboutVersionGroup = (p: PageBuilder) => {
+    const s = p.group("version", "");
 
     s.slot({
         key: "version",
@@ -69,8 +69,8 @@ const mountAboutVersionSlot = (root: HTMLElement) => {
     });
 };
 
-export const registerAboutInfoSection = (p: PageBuilder) => {
-    const s = p.section("info", "");
+export const registerAboutInfoGroup = (p: PageBuilder) => {
+    const s = p.group("info", "");
 
     s.slot({
         key: "aboutLogo",
@@ -122,4 +122,9 @@ export const registerAboutInfoSection = (p: PageBuilder) => {
     <div class="b3-label__text">${window.siyuan.languages.accountSupport2}</div>
 </div>`,
     });
+};
+
+export const registerAboutPage = (p: PageBuilder) => {
+    registerAboutVersionGroup(p);
+    registerAboutInfoGroup(p);
 };

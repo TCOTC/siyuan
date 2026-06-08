@@ -9,7 +9,7 @@ import {fetchPost} from "../../util/fetch";
 import {exportLayout} from "../../layout/util";
 import {confirmDialog} from "../../dialog/confirmDialog";
 import {sendGlobalShortcut, sendUnregisterGlobalShortcut} from "../../boot/globalEvent/keydown";
-import {textMatchesSearch} from "../ui/search";
+import {normalizeSearchText} from "../search/normalize";
 import {genButtonRowHtml, genConfigGroup} from "../render/render";
 import type {Plugin} from "../../plugin";
 
@@ -36,21 +36,7 @@ const genKeymapToolbarHtml = () => genConfigGroup(
     ),
 );
 
-const genKeymapPageHtml = (searchQuery?: string) => {
-    const queryLower = (searchQuery ?? "").trim().toLowerCase();
-    if (!queryLower) {
-        return genKeymapToolbarHtml() + genConfigGroup(genKeymapListHtml());
-    }
-    const toolbarHit = keymapToolbarSearchStrings().some((s) => textMatchesSearch(s, queryLower));
-    const listHit = buildKeymapKeywords().some((k) => textMatchesSearch(k, queryLower));
-    if (listHit) {
-        return genKeymapToolbarHtml() + genConfigGroup(genKeymapListHtml());
-    }
-    if (toolbarHit) {
-        return genKeymapToolbarHtml();
-    }
-    return "";
-};
+const genKeymapPageHtml = () => genKeymapToolbarHtml() + genConfigGroup(genKeymapListHtml());
 
 const bindKeymapToolbar = (root: HTMLElement) => {
     root.querySelector("#keymapRefreshBtn")?.addEventListener("click", () => {
@@ -92,32 +78,40 @@ const bindKeymapToolbar = (root: HTMLElement) => {
 
 /** 快捷键 Tab 挂载（面板页，不走注册表渲染） */
 export const mountKeymapTab = async (root: HTMLElement, searchQuery?: string) => {
-        root.innerHTML = genKeymapPageHtml(searchQuery);
+    if (root.innerHTML === "") {
+        root.innerHTML = genKeymapPageHtml();
         bindKeymapToolbar(root);
         const keymapList = root.querySelector("#keymapList");
         if (keymapList) {
             bindKeymapList(root);
         }
-        const query = searchQuery?.trim();
-        if (query) {
-            // 设置窗口全局搜索进入快捷键 Tab，仅当命中具体命令名时才写入搜索框并筛选列表，
-            // 命中分组名时不写入搜索框，完整展示分组
-            const queryLower = query.toLowerCase();
-            const searchElement = root.querySelector("#keymapInput") as HTMLInputElement | null;
-            const searchKeymapElement = root.querySelector("#searchByKey") as HTMLInputElement | null;
-            const keymapListElement = root.querySelector("#keymapList") as HTMLElement | null;
-            if (searchElement && searchKeymapElement && keymapListElement) {
-                searchKeymapElement.value = "";
-                searchKeymapElement.dataset.keymap = "";
-                if (buildKeymapCommandTexts().some((text) => textMatchesSearch(text, queryLower))) {
-                    searchElement.value = queryLower;
-                    searchKeymapList(keymapListElement, queryLower, "");
-                } else {
-                    searchElement.value = "";
-                    resetKeymapList(keymapListElement);
-                }
-            }
-        }
+    }
+    const query = searchQuery?.trim();
+    const searchElement = root.querySelector("#keymapInput") as HTMLInputElement | null;
+    const searchKeymapElement = root.querySelector("#searchByKey") as HTMLInputElement | null;
+    const keymapListElement = root.querySelector("#keymapList") as HTMLElement | null;
+    if (!searchElement || !searchKeymapElement || !keymapListElement) {
+        return;
+    }
+    if (!query) {
+        searchElement.value = "";
+        searchKeymapElement.value = "";
+        searchKeymapElement.dataset.keymap = "";
+        resetKeymapList(keymapListElement);
+        return;
+    }
+    // 设置窗口全局搜索进入快捷键 Tab，仅当命中具体命令名时才写入搜索框并筛选列表，
+    // 命中分组名时不写入搜索框，完整展示分组
+    const queryLower = query.toLowerCase();
+    searchKeymapElement.value = "";
+    searchKeymapElement.dataset.keymap = "";
+    if (buildKeymapCommandTexts().some((text) => normalizeSearchText(text).includes(queryLower))) {
+        searchElement.value = queryLower;
+        searchKeymapList(keymapListElement, queryLower, "");
+    } else {
+        searchElement.value = "";
+        resetKeymapList(keymapListElement);
+    }
 };
 
 export const collectKeymapTabSearchStrings = (): string[] => [
@@ -126,7 +120,7 @@ export const collectKeymapTabSearchStrings = (): string[] => [
     ...buildKeymapKeywords(),
     ...buildKeymapCommandTexts(),
     ...buildKeymapPluginDisplayNames(),
-];
+].map(normalizeSearchText).filter((s) => s.length > 0);
 
 const buildKeymapKeywords = (): string[] => [
     // 输入框占位符和按钮文案
@@ -608,7 +602,7 @@ const searchKeymapList = (keymapListElement: HTMLElement, value: string, keymapS
                 matchedKeymap = false;
             }
         }
-        if (matchedKeymap && (!valueLower || textMatchesSearch(item.textContent || "", valueLower))) {
+        if (matchedKeymap && (!valueLower || normalizeSearchText(item.textContent || "").includes(valueLower))) {
             liElement.classList.remove("fn__none");
             liElement.parentElement.classList.remove("fn__none");
             liElement.parentElement.parentElement.classList.remove("fn__none");

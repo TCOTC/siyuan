@@ -1,11 +1,13 @@
 import type {SettingItem} from "../registry/item";
+import {getGroupsByTabId} from "../registry/group";
+import {getMountableItemsByGroup} from "../registry/item";
 import type {RowPart, StackLeft, StackLine, StackRight} from "./parts";
-import {getAtPath} from "../ui/dotPath";
+import {escapeAttr} from "../../util/escape";
+import {resolveBooleanValue, resolveNumberValue, resolveSelectValue, resolveStringValue} from "../ui/configValue";
 import {buildRangeValues, snapRangeValue} from "../ui/formValue";
 import {genConfigItemMainHtml, genConfigItemName, genSwitchRow} from "../ui/render";
 import type {SwitchQueryItem} from "./parts";
 
-const getSwitchChecked = (id: string): boolean => Boolean(getAtPath(window.siyuan.config, id));
 const genNumberInputHtml = (
     id: string,
     value: number,
@@ -73,7 +75,7 @@ const genTextBlockFieldHtml = (
 const genSwitchQueryItemHtml = (item: SwitchQueryItem): string => {
     switch (item.kind) {
         case "switch": {
-            const checked = getSwitchChecked(item.id);
+            const checked = resolveBooleanValue(item.id, undefined);
             return `<label class="fn__flex">
     <input class="b3-switch" id="${item.id}" type="checkbox"${checked ? " checked" : ""}/>
     <span class="fn__space"></span>
@@ -81,15 +83,12 @@ const genSwitchQueryItemHtml = (item: SwitchQueryItem): string => {
     <div class="fn__flex-1">${item.label}</div>
 </label>`;
         }
-        case "number": {
-            const raw = getAtPath(window.siyuan.config, item.id);
-            const num = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
+        case "number":
             return `<div class="fn__flex label fn__flex-1">
-    <input class="b3-text-field" id="${item.id}" type="number" min="${item.min ?? ""}" max="${item.max ?? ""}" value="${num}"/>
+    <input class="b3-text-field" id="${item.id}" type="number" min="${item.min ?? ""}" max="${item.max ?? ""}" value="${resolveNumberValue(item.id, undefined)}"/>
     <span class="fn__space"></span>
     <div>${item.label}</div>
 </div>`;
-        }
     }
 };
 
@@ -121,39 +120,36 @@ export const genTextPairHtml = (
     title: string,
     desc: string,
     leftId: string,
-    leftValue: string,
+    leftValue: () => string,
     rightId: string,
-    rightValue: string,
+    rightValue: () => string,
 ): string =>
     `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size96" id="${leftId}" value="${Lute.EscapeHTMLStr(leftValue)}">
+    <input class="b3-text-field fn__flex-center fn__size96" id="${leftId}" value="${Lute.EscapeHTMLStr(leftValue())}">
     <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size96" id="${rightId}" value="${Lute.EscapeHTMLStr(rightValue)}">
+    <input class="b3-text-field fn__flex-center fn__size96" id="${rightId}" value="${Lute.EscapeHTMLStr(rightValue())}">
 </div>`;
 
 const genStackRight = (r: StackRight): string => {
     switch (r.kind) {
         case "button":
             return genButtonHtml(r.id, r.label, r.icon);
-        case "select":
-            return genSelectOptionsHtml(r.id, r.options, r.value);
-        case "number": {
-            const raw = getAtPath(window.siyuan.config, r.id);
-            const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : r.value;
-            return genNumberInputHtml(r.id, value, r.min, r.max, undefined, undefined);
+        case "select": {
+            const options = r.options ?? [];
+            return genSelectOptionsHtml(r.id, options, resolveSelectValue(r.id, options, r.value));
         }
+        case "number":
+            return genNumberInputHtml(r.id, resolveNumberValue(r.id, r.value), r.min, r.max, undefined, undefined);
         case "switch":
-            return genSwitchInputHtml(r.id, getSwitchChecked(r.id));
+            return genSwitchInputHtml(r.id, resolveBooleanValue(r.id, r.value));
     }
 };
 
 const genStackLeft = (left: StackLeft, hasRight: boolean): string => {
     if (left.kind === "textBlock") {
-        const raw = getAtPath(window.siyuan.config, left.id);
-        const value = typeof raw === "string" ? raw : left.value;
-        return `<div class="${hasRight ? "fn__flex-1 " : ""}fn__block">${genTextBlockFieldHtml(left.id, left.mode, value)}</div>`;
+        return `<div class="${hasRight ? "fn__flex-1 " : ""}fn__block">${genTextBlockFieldHtml(left.id, left.mode, resolveStringValue(left.id, left.value))}</div>`;
     }
     if (!hasRight) {
         return left.kind === "title" ? genConfigItemName(left.text) : `<div class="b3-label__text">${left.text}</div>`;
@@ -206,100 +202,86 @@ const renderControlParts = (parts: RowPart[]): string => {
     if (!control) {
         return "";
     }
-    const cfg = window.siyuan.config;
     switch (control.kind) {
         case "switch":
-            return genSwitchRow(control.id, title, desc, getSwitchChecked(control.id));
-        case "number": {
-            const raw = getAtPath(cfg, control.id);
-            const value = typeof raw === "number" && !Number.isNaN(raw) ? raw : 0;
+            return genSwitchRow(control.id, title, desc, resolveBooleanValue(control.id, control.value));
+        case "number":
             return `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    ${genNumberInputHtml(control.id, value, control.min, control.max, control.step, control.unit)}
+    ${genNumberInputHtml(control.id, resolveNumberValue(control.id, control.value), control.min, control.max, control.step, control.unit)}
 </div>`;
-        }
         case "range": {
-            const v = getAtPath(cfg, control.id);
-            const raw = typeof v === "number" && !Number.isNaN(v) ? v : control.min;
-            const num = snapRangeValue(raw, control.min, control.max, control.step);
+            const num = snapRangeValue(resolveNumberValue(control.id, control.value, control.min), control.min, control.max, control.step);
             return genRangeRow(control.id, title, desc ?? "", control.min, control.max, control.step, num);
         }
         case "select": {
-            const raw = getAtPath(cfg, control.id);
-            const firstVal = control.options[0]?.value;
-            const numericSelect = control.options.length > 0 && typeof firstVal === "number";
-            let current: number | string;
-            if (numericSelect) {
-                current = typeof raw === "number" && !Number.isNaN(raw)
-                    ? raw
-                    : typeof firstVal === "number"
-                      ? firstVal
-                      : 0;
-            } else {
-                current = typeof raw === "string"
-                    ? raw
-                    : typeof firstVal === "string"
-                      ? firstVal
-                      : "";
-            }
+            const options = control.options ?? [];
             return `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    ${genSelectOptionsHtml(control.id, control.options, current)}
+    ${genSelectOptionsHtml(control.id, options, resolveSelectValue(control.id, options, control.value))}
 </div>`;
         }
-        case "text": {
-            const val = getAtPath(cfg, control.id);
-            const str = typeof val === "string" ? val : "";
+        case "text":
             return `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc ?? "")}
     <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size200" id="${control.id}" value="${Lute.EscapeHTMLStr(str)}"/>
+    <input class="b3-text-field fn__flex-center fn__size200" id="${control.id}" value="${Lute.EscapeHTMLStr(resolveStringValue(control.id, control.value))}"/>
 </div>`;
-        }
         case "textBlock": {
-            const raw = getAtPath(cfg, control.id);
-            const str = typeof raw === "string" ? raw : control.value;
             const blockHtml = `<div class="b3-label config-item">
     <div class="fn__block">
         ${genConfigItemName(title)}
         <div class="b3-label__text">${desc ?? ""}</div>
         <div class="fn__hr--small"></div>
-        ${genTextBlockFieldHtml(control.id, control.mode, str)}
+        ${genTextBlockFieldHtml(control.id, control.mode, resolveStringValue(control.id, control.value))}
     </div>
 </div>`;
             return blockHtml;
         }
     }
 };
-const renderItemHtml = (item: SettingItem): string => {
-    if (item.kind === "render") {
-        return item.html?.() ?? "";
+const tagConfigItemRoot = (html: string, itemId: string): string => {
+    if (!html.trim()) {
+        return html;
     }
-    return renderControlParts(item.parts ?? []);
+    if (html.includes("data-config-item-id")) {
+        return html;
+    }
+    const tagStart = html.indexOf("<");
+    if (tagStart === -1) {
+        return html;
+    }
+    const tagEnd = html.indexOf(">", tagStart);
+    if (tagEnd === -1) {
+        return html;
+    }
+    return html.slice(0, tagEnd) + ` data-config-item-id="${escapeAttr(itemId)}"` + html.slice(tagEnd);
 };
-export const genConfigGroup = (itemsHtml: string, title?: string): string =>
-    `<div class="config-group">${title ? `<div class="config-title">${title}</div>` : ""}<div class="config-items">${itemsHtml}</div></div>`;
 
-/** 按节分组渲染注册项列表 */
-export const genGroupedItems = (items: SettingItem[]): string => {
-    const groups = new Map<string, {title: string; items: SettingItem[]}>();
-    for (const item of items) {
-        let group = groups.get(item.sectionKey);
-        if (!group) {
-            group = {title: item.sectionTitle, items: []};
-            groups.set(item.sectionKey, group);
-        }
-        group.items.push(item);
-    }
+const renderItemHtml = (item: SettingItem): string => {
+    const html = item.kind === "render" ? (item.html?.() ?? "") : renderControlParts(item.parts ?? []);
+    return tagConfigItemRoot(html, item.id);
+};
+
+export const genConfigGroup = (itemsHtml: string, title?: string, attrs?: Record<string, string>): string => {
+    const attrsHtml = attrs
+        ? Object.entries(attrs).map(([key, value]) => ` ${key}="${escapeAttr(value)}"`).join("")
+        : "";
+    return `<div class="config-group"${attrsHtml}>${title ? `<div class="config-title">${title}</div>` : ""}<div class="config-items">${itemsHtml}</div></div>`;
+};
+
+/** 按分组渲染注册项列表 */
+export const genGroupedItems = (tabId: string): string => {
+    const groups = getGroupsByTabId(tabId);
+    const itemsByGroup = getMountableItemsByGroup(tabId);
     const parts: string[] = [];
-    for (const {title, items: groupItems} of groups.values()) {
-        const itemsHtml = groupItems
-            .sort((a, b) => a.order - b.order)
-            .map((item) => renderItemHtml(item))
-            .join("");
-        parts.push(genConfigGroup(itemsHtml, title));
+    for (const group of groups) {
+        const groupItems = itemsByGroup.get(group.key) ?? [];
+        const itemsHtml = groupItems.map((item) => renderItemHtml(item)).join("");
+        const title = group.title || undefined;
+        parts.push(genConfigGroup(itemsHtml, title, {"data-config-group-key": group.key}));
     }
     return parts.join("");
 };

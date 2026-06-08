@@ -1,4 +1,5 @@
 import type {PageBuilder} from "../registry/pageBuilder";
+import {registerAccountGroup} from "./accountUi";
 import {Constants} from "../../constants";
 import {fetchPost} from "../../util/fetch";
 import {confirmDialog} from "../../dialog/confirmDialog";
@@ -9,10 +10,10 @@ import {bindSyncCloudListEvent, renderSyncCloudList, setKey} from "../../sync/sy
 import {Dialog} from "../../dialog";
 import {genConfigItemMainHtml, genConfigItemName} from "../ui/render";
 import {getSyncProviderConfigKeywords} from "./syncUi";
-import {sendSyncSetting} from "./syncRuntime";
+import {patchSyncConfig} from "./syncRuntime";
 
-export const registerSyncSection = (p: PageBuilder) => {
-    const s = p.section("sync", window.siyuan.languages.configGroupSync);
+export const registerSyncGroup = (p: PageBuilder) => {
+    const s = p.group("sync", window.siyuan.languages.configGroupSync);
 
     s.select("sync.provider", {
         title: window.siyuan.languages.syncProvider,
@@ -23,8 +24,7 @@ export const registerSyncSection = (p: PageBuilder) => {
             {value: 3, label: "WebDAV"},
             ...(["std", "docker"].includes(window.siyuan.config.system.container) ? [{value: 4, label: window.siyuan.languages.localFileSystem}] : []),
         ],
-        value: window.siyuan.config.sync.provider,
-        save: (value) => sendSyncSetting("sync.provider", value),
+        save: (value) => patchSyncConfig("sync.provider", value),
     });
     s.slot({
         key: "syncProviderConfig",
@@ -39,12 +39,12 @@ export const registerSyncSection = (p: PageBuilder) => {
     s.switch("sync.enabled", {
         title: window.siyuan.languages.openSyncTip1,
         desc: window.siyuan.languages.openSyncTip2,
-        save: (value) => sendSyncSetting("sync.enabled", value),
+        save: (value) => patchSyncConfig("sync.enabled", value),
     });
     s.switch("sync.generateConflictDoc", {
         title: window.siyuan.languages.generateConflictDoc,
         desc: window.siyuan.languages.generateConflictDocTip,
-        save: (value) => sendSyncSetting("sync.generateConflictDoc", value),
+        save: (value) => patchSyncConfig("sync.generateConflictDoc", value),
     });
     s.select("sync.mode", {
         title: window.siyuan.languages.syncMode,
@@ -54,8 +54,7 @@ export const registerSyncSection = (p: PageBuilder) => {
             {value: 2, label: window.siyuan.languages.syncMode2},
             {value: 3, label: window.siyuan.languages.syncMode3},
         ],
-        value: window.siyuan.config.sync.mode,
-        save: (value) => sendSyncSetting("sync.mode", value),
+        save: (value) => patchSyncConfig("sync.mode", value),
     });
     s.number("sync.interval", {
         title: window.siyuan.languages.syncInterval,
@@ -63,12 +62,12 @@ export const registerSyncSection = (p: PageBuilder) => {
         min: 30,
         max: 43200,
         unit: window.siyuan.languages.second,
-        save: (value) => sendSyncSetting("sync.interval", value),
+        save: (value) => patchSyncConfig("sync.interval", value),
     });
     s.switch("sync.perception", {
         title: window.siyuan.languages.syncPerception,
         desc: window.siyuan.languages.syncPerceptionTip,
-        save: (value) => sendSyncSetting("sync.perception", value),
+        save: (value) => patchSyncConfig("sync.perception", value),
     });
     s.slot({
         key: "syncCloudDir",
@@ -108,8 +107,8 @@ const mountSyncCloudDir = (root: HTMLElement) => {
     }
 };
 
-export const registerRepoSection = (p: PageBuilder) => {
-    const s = p.section("repo", window.siyuan.languages.configGroupLocalDataRepo);
+export const registerRepoGroup = (p: PageBuilder) => {
+    const s = p.group("repo", window.siyuan.languages.configGroupLocalDataRepo);
 
     s.slot({
         key: "repoKey",
@@ -174,12 +173,10 @@ export const registerRepoSection = (p: PageBuilder) => {
         });
         b.number("repo.indexRetentionDays", {
             desc: window.siyuan.languages.dataRepoAutoPurgeIndexRetentionDays,
-            value: window.siyuan.config.repo.indexRetentionDays,
             min: 1,
         });
         b.number("repo.retentionIndexesDaily", {
             desc: window.siyuan.languages.dataRepoAutoPurgeRetentionIndexesDaily,
-            value: window.siyuan.config.repo.retentionIndexesDaily,
             min: 1,
         });
     });
@@ -248,4 +245,10 @@ const mountRepoKey = (root: HTMLElement) => {
             });
         });
     });
+};
+
+export const registerSyncPage = (p: PageBuilder) => {
+    registerAccountGroup(p);
+    registerSyncGroup(p);
+    registerRepoGroup(p);
 };

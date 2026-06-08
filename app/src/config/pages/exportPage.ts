@@ -7,8 +7,8 @@ import {isBrowser} from "../../util/functions";
 import {useShell} from "../../util/pathName";
 import {exportConfigApi} from "./exportRuntime";
 
-export const registerExportReferencesSection = (p: PageBuilder) => {
-    const s = p.section("references", window.siyuan.languages.configGroupReferences);
+export const registerExportReferencesGroup = (p: PageBuilder) => {
+    const s = p.group("references", window.siyuan.languages.configGroupReferences);
 
     s.switch("includeSubDocs", {
         title: window.siyuan.languages.includeSubDocs,
@@ -26,7 +26,6 @@ export const registerExportReferencesSection = (p: PageBuilder) => {
             {value: 3, label: window.siyuan.languages.export3},
             {value: 4, label: window.siyuan.languages.export4},
         ],
-        value: window.siyuan.config.export.blockRefMode,
     });
     s.select("blockEmbedMode", {
         title: window.siyuan.languages.blockEmbed,
@@ -35,12 +34,11 @@ export const registerExportReferencesSection = (p: PageBuilder) => {
             {value: 0, label: window.siyuan.languages.export0},
             {value: 1, label: window.siyuan.languages.export1},
         ],
-        value: window.siyuan.config.export.blockEmbedMode,
     });
 };
 
-export const registerExportFormatSection = (p: PageBuilder) => {
-    const s = p.section("format", window.siyuan.languages.configGroupFormat);
+export const registerExportFormatGroup = (p: PageBuilder) => {
+    const s = p.group("format", window.siyuan.languages.configGroupFormat);
 
     s.switch("markdownYFM", {
         title: window.siyuan.languages.export23,
@@ -76,11 +74,11 @@ export const registerExportFormatSection = (p: PageBuilder) => {
     });
 };
 
-export const registerExportPdfSection = (p: PageBuilder) => {
+export const registerExportPdfGroup = (p: PageBuilder) => {
     if (isBrowser()) {
         return;
     }
-    const s = p.section("pdf", window.siyuan.languages.configGroupPDF);
+    const s = p.group("pdf", window.siyuan.languages.configGroupPDF);
 
     s.select("fileAnnotationRefMode", {
         title: window.siyuan.languages.export5,
@@ -89,7 +87,6 @@ export const registerExportPdfSection = (p: PageBuilder) => {
             {value: 0, label: window.siyuan.languages.export7},
             {value: 1, label: window.siyuan.languages.export8},
         ],
-        value: window.siyuan.config.export.fileAnnotationRefMode,
     });
     s.text("pdfFooter", {
         title: window.siyuan.languages.export21,
@@ -107,18 +104,16 @@ export const registerExportPdfSection = (p: PageBuilder) => {
         b.desc(window.siyuan.languages.export28);
         b.textBlock("export.pdfWatermarkStr", {
             mode: "input-text",
-            value: window.siyuan.config.export.pdfWatermarkStr,
         });
         b.desc(`<a href="https://pdfcpu.io/core/watermark#description" target="_blank">${window.siyuan.languages.export29}</a>`);
         b.textBlock("export.pdfWatermarkDesc", {
             mode: "textarea",
-            value: window.siyuan.config.export.pdfWatermarkDesc,
         });
     });
 };
 
-export const registerExportImagesSection = (p: PageBuilder) => {
-    const s = p.section("images", window.siyuan.languages.configGroupImages);
+export const registerExportImagesGroup = (p: PageBuilder) => {
+    const s = p.group("images", window.siyuan.languages.configGroupImages);
 
     s.block({
         key: "imageWatermark",
@@ -133,21 +128,19 @@ export const registerExportImagesSection = (p: PageBuilder) => {
         b.desc(window.siyuan.languages.export28);
         b.textBlock("export.imageWatermarkStr", {
             mode: "input-text",
-            value: window.siyuan.config.export.imageWatermarkStr,
         });
         b.desc(`${window.siyuan.languages.export29}<div class="fn__hr--small"></div>${window.siyuan.languages.export10}`);
         b.textBlock("export.imageWatermarkDesc", {
             mode: "textarea",
-            value: window.siyuan.config.export.imageWatermarkDesc,
         });
     });
 };
 
-export const registerExportPandocSection = (p: PageBuilder) => {
+export const registerExportPandocGroup = (p: PageBuilder) => {
     if (isBrowser()) {
         return;
     }
-    const s = p.section("pandoc", window.siyuan.languages.configGroupPandoc);
+    const s = p.group("pandoc", window.siyuan.languages.configGroupPandoc);
 
     s.block({
         key: "pandocBin",
@@ -176,7 +169,6 @@ export const registerExportPandocSection = (p: PageBuilder) => {
         title: window.siyuan.languages.export25,
         desc: window.siyuan.languages.export26,
         mode: "textarea",
-        value: window.siyuan.config.export.pandocParams,
     });
 };
 
@@ -200,4 +192,12 @@ const mountExportPandocStack = (root: HTMLElement) => {
         }
         exportConfigApi.patch("export.pandocBin", localPath.filePaths[0]);
     });
+};
+
+export const registerExportPage = (p: PageBuilder) => {
+    registerExportReferencesGroup(p);
+    registerExportFormatGroup(p);
+    registerExportPdfGroup(p);
+    registerExportImagesGroup(p);
+    registerExportPandocGroup(p);
 };

@@ -21,8 +21,8 @@ const genImportUploadButtonHtml = (inputId: string, label: string): string =>
     ${label}
 </button>`;
 
-export const registerAppGeneralSection = (p: PageBuilder) => {
-    const s = p.section("general", window.siyuan.languages.configGroupGeneral);
+export const registerAppGeneralGroup = (p: PageBuilder) => {
+    const s = p.group("general", window.siyuan.languages.configGroupGeneral);
 
     if (!isBrowser() && !window.siyuan.config.system.isMicrosoftStore && window.siyuan.config.system.container === "std" && window.siyuan.config.system.os !== "linux") {
         s.select("system.autoLaunch2", {
@@ -33,7 +33,6 @@ export const registerAppGeneralSection = (p: PageBuilder) => {
                 {value: 1, label: window.siyuan.languages.autoLaunchMode1},
                 ...(!isMac() ? [{value: 2, label: window.siyuan.languages.autoLaunchMode2}] : []),
             ],
-            value: window.siyuan.config.system.autoLaunch2,
             save: (value) => sendAppSetting("system.autoLaunch2", value),
         });
     }
@@ -103,8 +102,8 @@ const mountNetworkProxy = (root: HTMLElement) => {
     });
 };
 
-export const registerAppDataSection = (p: PageBuilder) => {
-    const s = p.section("data", window.siyuan.languages.configGroupData);
+export const registerAppDataGroup = (p: PageBuilder) => {
+    const s = p.group("data", window.siyuan.languages.configGroupData);
 
     s.button({
         id: "exportData",
@@ -199,8 +198,8 @@ const mountExportData = (root: HTMLElement) => {
     });
 };
 
-export const registerAppMaintenanceSection = (p: PageBuilder) => {
-    const s = p.section("maintenance", window.siyuan.languages.configGroupMaintenance);
+export const registerAppMaintenanceGroup = (p: PageBuilder) => {
+    const s = p.group("maintenance", window.siyuan.languages.configGroupMaintenance);
 
     s.button({
         id: "vacuumDataIndex",
@@ -252,4 +251,10 @@ export const registerAppMaintenanceSection = (p: PageBuilder) => {
             });
         },
     });
+};
+
+export const registerAppPage = (p: PageBuilder) => {
+    registerAppGeneralGroup(p);
+    registerAppDataGroup(p);
+    registerAppMaintenanceGroup(p);
 };

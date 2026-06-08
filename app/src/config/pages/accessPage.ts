@@ -12,12 +12,12 @@ import {genConfigItemMainHtml} from "../ui/render";
 import {renderPublishAuthAccounts, savePublish, sendAccessSetting, updatePublishConfig} from "./accessRuntime";
 import {sendAppSetting} from "./appRuntime";
 
-export const registerAccessAuthSection = (p: PageBuilder) => {
+export const registerAccessAuthGroup = (p: PageBuilder) => {
     const hideOnWeb = isBrowser() && !isInMobileApp();
     if (hideOnWeb) {
         return;
     }
-    const s = p.section("authentication", window.siyuan.languages.authentication);
+    const s = p.group("authentication", window.siyuan.languages.authentication);
 
     if (!window.siyuan.config.readonly) {
         s.button({
@@ -91,12 +91,12 @@ const bindApiTokenInput = (root: HTMLElement) => {
     });
 };
 
-export const registerAccessServerSection = (p: PageBuilder) => {
+export const registerAccessServerGroup = (p: PageBuilder) => {
     const hideOnWeb = isBrowser() && !isInMobileApp();
     if (hideOnWeb) {
         return;
     }
-    const s = p.section("server", window.siyuan.languages.configGroupServer);
+    const s = p.group("server", window.siyuan.languages.configGroupServer);
 
     s.switch("system.networkServe", {
         title: window.siyuan.languages.about11,
@@ -211,8 +211,8 @@ export const registerAccessServerSection = (p: PageBuilder) => {
     });
 };
 
-export const registerAccessPublishSection = (p: PageBuilder) => {
-    const s = p.section("publish", window.siyuan.languages.configGroupPublish);
+export const registerAccessPublishGroup = (p: PageBuilder) => {
+    const s = p.group("publish", window.siyuan.languages.configGroupPublish);
 
     s.switch("publish.enable", {
         title: window.siyuan.languages.publishService,
@@ -314,4 +314,10 @@ const mountPublishAuthAccounts = (root: HTMLElement) => {
             togglePassword.previousElementSibling.setAttribute("type", isEye ? "text" : "password");
         }
     });
+};
+
+export const registerAccessPage = (p: PageBuilder) => {
+    registerAccessAuthGroup(p);
+    registerAccessServerGroup(p);
+    registerAccessPublishGroup(p);
 };

@@ -429,7 +429,7 @@ export const globalCommand = (command: string, app: App) => {
             openHistory(app);
             return true;
         case "editReadonly":
-            editorConfigApi.send("editor.readOnly", !window.siyuan.config.editor.readOnly);
+            editorConfigApi.patch("editor.readOnly", !window.siyuan.config.editor.readOnly);
             return true;
         case "lockScreen":
             lockScreen(app);
