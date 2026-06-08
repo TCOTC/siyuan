@@ -5,34 +5,21 @@ import {normalizeSearchText} from "./normalize";
 export const stringsMatchQuery = (strings: readonly string[], queryLower: string): boolean =>
     strings.some((s) => s.includes(queryLower));
 
-/** 注册页 Tab 是否命中全局搜索（Tab 标题 / 任意分组 / 任意条目） */
-export const registryTabMatchesSearch = (tabId: string, tabTitle: string, queryLower: string): boolean => {
-    if (stringsMatchQuery([normalizeSearchText(tabTitle)], queryLower)) {
-        return true;
-    }
-    const itemsByGroup = getMountableItemsByGroup(tabId);
-    for (const group of getGroupsByTabId(tabId)) {
-        if (stringsMatchQuery(group.searchIndex, queryLower)) {
-            return true;
-        }
-        const groupItems = itemsByGroup.get(group.key);
-        if (groupItems?.some((item) => stringsMatchQuery(item.searchIndex, queryLower))) {
-            return true;
-        }
-    }
-    return false;
-};
-
-/** 计算注册项在设置搜索下的可见性（分组标题命中时该组下全部条目可见） */
-export const computeConfigSearchVisibility = (
-    tabId: string,
-    tabTitle: string,
-    searchQuery: string,
-): {
+export interface RegistryTabSearchVisibility {
     visibleItemIds: Set<string>;
     visibleGroupKeys: Set<string>;
-} => {
-    const queryLower = searchQuery.toLowerCase();
+}
+
+export interface RegistryTabSearchScan extends RegistryTabSearchVisibility {
+    matches: boolean;
+}
+
+/** 一次遍历注册 Tab 的 Group / Item，同时得到侧栏命中与内容区可见性 */
+export const scanRegistryTabSearch = (
+    tabId: string,
+    tabTitle: string,
+    queryLower: string,
+): RegistryTabSearchScan => {
     const visibleItemIds = new Set<string>();
     const visibleGroupKeys = new Set<string>();
 
@@ -44,12 +31,14 @@ export const computeConfigSearchVisibility = (
                 visibleItemIds.add(item.id);
             }
         }
-        return {visibleItemIds, visibleGroupKeys};
+        return {matches: true, visibleItemIds, visibleGroupKeys};
     }
 
+    let matches = false;
     const itemsByGroup = getMountableItemsByGroup(tabId);
     for (const group of getGroupsByTabId(tabId)) {
         if (stringsMatchQuery(group.searchIndex, queryLower)) {
+            matches = true;
             visibleGroupKeys.add(group.key);
             for (const item of itemsByGroup.get(group.key) ?? []) {
                 visibleItemIds.add(item.id);
@@ -58,10 +47,11 @@ export const computeConfigSearchVisibility = (
         }
         for (const item of itemsByGroup.get(group.key) ?? []) {
             if (stringsMatchQuery(item.searchIndex, queryLower)) {
+                matches = true;
                 visibleItemIds.add(item.id);
                 visibleGroupKeys.add(group.key);
             }
         }
     }
-    return {visibleItemIds, visibleGroupKeys};
+    return {matches, visibleItemIds, visibleGroupKeys};
 };

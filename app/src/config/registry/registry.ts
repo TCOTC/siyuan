@@ -1,5 +1,6 @@
+import type {RegistryTabSearchVisibility} from "../search/match";
 import type {App} from "../../index";
-import {registryTabMatchesSearch, stringsMatchQuery} from "../search/match";
+import {scanRegistryTabSearch, stringsMatchQuery} from "../search/match";
 import {normalizeSearchText} from "../search/normalize";
 import {
     TabBuilder,
@@ -9,11 +10,19 @@ import {
 } from "./tabBuilder";
 import {applyConfigTabSearch, mountConfigTab} from "./mount";
 
-export type {ConfigTabOptions, PanelTabOptions, ConfigTabShell} from "./tabBuilder";
+export interface ConfigTabSearchScan {
+    matches: boolean;
+    registryVisibility?: RegistryTabSearchVisibility;
+}
 
 export type ConfigTab = ConfigTabShell & {
-    mount: (root: HTMLElement, searchQuery?: string, app?: App) => Promise<void>;
-    matchesSearch: (queryLower: string) => boolean;
+    mount: (
+        root: HTMLElement,
+        searchQueryLower?: string,
+        app?: App,
+        registryVisibility?: RegistryTabSearchVisibility,
+    ) => Promise<void>;
+    scanSearch: (queryLower: string) => ConfigTabSearchScan;
 };
 
 export class RegistryBuilder {
@@ -32,72 +41,61 @@ export class RegistryBuilder {
         };
         return {
             ...shell,
-            mount: async (root, searchQuery, app) => {
+            mount: async (root, searchQueryLower, app, registryVisibility) => {
                 ensureRegistered();
                 if (root.innerHTML === "") {
                     await mountConfigTab(options.id, root);
                     await afterMount?.(root, app);
                 }
-                applyConfigTabSearch(root, options.id, options.title(), searchQuery);
+                applyConfigTabSearch(
+                    root,
+                    options.id,
+                    options.title(),
+                    searchQueryLower,
+                    registryVisibility,
+                );
             },
-            matchesSearch: (queryLower) => {
+            scanSearch: (queryLower) => {
                 ensureRegistered();
-                return registryTabMatchesSearch(options.id, options.title(), queryLower);
+                const scan = scanRegistryTabSearch(options.id, options.title(), queryLower);
+                return {
+                    matches: scan.matches,
+                    registryVisibility: {
+                        visibleGroupKeys: scan.visibleGroupKeys,
+                        visibleItemIds: scan.visibleItemIds,
+                    },
+                };
             },
         };
     }
 
     panel<TId extends string>(
-        options: PanelTabOptions<TId>
+        options: PanelTabOptions<TId>,
     ): ConfigTab {
         const {searchStrings, mount: panelMount, ...shell} = options;
-        const panelSearchIndex = () =>
-            searchStrings().map(normalizeSearchText).filter((s) => s.length > 0);
+        let normalizedTitle: string | undefined;
+        const getNormalizedTitle = () => {
+            if (normalizedTitle === undefined) {
+                normalizedTitle = normalizeSearchText(options.title());
+            }
+            return normalizedTitle;
+        };
+        let cachedSearchIndex: readonly string[] | undefined;
+        const getSearchIndex = () => {
+            if (!cachedSearchIndex) {
+                cachedSearchIndex = searchStrings()
+                    .map(normalizeSearchText)
+                    .filter((s) => s.length > 0);
+            }
+            return cachedSearchIndex;
+        };
         return {
             ...shell,
-            mount: async (root, searchQuery, app) => panelMount(root, searchQuery, app),
-            matchesSearch: (queryLower) => {
-                const tabTitle = normalizeSearchText(options.title());
-                if (tabTitle.includes(queryLower)) {
-                    return true;
-                }
-                return stringsMatchQuery(panelSearchIndex(), queryLower);
-            },
+            mount: async (root, searchQueryLower, app) => panelMount(root, searchQueryLower, app),
+            scanSearch: (queryLower) => ({
+                matches: getNormalizedTitle().includes(queryLower)
+                    || stringsMatchQuery(getSearchIndex(), queryLower),
+            }),
         };
     }
 }
-
-/** 声明设置 Tab 注册表；返回 `{ tabId: ConfigTab }` 供推导 `TConfigTab` */
-export const defineConfigRegistry = <T extends Record<string, ConfigTab>>(
-    setup: (registry: RegistryBuilder) => T,
-): T => setup(new RegistryBuilder());
-
-export interface IConfigTabShell<TId extends string = string> {
-    id: TId;
-    icon: string;
-    title: string;
-    hidden?: boolean;
-}
-
-let configTabShellCache: IConfigTabShell<string>[] | undefined;
-
-export const buildConfigTabDefs = <T extends Record<string, ConfigTab>>(
-    tabs: T,
-): IConfigTabShell<keyof T & string>[] => {
-    if (configTabShellCache) {
-        return configTabShellCache as IConfigTabShell<keyof T & string>[];
-    }
-    configTabShellCache = (Object.keys(tabs) as (keyof T & string)[]).map((id) => {
-        const tab = tabs[id];
-        return {
-            id,
-            icon: tab.icon,
-            title: tab.title(),
-            hidden: tab.hidden?.(),
-        };
-    });
-    return configTabShellCache as IConfigTabShell<keyof T & string>[];
-};
-
-export const getConfigTabFrom = (tabs: Record<string, ConfigTab>, id: string): ConfigTab | undefined =>
-    tabs[id as keyof typeof tabs];

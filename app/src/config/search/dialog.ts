@@ -1,9 +1,25 @@
-import {getConfigTabDefs, type TConfigTab} from "../registry/tabs";
-import {getConfigTab} from "../registry/tabs";
+import {getConfigTabDefs, getConfigTab, type TConfigTab} from "../registry/tabs";
+import type {RegistryTabSearchVisibility} from "../search/match";
+import {applyConfigTabSearchVisibility, clearConfigTabSearch} from "../registry/mount";
 import {App} from "../../index";
 import {isPhablet} from "../../protyle/util/compatibility";
 
+let lastConfigSearchTabId: TConfigTab | undefined;
+let lastConfigSearchKeywords: string | undefined;
+
+const readSearchKeywordsLower = (dialogElement: HTMLElement): string | undefined => {
+    const searchInput = dialogElement.querySelector(".b3-form__icon input") as HTMLInputElement | null;
+    const trimmed = (searchInput?.value ?? "").trim();
+    return trimmed ? trimmed.toLowerCase() : undefined;
+};
+
+const resetConfigSearchSession = () => {
+    lastConfigSearchTabId = undefined;
+    lastConfigSearchKeywords = undefined;
+};
+
 export const initConfigSearch = (element: HTMLElement, app: App) => {
+    resetConfigSearchSession();
     const inputElement = element.querySelector(".b3-form__icon input") as HTMLInputElement;
     if (!isPhablet()) {
         inputElement.focus();
@@ -18,10 +34,18 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
         }
 
         const matchedTabIds = new Set<TConfigTab>();
+        const registryVisibilityByTab = new Map<TConfigTab, RegistryTabSearchVisibility>();
         for (const def of getConfigTabDefs()) {
             const tab = getConfigTab(def.id);
-            if (tab?.matchesSearch(keywords)) {
+            if (!tab) {
+                continue;
+            }
+            const scan = tab.scanSearch(keywords);
+            if (scan.matches) {
                 matchedTabIds.add(def.id);
+            }
+            if (scan.registryVisibility) {
+                registryVisibilityByTab.set(def.id, scan.registryVisibility);
             }
         }
 
@@ -49,9 +73,10 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
         if (currentTabElement) {
             const tabId = currentTabElement.getAttribute("data-name") as TConfigTab;
             if (tabId) {
-                switchConfigTab(element, app, tabId);
+                switchConfigTab(element, app, tabId, keywords, registryVisibilityByTab.get(tabId));
             }
         } else {
+            resetConfigSearchSession();
             element.querySelectorAll(".config__tab-container").forEach((item) => {
                 item.classList.add("fn__none");
             });
@@ -70,7 +95,14 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
 };
 
 /** 切换一级设置 Tab（已迁移 Tab 走 registry） */
-export const switchConfigTab = (dialogElement: HTMLElement, app: App, tabId: TConfigTab) => {
+export const switchConfigTab = (
+    dialogElement: HTMLElement,
+    app: App,
+    tabId: TConfigTab,
+    searchQueryLower?: string,
+    registryVisibility?: RegistryTabSearchVisibility,
+) => {
+    const keywords = searchQueryLower ?? readSearchKeywordsLower(dialogElement);
     const tab = getConfigTab(tabId);
     if (!tab) {
         // TODO 未迁移 Tab 恢复旧 mount
@@ -80,31 +112,42 @@ export const switchConfigTab = (dialogElement: HTMLElement, app: App, tabId: TCo
     if (!containerElement) {
         return;
     }
-    dialogElement.querySelectorAll(".config__tab-container").forEach((container) => {
-        container.classList.toggle("fn__none", container !== containerElement);
-    });
-    dialogElement.querySelectorAll(".config__side .b3-list-item").forEach((item) => {
-        item.classList.toggle("b3-list-item--focus", item.getAttribute("data-name") === tabId);
-    });
-    const searchInput = dialogElement.querySelector(".b3-form__icon input") as HTMLInputElement | null;
-    const keywords = (searchInput?.value ?? "").trim();
 
-    void tab.mount(containerElement, keywords || undefined, app);
+    if (keywords && tabId === lastConfigSearchTabId && keywords === lastConfigSearchKeywords) {
+        return;
+    }
+
+    const tabChanged = tabId !== lastConfigSearchTabId;
+    if (tabChanged) {
+        dialogElement.querySelectorAll(".config__tab-container").forEach((container) => {
+            container.classList.toggle("fn__none", container !== containerElement);
+        });
+        dialogElement.querySelectorAll(".config__side .b3-list-item").forEach((item) => {
+            item.classList.toggle("b3-list-item--focus", item.getAttribute("data-name") === tabId);
+        });
+    }
+
+    if (keywords && !tabChanged && registryVisibility && containerElement.innerHTML) {
+        applyConfigTabSearchVisibility(containerElement, registryVisibility);
+        lastConfigSearchKeywords = keywords;
+        return;
+    }
+
+    lastConfigSearchTabId = tabId;
+    lastConfigSearchKeywords = keywords;
+
+    void tab.mount(containerElement, keywords, app, registryVisibility);
 };
 
 /** 清空设置搜索：侧栏复原并取消内容区 fn__none 过滤（不 remount）。 */
 const restoreConfigTabs = (dialogElement: HTMLElement, app: App) => {
+    resetConfigSearchSession();
     dialogElement.querySelectorAll(".config__side .b3-list-item").forEach((item: HTMLElement) => {
         item.style.display = "";
     });
-    getConfigTabDefs().forEach((def) => {
-        const tab = getConfigTab(def.id);
-        if (!tab) {
-            return;
-        }
-        const container = dialogElement.querySelector(`.config__tab-container[data-name="${def.id}"]`) as HTMLElement | null;
-        if (container?.innerHTML) {
-            void tab.mount(container, undefined, app);
+    dialogElement.querySelectorAll(".config__tab-container").forEach((container) => {
+        if (container.innerHTML) {
+            clearConfigTabSearch(container as HTMLElement);
         }
     });
     const focusLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;

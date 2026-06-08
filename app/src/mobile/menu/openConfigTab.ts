@@ -1,6 +1,5 @@
 import type {App} from "../../index";
-import {getConfigTab, type TConfigTab} from "../../config/registry/tabs";
-import type {IConfigTabShell} from "../../config/registry/registry";
+import {getConfigTab, type IConfigTabShell, type TConfigTab} from "../../config/registry/tabs";
 import {bindSettingSaveDelegation} from "../../config/ui/save";
 import {isMobile} from "../../util/functions";
 import {openModel} from "./model";

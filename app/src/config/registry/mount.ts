@@ -1,4 +1,5 @@
-import {computeConfigSearchVisibility} from "../search/match";
+import type {RegistryTabSearchVisibility} from "../search/match";
+import {scanRegistryTabSearch} from "../search/match";
 import {genGroupedItems} from "../render/render";
 import {getMountableItemsByTabId} from "./item";
 import {syncRangeRowValue} from "../ui/formValue";
@@ -28,19 +29,10 @@ export const mountConfigTab = async (tabId: string, root: HTMLElement) => {
     }
 };
 
-/** 设置搜索：切换注册项 / 分组的显隐，不重建 DOM，因为有的设置项在挂载的时候会请求数据，避免搜索时重复请求 */
-export const applyConfigTabSearch = (
+export const applyConfigTabSearchVisibility = (
     root: HTMLElement,
-    tabId: string,
-    tabTitle: string,
-    searchQuery?: string,
+    visibility: RegistryTabSearchVisibility,
 ) => {
-    const query = (searchQuery ?? "").trim();
-    if (!query) {
-        clearConfigTabSearch(root);
-        return;
-    }
-    const visibility = computeConfigSearchVisibility(tabId, tabTitle, query);
     root.querySelectorAll("[data-config-group-key]").forEach((groupEl) => {
         const groupKey = groupEl.getAttribute("data-config-group-key");
         const groupVisible = groupKey && visibility.visibleGroupKeys.has(groupKey);
@@ -62,6 +54,22 @@ export const applyConfigTabSearch = (
         // 标记每组最后一个未隐藏条目，不显示 border-bottom
         lastVisibleItem?.classList.add("config-item--last-visible");
     });
+};
+
+/** 设置搜索：切换注册项 / 分组的显隐，不重建 DOM，因为有的设置项在挂载的时候会请求数据，避免搜索时重复请求 */
+export const applyConfigTabSearch = (
+    root: HTMLElement,
+    tabId: string,
+    tabTitle: string,
+    searchQueryLower?: string,
+    registryVisibility?: RegistryTabSearchVisibility,
+) => {
+    if (!searchQueryLower) {
+        clearConfigTabSearch(root);
+        return;
+    }
+    const visibility = registryVisibility ?? scanRegistryTabSearch(tabId, tabTitle, searchQueryLower);
+    applyConfigTabSearchVisibility(root, visibility);
 };
 
 export const clearConfigTabSearch = (root: HTMLElement) => {

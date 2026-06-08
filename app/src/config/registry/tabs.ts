@@ -12,7 +12,7 @@ import {assets} from "../assets";
 import {collectKeymapTabSearchStrings, mountKeymapTab} from "../tabs/keymapUi";
 import {isHuawei, isInHarmony} from "../../protyle/util/compatibility";
 import {isMobile} from "../../util/functions";
-import {defineConfigRegistry, buildConfigTabDefs, getConfigTabFrom, type ConfigTab, type IConfigTabShell} from "./registry";
+import {RegistryBuilder, type ConfigTab} from "./registry";
 import {registerEditorTab} from "../tabs/editorTab";
 import {registerFileTab} from "../tabs/fileTab";
 import {registerFlashcardTab} from "../tabs/flashcardTab";
@@ -25,7 +25,8 @@ import {registerAccessTab} from "../tabs/accessTab";
 import {registerAppTab} from "../tabs/appTab";
 import {registerAboutTab} from "../tabs/aboutTab";
 
-export const configTabs = defineConfigRegistry((r) => ({
+const r = new RegistryBuilder();
+export const configTabs = {
     editor: r.tab({
         id: "editor",
         icon: "iconEdit",
@@ -149,11 +150,33 @@ export const configTabs = defineConfigRegistry((r) => ({
         title: () => window.siyuan.languages.about,
         namespace: "about",
     }, registerAboutTab),
-}));
+};
 
 export type TConfigTab = keyof typeof configTabs;
 
-export const getConfigTab = (id: TConfigTab): ConfigTab | undefined =>
-    getConfigTabFrom(configTabs, id);
+export const getConfigTab = (id: TConfigTab): ConfigTab | undefined => configTabs[id];
 
-export const getConfigTabDefs = (): IConfigTabShell<TConfigTab>[] => buildConfigTabDefs(configTabs);
+export interface IConfigTabShell<TId extends string = string> {
+    id: TId;
+    icon: string;
+    title: string;
+    hidden?: boolean;
+}
+
+let configTabShellCache: IConfigTabShell<TConfigTab>[] | undefined;
+
+export const getConfigTabDefs = (): IConfigTabShell<TConfigTab>[] => {
+    if (configTabShellCache) {
+        return configTabShellCache;
+    }
+    configTabShellCache = (Object.keys(configTabs) as TConfigTab[]).map((id) => {
+        const tab = configTabs[id];
+        return {
+            id,
+            icon: tab.icon,
+            title: tab.title(),
+            hidden: tab.hidden?.(),
+        };
+    });
+    return configTabShellCache;
+};
