@@ -3,9 +3,9 @@ import {getGroupsByTabId} from "../registry/group";
 import {getMountableItemsByGroup} from "../registry/item";
 import type {RowPart, StackLeft, StackLine, StackRight} from "./parts";
 import {escapeAttr} from "../../util/escape";
-import {resolveBooleanValue, resolveNumberValue, resolveSelectValue, resolveStringValue} from "../ui/configValue";
-import {buildRangeValues, snapRangeValue} from "../ui/formValue";
-import {genConfigItemMainHtml, genConfigItemName, genSwitchRow} from "../ui/render";
+import {resolveBooleanValue, resolveNumberValue, resolveSelectValue, resolveStringValue} from "../registry/configValue";
+import {buildRangeValues, snapRangeValue} from "../registry/domIO";
+import {genConfigItemMainHtml, genConfigItemName, genSwitchRow} from "./fragments";
 import type {SwitchQueryItem} from "./parts";
 
 const genNumberInputHtml = (

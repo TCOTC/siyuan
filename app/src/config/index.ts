@@ -2,7 +2,7 @@
 import {popMenu} from "../mobile/menu";
 /// #else
 import {initConfigSearch, switchConfigTab} from "./search/dialog";
-import {bindSettingSaveDelegation} from "./ui/save";
+import {bindSettingSaveDelegation} from "./registry/save";
 import {Dialog} from "../dialog";
 import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";

@@ -8,7 +8,7 @@ import {showMessage} from "../../dialog/message";
 import {shell} from "electron";
 /// #endif
 import {isInMobileApp, saveExportFile} from "../../protyle/util/compatibility";
-import {genConfigItemMainHtml} from "../ui/render";
+import {genConfigItemMainHtml} from "../render/fragments";
 import {renderPublishAuthAccounts, savePublish, sendAccessSetting, updatePublishConfig} from "./accessRuntime";
 import {sendAppSetting} from "./appRuntime";
 

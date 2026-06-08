@@ -11,7 +11,7 @@ import {showMessage} from "../../dialog/message";
 import {isBrowser} from "../../util/functions";
 import {isMac, saveExportFile} from "../../protyle/util/compatibility";
 import {afterExport} from "../../protyle/export/util";
-import {genConfigItemMainHtml, genConfigItemName} from "../ui/render";
+import {genConfigItemMainHtml, genConfigItemName} from "../render/fragments";
 import {sendAppSetting} from "./appRuntime";
 
 const genImportUploadButtonHtml = (inputId: string, label: string): string =>

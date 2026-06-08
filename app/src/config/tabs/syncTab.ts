@@ -8,7 +8,7 @@ import {processSync} from "../../dialog/processSystem";
 import {writeText} from "../../protyle/util/compatibility";
 import {bindSyncCloudListEvent, renderSyncCloudList, setKey} from "../../sync/syncGuide";
 import {Dialog} from "../../dialog";
-import {genConfigItemMainHtml, genConfigItemName} from "../ui/render";
+import {genConfigItemMainHtml, genConfigItemName} from "../render/fragments";
 import {getSyncProviderConfigKeywords} from "./syncUi";
 import {patchSyncConfig} from "./syncRuntime";
 

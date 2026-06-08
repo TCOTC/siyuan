@@ -1,4 +1,4 @@
-import {getAtPath} from "./dotPath";
+import {getAtPath} from "../util/dotPath";
 
 /** 控件初值：渲染时求值，读取当前 `window.siyuan.config` */
 export type ConfigValue<T> = () => T;

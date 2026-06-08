@@ -15,7 +15,7 @@ import {commandPanel} from "../../boot/globalEvent/command/panel";
 import {openTopBarMenu} from "../../plugin/openTopBarMenu";
 import {getConfigTab, getConfigTabDefs, type IConfigTabShell, type TConfigTab} from "../../config/registry/tabs";
 import {configTabToMenuId} from "../../config/menuIds";
-import {bindSettingSaveDelegation} from "../../config/ui/save";
+import {bindSettingSaveDelegation} from "../../config/registry/save";
 import {isMobile} from "../../util/functions";
 import {openModel} from "./model";
 import {getCurrentEditor} from "../editor";

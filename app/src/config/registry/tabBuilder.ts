@@ -1,10 +1,10 @@
 import type {App} from "../../index";
 import type {RowPart, StackLine, SwitchQueryItem} from "../render/parts";
 import {genButtonRowHtml, genStackHtml, genSwitchQueryHtml, genTextPairHtml} from "../render/render";
-import type {ConfigValue} from "../ui/configValue";
-import {configBooleanValue, configNumberValue, configSelectValue, configStringValue} from "../ui/configValue";
-import {readControlPart, type ControlPart} from "../render/read";
-import {bindPasswordIconaToggle} from "../ui/render";
+import type {ConfigValue} from "./configValue";
+import {configBooleanValue, configNumberValue, configSelectValue, configStringValue} from "./configValue";
+import {readControlPart, type ControlPart} from "./domIO";
+import {bindPasswordIconaToggle} from "../render/fragments";
 import {registerGroup} from "./group";
 import {registerItem, RegisterSettingItem} from "./item";
 

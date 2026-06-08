@@ -1,4 +1,7 @@
-import {getAtPath} from "./dotPath";
+import type {RowPart} from "../render/parts";
+import {getAtPath} from "../util/dotPath";
+
+export type ControlPart = Extract<RowPart, {id: string}>;
 
 /** 解析并钳制 number / range 数值 */
 const normalizeNumberInputValue = (el: HTMLInputElement): number => {
@@ -97,3 +100,22 @@ export function readDomValue(el: HTMLElement): unknown {
     }
     return undefined;
 }
+
+/** 按控件部件从 DOM 读值 */
+export const readControlPart = (part: ControlPart, el: HTMLElement): unknown => {
+    switch (part.kind) {
+        case "switch":
+            return (el as HTMLInputElement).checked;
+        case "number":
+        case "range":
+            return readDomValue(el);
+        case "select": {
+            const options = part.options ?? [];
+            const num = options.length > 0 && typeof options[0].value === "number";
+            return num ? parseInt((el as HTMLSelectElement).value, 10) : (el as HTMLSelectElement).value;
+        }
+        case "text":
+        case "textBlock":
+            return (el as HTMLInputElement | HTMLTextAreaElement).value;
+    }
+};

@@ -4,8 +4,8 @@ import {fetchPost} from "../../util/fetch";
 import {editorConfigApi} from "./editorRuntime";
 import {fileConfigApi} from "./fileRuntime";
 import type {CompositeControlMeta, TabBuilder} from "../registry/tabBuilder";
-import {genConfigItemName} from "../ui/render";
-import {readDomValue} from "../ui/formValue";
+import {readDomValue} from "../registry/domIO";
+import {genConfigItemName} from "../render/fragments";
 
 const isMobileKernelContainer = () =>
     ["android", "ios", "harmony"].includes(window.siyuan.config.system.container);

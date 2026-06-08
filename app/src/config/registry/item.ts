@@ -1,5 +1,5 @@
 import type {RowPart} from "../render/parts";
-import type {ControlPart} from "../render/read";
+import type {ControlPart} from "./domIO";
 import {buildItemSearchIndex} from "../search/normalize";
 
 type SettingItemBase = {

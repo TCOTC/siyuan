@@ -2,7 +2,7 @@ import type {RegistryTabSearchVisibility} from "../search/match";
 import {scanRegistryTabSearch} from "../search/match";
 import {genGroupedItems} from "../render/render";
 import {getMountableItemsByTabId} from "./item";
-import {syncRangeRowValue} from "../ui/formValue";
+import {syncRangeRowValue} from "./domIO";
 
 /** 首次挂载：渲染全部注册项并执行 afterMount */
 export const mountConfigTab = async (tabId: string, root: HTMLElement) => {

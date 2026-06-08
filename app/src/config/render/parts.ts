@@ -1,4 +1,4 @@
-import type {ConfigValue} from "../ui/configValue";
+import type {ConfigValue} from "../registry/configValue";
 
 /** 组合式行：文案与控件部件（引擎统一渲染 / 检索） */
 export type RowPart =

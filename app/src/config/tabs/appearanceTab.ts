@@ -14,7 +14,7 @@ import {setStatusBar} from "../util/setStatusBar";
 import {updateHotkeyTip} from "../../protyle/util/compatibility";
 import {Menu} from "../../plugin/Menu";
 import {escapeAttr} from "../../util/escape";
-import {genConfigItemMainHtml, genSwitchRow} from "../ui/render";
+import {genConfigItemMainHtml, genSwitchRow} from "../render/fragments";
 import {editorConfigApi} from "./editorRuntime";
 import {appearanceThemeModeValue, saveThemeMode} from "./appearanceRuntime";
 

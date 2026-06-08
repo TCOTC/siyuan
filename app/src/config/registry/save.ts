@@ -1,5 +1,5 @@
-import {getSettingItem} from "../registry/item";
-import {syncRangeRowValue} from "./formValue";
+import {syncRangeRowValue} from "./domIO";
+import {getSettingItem} from "./item";
 
 const settingSaveBoundWraps = new WeakSet<HTMLElement>();
 
