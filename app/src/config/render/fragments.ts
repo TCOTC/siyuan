@@ -19,6 +19,14 @@ export const genSwitchRow = (id: string, title: string, desc: string | undefined
     ${genSwitchInputHtml(id, checked)}
 </label>`;
 
+/** 列表项开关（`b3-list-item` 布局） */
+export const genListSwitchItemHtml = (id: string, label: string, checked: boolean): string =>
+    `<label class="b3-list-item">
+    <div class="fn__flex-1 ft__on-surface">${label}</div>
+    <span class="fn__space"></span>
+    ${genSwitchInputHtml(id, checked)}
+</label>`;
+
 /** 为指定 `id` 的密码框绑定显隐图标（与 `textBlock` 中 `input-password` 分支的 DOM 结构配套） */
 export const bindPasswordIconaToggle = (root: HTMLElement, inputId: string): void => {
     root.querySelector<HTMLElement>(`#${CSS.escape(inputId)} + .b3-form__icona-icon[data-action="togglePassword"]`)?.addEventListener("click", (event) => {

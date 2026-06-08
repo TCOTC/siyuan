@@ -5,16 +5,16 @@ import type {TabBuilder} from "../registry/tabBuilder";
 import {Constants} from "../../constants";
 import {resetLayout} from "../../layout/util";
 import {desktopModeCookie} from "../../util/cookie";
-import {isBrowser, isMobile} from "../../util/functions";
+import {isBrowser, isMobile, objEquals} from "../../util/functions";
 import {fetchPost} from "../../util/fetch";
 import {openSnippets} from "../util/snippets";
 import {confirmDialog} from "../../dialog/confirmDialog";
+import {Dialog} from "../../dialog";
 import {useShell} from "../../util/pathName";
-import {setStatusBar} from "../util/setStatusBar";
 import {updateHotkeyTip} from "../../protyle/util/compatibility";
 import {Menu} from "../../plugin/Menu";
 import {escapeAttr} from "../../util/escape";
-import {genConfigItemMainHtml, genSwitchRow} from "../render/fragments";
+import {genConfigItemMainHtml, genListSwitchItemHtml, genSwitchRow} from "../render/fragments";
 import {editorConfigApi} from "./editorRuntime";
 import {appearanceThemeModeValue, saveThemeMode} from "./appearanceRuntime";
 
@@ -303,10 +303,7 @@ export const registerAppearanceControlsGroup = (p: TabBuilder) => {
             window.siyuan.languages.appearance17,
             window.siyuan.languages.appearance18,
         ],
-        afterMount: (root) => {
-            const statusBtn = root.querySelector("#statusBarSetting") as HTMLElement | null;
-            setStatusBar(statusBtn);
-        },
+        afterMount: mountAppearanceSetStatusBar,
     }, (b) => {
         b.title(window.siyuan.languages.appearance16);
         b.switch("appearance.hideStatusBar", {
@@ -368,6 +365,52 @@ const bindFloatWindowModeVisibility = (root: HTMLElement) => {
     };
     fwModeEl.addEventListener("change", handleFloatWindowModeChange);
     handleFloatWindowModeChange();
+};
+
+const STATUS_BAR_MSG_ITEMS: {key: keyof Config.IAppearanceStatusBar; taskKey: string}[] = [
+    {key: "msgTaskDatabaseIndexCommitDisabled", taskKey: "task.database.index.commit"},
+    {key: "msgTaskAssetDatabaseIndexCommitDisabled", taskKey: "task.asset.database.index.commit"},
+    {key: "msgTaskHistoryDatabaseIndexCommitDisabled", taskKey: "task.history.database.index.commit"},
+    {key: "msgTaskHistoryGenerateFileDisabled", taskKey: "task.history.generateFile"},
+];
+
+const genStatusBarMsgDialogHtml = (): string => {
+    const listItems = STATUS_BAR_MSG_ITEMS.map(({key, taskKey}) =>
+        genListSwitchItemHtml(key, window.siyuan.languages._taskAction[taskKey], !window.siyuan.config.appearance.statusBar[key])
+    ).join("");
+    return `<div class="fn__hr"></div>
+<div class="b3-label">
+    ${window.siyuan.languages.statusBarMsgPushTip}
+    <div class="fn__hr"></div>
+    <div class="b3-list b3-list--background">${listItems}</div>
+</div>`;
+};
+
+const readStatusBarMsgFromDialog = (root: HTMLElement): Config.IAppearanceStatusBar =>
+    STATUS_BAR_MSG_ITEMS.reduce((acc, {key}) => {
+        acc[key] = !(root.querySelector(`#${CSS.escape(key)}`) as HTMLInputElement).checked;
+        return acc;
+    }, {} as Config.IAppearanceStatusBar);
+
+const mountAppearanceSetStatusBar = (root: HTMLElement) => {
+    root.querySelector("#statusBarSetting")?.addEventListener("click", () => {
+        const dialog = new Dialog({
+            height: "80vh",
+            width: isMobile() ? "92vw" : "360px",
+            title: "🔇 " + window.siyuan.languages.appearance18,
+            content: genStatusBarMsgDialogHtml(),
+            destroyCallback() {
+                const statusBar = readStatusBarMsgFromDialog(dialog.element);
+                if (objEquals(statusBar, window.siyuan.config.appearance.statusBar)) {
+                    return;
+                }
+                fetchPost("/api/setting/setAppearance", {
+                    ...window.siyuan.config.appearance,
+                    statusBar
+                });
+            }
+        });
+    });
 };
 
 export const registerAppearancePersonalizationGroup = (p: TabBuilder) => {
