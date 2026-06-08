@@ -1,4 +1,6 @@
+import {adjustDockPadding} from "../../layout/dock/util";
 import {exportLayout} from "../../layout/util";
+import {updateBarModeIcon} from "../../layout/topBar";
 import {fetchPost} from "../../util/fetch";
 import {loadAssets} from "../../util/assets";
 import {createConfigNamespaceApi} from "../util/namespaceApi";
@@ -17,7 +19,7 @@ export const saveThemeMode = (value: number) => {
     });
 };
 
-const applyAppearanceConfig = (data: Config.IAppearance) => {
+const applyAppearanceConfig = async (data: Config.IAppearance) => {
     if (data.lang !== window.siyuan.config.appearance.lang) {
         void exportLayout({
             cb() {
@@ -28,19 +30,50 @@ const applyAppearanceConfig = (data: Config.IAppearance) => {
         return;
     }
 
+    if (window.siyuan.config.appearance.themeJS) {
+        if (data.mode !== window.siyuan.config.appearance.mode ||
+            (data.mode === window.siyuan.config.appearance.mode && (
+                (data.mode === 0 && window.siyuan.config.appearance.themeLight !== data.themeLight) ||
+                (data.mode === 1 && window.siyuan.config.appearance.themeDark !== data.themeDark))
+            )
+        ) {
+            if (window.destroyTheme) {
+                try {
+                    await window.destroyTheme();
+                    window.destroyTheme = undefined;
+                    document.getElementById("themeScript").remove();
+                } catch (e) {
+                    console.error("destroyTheme error: " + e);
+                }
+            } else {
+                void exportLayout({
+                    errorExit: false,
+                    cb() {
+                        window.location.reload();
+                    },
+                });
+                return;
+            }
+        }
+    }
+
+    if (data.hideStatusBar !== window.siyuan.config.appearance.hideStatusBar) {
+        document.getElementById("status").classList.toggle("fn__none", data.hideStatusBar);
+        adjustDockPadding();
+    }
+
     window.siyuan.config.appearance = data;
     loadAssets(data);
-    document.querySelector("#barMode use")?.setAttribute(
-        "xlink:href",
-        `${window.siyuan.config.appearance.modeOS ? "#iconMode" : window.siyuan.config.appearance.mode === 0 ? "#iconLight" : "#iconDark"}`
-    );
+    updateBarModeIcon();
 };
 
 /** 外观 Tab 命名空间：设置面板注册项 save */
 export const appearanceConfigApi = createConfigNamespaceApi<Config.IAppearance>({
     namespace: "appearance",
     getConfig: () => window.siyuan.config.appearance,
-    setConfig: applyAppearanceConfig,
+    setConfig: (data) => {
+        void applyAppearanceConfig(data);
+    },
     apiPath: "/api/setting/setAppearance",
     applyFromResponse: false,
 });

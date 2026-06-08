@@ -43,7 +43,7 @@ import {ipcRenderer} from "electron";
 /// #endif
 import {getDockByType} from "./layout/tabUtil";
 import {Tag} from "./layout/dock/Tag";
-import {updateAppearance} from "./config/util/updateAppearance";
+import {appearanceConfigApi} from "./config/tabs/appearanceRuntime";
 import {renderSnippet} from "./config/util/snippets";
 import {setBodyHighlight} from "./util/assets";
 import {reloadSync} from "./util/reloadSync";
@@ -76,7 +76,7 @@ export class App {
                             redirectToCheckAuth();
                             break;
                         case "setAppearance":
-                            updateAppearance(data.data);
+                            appearanceConfigApi.apply(data.data);
                             break;
                         case "setSnippet":
                             window.siyuan.config.snippet = data.data;

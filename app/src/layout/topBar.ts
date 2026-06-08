@@ -25,6 +25,13 @@ import {commandPanel} from "../boot/globalEvent/command/panel";
 import {openTopBarMenu} from "../plugin/openTopBarMenu";
 import {getWorkspaceName} from "../util/processTitle";
 
+export const updateBarModeIcon = () => {
+    document.querySelector("#barMode use")?.setAttribute(
+        "xlink:href",
+        `#icon${window.siyuan.config.appearance.modeOS ? "Mode" : (window.siyuan.config.appearance.mode === 0 ? "Light" : "Dark")}`
+    );
+};
+
 export const initBar = (app: App) => {
     const toolbarElement = document.getElementById("toolbar");
     toolbarElement.innerHTML = `
