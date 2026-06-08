@@ -13,9 +13,11 @@ import {newFile} from "../../util/newFile";
 import {afterLoadPlugin} from "../../plugin/loader";
 import {commandPanel} from "../../boot/globalEvent/command/panel";
 import {openTopBarMenu} from "../../plugin/openTopBarMenu";
-import {getConfigTabDefs, type IConfigTabShell, type TConfigTab} from "../../config/registry/tabs";
+import {getConfigTab, getConfigTabDefs, type IConfigTabShell, type TConfigTab} from "../../config/registry/tabs";
 import {configTabToMenuId} from "../../config/menuIds";
-import {openMobileConfigTab} from "./openConfigTab";
+import {bindSettingSaveDelegation} from "../../config/ui/save";
+import {isMobile} from "../../util/functions";
+import {openModel} from "./model";
 import {getCurrentEditor} from "../editor";
 
 const getConfigTabFromMenuTarget = (target: HTMLElement): IConfigTabShell<TConfigTab> | undefined => {
@@ -174,7 +176,21 @@ export const initRightMenu = (app: App) => {
                 exitSiYuan();
                 break;
             } else if ((configTabDef = getConfigTabFromMenuTarget(target))) {
-                openMobileConfigTab(configTabDef, app);
+                if (!configTabDef.hidden) {
+                    openModel({
+                        title: configTabDef.title,
+                        icon: configTabDef.icon,
+                        html: `<div class="config${isMobile() ? " config--mobile" : ""}"></div>`,
+                        bindEvent(modelMainElement: HTMLElement) {
+                            const root = modelMainElement.firstElementChild as HTMLElement;
+                            bindSettingSaveDelegation(root);
+                            const tab = getConfigTab(configTabDef.id);
+                            if (tab) {
+                                void tab.mount(root, undefined, app);
+                            }
+                        }
+                    });
+                }
                 event.preventDefault();
                 event.stopPropagation();
                 break;
