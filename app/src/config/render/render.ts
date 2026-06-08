@@ -1,12 +1,11 @@
 import type {MountableSettingItem} from "../registry/item";
 import {getGroupsByTabId} from "../registry/group";
 import {getMountableItemsByGroup} from "../registry/item";
-import type {RowPart, StackLeft, StackLine, StackRight} from "./parts";
+import type {StringControl} from "../registry/control";
+import {isConfigControl, type RowPart, type StackLeft, type StackLine, type StackRight, type SwitchQueryItem} from "./parts";
 import {escapeAttr} from "../../util/escape";
-import {resolveBooleanValue, resolveNumberValue, resolveSelectValue, resolveStringValue} from "../registry/configValue";
-import {buildRangeValues, snapRangeValue} from "../registry/domIO";
+import {buildRangeValues} from "../registry/domIO";
 import {genConfigItemMainHtml, genConfigItemName, genSwitchRow} from "./fragments";
-import type {SwitchQueryItem} from "./parts";
 
 const genNumberInputHtml = (
     id: string,
@@ -23,6 +22,7 @@ const genNumberInputHtml = (
     }
     return input;
 };
+
 const genSelectOptionsHtml = <T extends number | string>(
     id: string,
     options: {value: T; label?: string}[],
@@ -33,6 +33,7 @@ const genSelectOptionsHtml = <T extends number | string>(
         .map((o) => `<option value="${o.value}" ${current === o.value ? "selected" : ""}>${o.label ?? String(o.value)}</option>`)
         .join("")}
 </select>`;
+
 const genRangeRow = (
     id: string,
     title: string,
@@ -54,6 +55,7 @@ const genRangeRow = (
         .join("")}
     </select>
 </div>`;
+
 const genTextBlockFieldHtml = (
     id: string,
     mode: "input-text" | "input-password" | "textarea",
@@ -75,7 +77,7 @@ const genTextBlockFieldHtml = (
 const genSwitchQueryItemHtml = (item: SwitchQueryItem): string => {
     switch (item.kind) {
         case "switch": {
-            const checked = resolveBooleanValue(item.id, undefined);
+            const checked = item.read() as boolean;
             return `<label class="fn__flex">
     <input class="b3-switch" id="${item.id}" type="checkbox"${checked ? " checked" : ""}/>
     <span class="fn__space"></span>
@@ -85,7 +87,7 @@ const genSwitchQueryItemHtml = (item: SwitchQueryItem): string => {
         }
         case "number":
             return `<div class="fn__flex label fn__flex-1">
-    <input class="b3-text-field" id="${item.id}" type="number" min="${item.min ?? ""}" max="${item.max ?? ""}" value="${resolveNumberValue(item.id, undefined)}"/>
+    <input class="b3-text-field" id="${item.id}" type="number" min="${item.min ?? ""}" max="${item.max ?? ""}" value="${item.read()}"/>
     <span class="fn__space"></span>
     <div>${item.label}</div>
 </div>`;
@@ -119,37 +121,33 @@ export const genButtonRowHtml = (
 export const genTextPairHtml = (
     title: string,
     desc: string,
-    leftId: string,
-    leftValue: () => string,
-    rightId: string,
-    rightValue: () => string,
+    left: StringControl,
+    right: StringControl,
 ): string =>
     `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size96" id="${leftId}" value="${Lute.EscapeHTMLStr(leftValue())}">
+    <input class="b3-text-field fn__flex-center fn__size96" id="${left.id}" value="${Lute.EscapeHTMLStr(left.read() as string)}">
     <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size96" id="${rightId}" value="${Lute.EscapeHTMLStr(rightValue())}">
+    <input class="b3-text-field fn__flex-center fn__size96" id="${right.id}" value="${Lute.EscapeHTMLStr(right.read() as string)}">
 </div>`;
 
 const genStackRight = (r: StackRight): string => {
     switch (r.kind) {
         case "button":
             return genButtonHtml(r.id, r.label, r.icon);
-        case "select": {
-            const options = r.options ?? [];
-            return genSelectOptionsHtml(r.id, options, resolveSelectValue(r.id, options, r.value));
-        }
+        case "select":
+            return genSelectOptionsHtml(r.id, r.options, r.read() as number | string);
         case "number":
-            return genNumberInputHtml(r.id, resolveNumberValue(r.id, r.value), r.min, r.max, undefined, undefined);
+            return genNumberInputHtml(r.id, r.read() as number, r.min, r.max, undefined, undefined);
         case "switch":
-            return genSwitchInputHtml(r.id, resolveBooleanValue(r.id, r.value));
+            return genSwitchInputHtml(r.id, r.read() as boolean);
     }
 };
 
 const genStackLeft = (left: StackLeft, hasRight: boolean): string => {
     if (left.kind === "textBlock") {
-        return `<div class="${hasRight ? "fn__flex-1 " : ""}fn__block">${genTextBlockFieldHtml(left.id, left.mode, resolveStringValue(left.id, left.value))}</div>`;
+        return `<div class="${hasRight ? "fn__flex-1 " : ""}fn__block">${genTextBlockFieldHtml(left.id, left.mode, left.read() as string)}</div>`;
     }
     if (!hasRight) {
         return left.kind === "title" ? genConfigItemName(left.text) : `<div class="b3-label__text">${left.text}</div>`;
@@ -196,38 +194,37 @@ const pickMeta = (parts: RowPart[]) => {
         desc: desc?.kind === "desc" ? desc.text : undefined,
     };
 };
+
 const renderControlParts = (parts: RowPart[]): string => {
     const {title, desc} = pickMeta(parts);
-    const control = parts.find((p) => p.kind !== "title" && p.kind !== "desc");
+    const control = parts.find(isConfigControl);
     if (!control) {
         return "";
     }
     switch (control.kind) {
         case "switch":
-            return genSwitchRow(control.id, title, desc, resolveBooleanValue(control.id, control.value));
+            return genSwitchRow(control.id, title, desc, control.read() as boolean);
         case "number":
             return `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    ${genNumberInputHtml(control.id, resolveNumberValue(control.id, control.value), control.min, control.max, control.step, control.unit)}
+    ${genNumberInputHtml(control.id, control.read() as number, control.min, control.max, control.step, control.unit)}
 </div>`;
         case "range": {
-            const num = snapRangeValue(resolveNumberValue(control.id, control.value, control.min), control.min, control.max, control.step);
+            const num = control.read() as number;
             return genRangeRow(control.id, title, desc ?? "", control.min, control.max, control.step, num);
         }
-        case "select": {
-            const options = control.options ?? [];
+        case "select":
             return `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    ${genSelectOptionsHtml(control.id, options, resolveSelectValue(control.id, options, control.value))}
+    ${genSelectOptionsHtml(control.id, control.options, control.read() as number | string)}
 </div>`;
-        }
         case "text":
             return `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc ?? "")}
     <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size200" id="${control.id}" value="${Lute.EscapeHTMLStr(resolveStringValue(control.id, control.value))}"/>
+    <input class="b3-text-field fn__flex-center fn__size200" id="${control.id}" value="${Lute.EscapeHTMLStr(control.read() as string)}"/>
 </div>`;
         case "textBlock": {
             const blockHtml = `<div class="b3-label config-item">
@@ -235,7 +232,7 @@ const renderControlParts = (parts: RowPart[]): string => {
         ${genConfigItemName(title)}
         <div class="b3-label__text">${desc ?? ""}</div>
         <div class="fn__hr--small"></div>
-        ${genTextBlockFieldHtml(control.id, control.mode, resolveStringValue(control.id, control.value))}
+        ${genTextBlockFieldHtml(control.id, control.mode, control.read() as string)}
     </div>
 </div>`;
             return blockHtml;

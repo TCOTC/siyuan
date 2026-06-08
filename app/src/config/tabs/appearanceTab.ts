@@ -170,7 +170,7 @@ export const registerAppearanceInterfaceGroup = (p: TabBuilder) => {
             {value: 1, label: window.siyuan.languages.themeDark},
             {value: 2, label: window.siyuan.languages.themeOS},
         ],
-        value: appearanceThemeModeValue,
+        readConfig: appearanceThemeModeValue,
         save: (value) => {
             const themeValue = typeof value === "number" ? value : parseInt(String(value), 10);
             saveThemeMode(themeValue);

@@ -3,8 +3,8 @@ import {genNotebookOption} from "../../menus/onGetnotebookconf";
 import {fetchPost} from "../../util/fetch";
 import {editorConfigApi} from "./editorRuntime";
 import {fileConfigApi} from "./fileRuntime";
-import type {CompositeControlMeta, TabBuilder} from "../registry/tabBuilder";
-import {readDomValue} from "../registry/domIO";
+import type {TabBuilder} from "../registry/tabBuilder";
+import {controlNumber, controlSelect, controlString} from "../registry/control";
 import {genConfigItemName} from "../render/fragments";
 
 const isMobileKernelContainer = () =>
@@ -26,26 +26,6 @@ const genNotebookSavePathHtml = (
         <input class="b3-text-field fn__flex-1" id="${pathId}" value="">
     </div>
 </div>`;
-
-const notebookSavePathControls = (
-    selectId: string,
-    patchSelect: (value: unknown) => void,
-    pathId: string,
-    patchPath: (value: unknown) => void,
-): CompositeControlMeta[] => [
-    {
-        id: selectId,
-        controlPart: {kind: "select" as const, id: selectId},
-        read: (el: HTMLElement) => readDomValue(el),
-        save: patchSelect,
-    },
-    {
-        id: pathId,
-        controlPart: {kind: "text" as const, id: pathId},
-        read: (el: HTMLElement) => readDomValue(el),
-        save: patchPath,
-    },
-];
 
 export const registerFileTabsGroup = (p: TabBuilder) => {
     const s = p.group("tabs", window.siyuan.languages.configGroupTabs);
@@ -100,10 +80,16 @@ export const registerFileNewDocumentGroup = (p: TabBuilder) => {
                 el.value = window.siyuan.config.fileTree.docCreateSavePath;
             }
         },
-        controls: notebookSavePathControls(
-            "fileTree.docCreateSaveBox", (v) => fileConfigApi.patch("docCreateSaveBox", v),
-            "fileTree.docCreateSavePath", (v) => fileConfigApi.patch("docCreateSavePath", v),
-        ),
+        controls: [
+            {
+                control: controlSelect("fileTree.docCreateSaveBox", {options: []}),
+                save: (v) => fileConfigApi.patch("docCreateSaveBox", v),
+            },
+            {
+                control: controlString("fileTree.docCreateSavePath"),
+                save: (v) => fileConfigApi.patch("docCreateSavePath", v),
+            },
+        ],
     });
 
     const refCreateTitle = window.siyuan.languages.fileTree5;
@@ -124,10 +110,16 @@ export const registerFileNewDocumentGroup = (p: TabBuilder) => {
                 el.value = window.siyuan.config.fileTree.refCreateSavePath;
             }
         },
-        controls: notebookSavePathControls(
-            "fileTree.refCreateSaveBox", (v) => fileConfigApi.patch("refCreateSaveBox", v),
-            "fileTree.refCreateSavePath", (v) => fileConfigApi.patch("refCreateSavePath", v),
-        ),
+        controls: [
+            {
+                control: controlSelect("fileTree.refCreateSaveBox", {options: []}),
+                save: (v) => fileConfigApi.patch("refCreateSaveBox", v),
+            },
+            {
+                control: controlString("fileTree.refCreateSavePath"),
+                save: (v) => fileConfigApi.patch("refCreateSavePath", v),
+            },
+        ],
     });
 
     if (!isMobileKernelContainer()) {
@@ -149,10 +141,16 @@ export const registerFileNewDocumentGroup = (p: TabBuilder) => {
                     el.value = window.siyuan.config.fileTree.shorthandSavePath;
                 }
             },
-            controls: notebookSavePathControls(
-                "fileTree.shorthandSaveBox", (v) => fileConfigApi.patch("shorthandSaveBox", v),
-                "fileTree.shorthandSavePath", (v) => fileConfigApi.patch("shorthandSavePath", v),
-            ),
+            controls: [
+                {
+                    control: controlSelect("fileTree.shorthandSaveBox", {options: []}),
+                    save: (v) => fileConfigApi.patch("shorthandSaveBox", v),
+                },
+                {
+                    control: controlString("fileTree.shorthandSavePath"),
+                    save: (v) => fileConfigApi.patch("shorthandSavePath", v),
+                },
+            ],
         });
     }
 };
@@ -217,13 +215,7 @@ export const registerFileManagementGroup = (p: TabBuilder) => {
             });
         },
         controls: [{
-            id: "editor.historyRetentionDays",
-            controlPart: {
-                kind: "number",
-                id: "editor.historyRetentionDays",
-                min: 1,
-                max: 3650,
-            },
+            control: controlNumber("editor.historyRetentionDays", {min: 1, max: 3650}),
             save: (v) => editorConfigApi.patch("historyRetentionDays", v),
         }],
     });

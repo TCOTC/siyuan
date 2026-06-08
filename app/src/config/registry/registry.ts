@@ -10,7 +10,7 @@ import {
 } from "./tabBuilder";
 import {applyConfigTabSearch, mountConfigTab} from "./mount";
 
-export interface ConfigTabSearchScan {
+interface ConfigTabSearchScan {
     matches: boolean;
     registryVisibility?: RegistryTabSearchVisibility;
 }

@@ -1,5 +1,5 @@
 import type {RowPart} from "../render/parts";
-import type {ControlPart} from "./domIO";
+import type {ConfigControl} from "./control";
 import {buildItemSearchIndex} from "../search/normalize";
 
 type SettingItemBase = {
@@ -14,26 +14,27 @@ type SettingItemBase = {
 };
 
 /** 标准控件行：由 rowParts 描述整行 UI，参与 mount、save、搜索 */
-export type FullSettingItem = SettingItemBase & {
+type FullSettingItem = SettingItemBase & {
     kind: "full";
     rowParts: RowPart[];
+    control: ConfigControl;
     searchTexts?: () => string[];
 };
 
 /** 自定义 HTML 块：参与 mount、搜索 */
-export type RenderSettingItem = SettingItemBase & {
+type RenderSettingItem = SettingItemBase & {
     kind: "render";
     html: () => string;
     searchTexts?: () => string[];
 };
 
 /** 复合块内嵌控件：仅参与 read / save 路由 */
-export type BindingSettingItem = SettingItemBase & {
+type BindingSettingItem = SettingItemBase & {
     kind: "binding";
-    controlPart: ControlPart;
+    control: ConfigControl;
 };
 
-export type SettingItem = FullSettingItem | RenderSettingItem | BindingSettingItem;
+type SettingItem = FullSettingItem | RenderSettingItem | BindingSettingItem;
 export type MountableSettingItem = FullSettingItem | RenderSettingItem;
 export type RegisterSettingItem =
     | Omit<FullSettingItem, "searchIndex">
@@ -53,7 +54,6 @@ export const registerItem = (item: RegisterSettingItem) => {
     }
 };
 
-/** 按 registerItem 调用顺序（Map 插入序）返回可挂载条目；不含 binding */
 export const getMountableItemsByTabId = (tabId: string): MountableSettingItem[] => {
     const result: MountableSettingItem[] = [];
     for (const item of registry.values()) {

@@ -1,14 +1,20 @@
 import type {App} from "../../index";
 import type {RowPart, StackLine, SwitchQueryItem} from "../render/parts";
 import {genButtonRowHtml, genStackHtml, genSwitchQueryHtml, genTextPairHtml} from "../render/render";
-import type {ConfigValue} from "./configValue";
-import {configBooleanValue, configNumberValue, configSelectValue, configStringValue} from "./configValue";
-import {readControlPart, type ControlPart} from "./domIO";
+import {
+    controlBoolean,
+    controlNumber,
+    controlRange,
+    controlSelect,
+    controlString,
+    controlTextBlock,
+    type ConfigControl,
+} from "./control";
 import {bindPasswordIconaToggle} from "../render/fragments";
 import {registerGroup} from "./group";
 import {registerItem, RegisterSettingItem} from "./item";
 
-export type SaveFn = (value: unknown) => void | Promise<void>;
+type SaveFn = (value: unknown) => void | Promise<void>;
 
 /** 侧栏 / 菜单等壳层字段（`RegistryBuilder.tab` / `panel` 入参均平铺） */
 export interface ConfigTabShell<TId extends string = string> {
@@ -41,7 +47,7 @@ type ControlMetaBase = {
 };
 type SwitchMeta = ControlMetaBase & {
     /** 省略时按控件 id 从 config 读取 */
-    value?: ConfigValue<boolean>;
+    readConfig?: () => boolean;
 };
 type NumberMeta = ControlMetaBase & {
     min?: number;
@@ -60,7 +66,7 @@ type SelectMeta = ControlMetaBase & {
         label?: string;
     }[];
     /** 省略时按控件 id 从 config 读取；虚拟 / 派生项需显式传入 */
-    value?: ConfigValue<number | string>;
+    readConfig?: () => number | string;
 };
 type TextMeta = ControlMetaBase & {
     desc: string;
@@ -68,7 +74,7 @@ type TextMeta = ControlMetaBase & {
 type TextBlockMeta = TextMeta & {
     mode: "input-text" | "input-password" | "textarea";
     /** 省略时按控件 id 从 config 读取 */
-    value?: ConfigValue<string>;
+    readConfig?: () => string;
 };
 type SlotMeta = {
     key: string;
@@ -77,20 +83,21 @@ type SlotMeta = {
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
 export type CompositeControlMeta = {
-    /** DOM id 或相对路径（与 `resolveId` 一致） */
-    id: string;
-    controlPart: ControlPart;
+    control: ConfigControl;
     read?: (el: HTMLElement) => unknown;
     save?: SaveFn;
 };
 type CompositeMeta = SlotMeta & {
     controls: CompositeControlMeta[];
 };
+type SwitchQueryInputItem =
+    | {kind: "switch"; id: string; label: string; icon?: string}
+    | {kind: "number"; id: string; label: string; min?: number; max?: number};
 type SwitchQueryMeta = {
     key: string;
     title: string;
     footer?: string;
-    items: SwitchQueryItem[];
+    items: SwitchQueryInputItem[];
 };
 type TextPairMeta = {
     key?: string;
@@ -116,7 +123,7 @@ type BlockSelectMeta = {
         value: number | string;
         label?: string;
     }[];
-    value?: ConfigValue<number | string>;
+    readConfig?: () => number | string;
 };
 type BlockNumberMeta = {
     desc: string;
@@ -128,7 +135,7 @@ type BlockSwitchMeta = {
 };
 type BlockTextBlockMeta = {
     mode: "input-text" | "input-password" | "textarea";
-    value?: ConfigValue<string>;
+    readConfig?: () => string;
 };
 type ButtonMeta = {
     key?: string;
@@ -145,33 +152,13 @@ const stackLinesToControls = (lines: StackLine[]): CompositeControlMeta[] => {
     const controls: CompositeControlMeta[] = [];
     for (const line of lines) {
         if (line.left.kind === "textBlock") {
-            controls.push({
-                id: line.left.id,
-                controlPart: {
-                    kind: "textBlock",
-                    id: line.left.id,
-                    mode: line.left.mode,
-                    value: line.left.value,
-                },
-            });
+            controls.push({control: line.left});
         }
         const right = line.right;
         if (!right || right.kind === "button") {
             continue;
         }
-        if (right.kind === "switch") {
-            controls.push({id: right.id, controlPart: {kind: "switch", id: right.id, value: right.value}});
-        } else if (right.kind === "number") {
-            controls.push({
-                id: right.id,
-                controlPart: {kind: "number", id: right.id, value: right.value, min: right.min, max: right.max},
-            });
-        } else if (right.kind === "select") {
-            controls.push({
-                id: right.id,
-                controlPart: {kind: "select", id: right.id, options: right.options, value: right.value},
-            });
-        }
+        controls.push({control: right});
     }
     return controls;
 };
@@ -208,7 +195,7 @@ const defaultSearchTexts = (meta: {title?: string; desc?: string; keywords?: str
 };
 
 /** 组合块内逐行注册；由 `GroupBuilder.block` 回调使用 */
-export class BlockBuilder {
+class BlockBuilder {
     private readonly lines: StackLine[] = [];
 
     constructor(private readonly namespace: string) {}
@@ -238,43 +225,43 @@ export class BlockBuilder {
 
     select(path: string, meta: BlockSelectMeta) {
         const id = resolveId(this.namespace, path);
-        const value = meta.value ?? configSelectValue(id, meta.options);
+        const control = controlSelect(id, {options: meta.options, read: meta.readConfig});
         this.lines.push({
             left: {kind: "desc", text: meta.desc},
-            right: {kind: "select", id, options: meta.options, value},
+            right: control,
         });
         return this;
     }
 
     switch(path: string, meta: BlockSwitchMeta) {
         const id = resolveId(this.namespace, path);
+        const control = controlBoolean(id);
         this.lines.push({
             left: {kind: "desc", text: meta.desc},
-            right: {kind: "switch", id, value: configBooleanValue(id)},
+            right: control,
         });
         return this;
     }
 
     number(path: string, meta: BlockNumberMeta) {
         const id = resolveId(this.namespace, path);
+        const control = controlNumber(id, {min: meta.min, max: meta.max});
         this.lines.push({
             left: {kind: "desc", text: meta.desc},
-            right: {kind: "number", id, value: configNumberValue(id), min: meta.min, max: meta.max},
+            right: control,
         });
         return this;
     }
 
     textBlock(path: string, meta: BlockTextBlockMeta) {
         const id = resolveId(this.namespace, path);
-        const value = meta.value ?? configStringValue(id);
-        this.lines.push({
-            left: {kind: "textBlock", id, mode: meta.mode, value},
-        });
+        const control = controlTextBlock(id, {mode: meta.mode, read: meta.readConfig});
+        this.lines.push({left: control});
         return this;
     }
 }
 
-export class GroupBuilder<TId extends string> {
+class GroupBuilder<TId extends string> {
     constructor(
         private readonly tab: ConfigTabOptions<TId>,
         readonly groupKey: string,
@@ -286,6 +273,7 @@ export class GroupBuilder<TId extends string> {
     private registerControl(
         path: string,
         rowParts: RowPart[],
+        control: ConfigControl,
         meta: ControlMetaBase,
     ) {
         const id = resolveId(this.tab.namespace, path);
@@ -295,11 +283,9 @@ export class GroupBuilder<TId extends string> {
             groupKey: this.groupKey,
             kind: "full",
             rowParts,
+            control,
             searchTexts: defaultSearchTexts({title: meta.title, desc: meta.desc, keywords: meta.keywords}),
-            read: meta.read ?? ((el) => {
-                const part = rowParts.find((p): p is ControlPart => "id" in p && p.id === id);
-                return part ? readControlPart(part, el) : undefined;
-            }),
+            read: meta.read ?? ((el) => control.readDom(el)),
             save: meta.save ?? this.tab.defaultSave?.bind(null, id),
             afterMount: meta.afterMount,
         } as RegisterSettingItem);
@@ -308,53 +294,62 @@ export class GroupBuilder<TId extends string> {
 
     switch(path: string, meta: SwitchMeta) {
         const id = resolveId(this.tab.namespace, path);
+        const control = controlBoolean(id, {read: meta.readConfig});
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
             ...(meta.desc ? [{kind: "desc" as const, text: meta.desc}] : []),
-            {kind: "switch", id, value: meta.value ?? configBooleanValue(id)},
-        ], meta);
+            control,
+        ], control, meta);
     }
 
     number(path: string, meta: NumberMeta) {
         const id = resolveId(this.tab.namespace, path);
+        const control = controlNumber(id, {
+            min: meta.min,
+            max: meta.max,
+            step: meta.step,
+            unit: meta.unit,
+        });
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
             {kind: "desc", text: meta.desc ?? ""},
-            {kind: "number", id, value: configNumberValue(id), min: meta.min, max: meta.max, step: meta.step, unit: meta.unit},
-        ], meta);
+            control,
+        ], control, meta);
     }
 
     range(path: string, meta: RangeMeta) {
         const id = resolveId(this.tab.namespace, path);
+        const control = controlRange(id, {min: meta.min, max: meta.max, step: meta.step});
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
             {kind: "desc", text: meta.desc ?? ""},
-            {kind: "range", id, value: configNumberValue(id, meta.min), min: meta.min, max: meta.max, step: meta.step},
-        ], meta);
+            control,
+        ], control, meta);
     }
 
     select(path: string, meta: SelectMeta) {
         const id = resolveId(this.tab.namespace, path);
-        const value = meta.value ?? configSelectValue(id, meta.options);
+        const control = controlSelect(id, {options: meta.options, read: meta.readConfig});
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
             {kind: "desc", text: meta.desc ?? ""},
-            {kind: "select", id, options: meta.options, value},
-        ], meta);
+            control,
+        ], control, meta);
     }
 
     text(path: string, meta: TextMeta) {
         const id = resolveId(this.tab.namespace, path);
+        const control = controlString(id);
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
             {kind: "desc", text: meta.desc},
-            {kind: "text", id, value: configStringValue(id)},
-        ], meta);
+            control,
+        ], control, meta);
     }
 
     textBlock(path: string, meta: TextBlockMeta) {
         const id = resolveId(this.tab.namespace, path);
-        const value = meta.value ?? configStringValue(id);
+        const control = controlTextBlock(id, {mode: meta.mode, read: meta.readConfig});
         const afterMount = meta.mode === "input-password"
             ? async (root: HTMLElement) => {
                 bindPasswordIconaToggle(root, id);
@@ -364,24 +359,24 @@ export class GroupBuilder<TId extends string> {
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
             {kind: "desc", text: meta.desc},
-            {kind: "textBlock", id, mode: meta.mode, value},
-        ], {...meta, afterMount});
+            control,
+        ], control, {...meta, afterMount});
     }
 
     textPair(meta: TextPairMeta) {
         const leftId = resolveId(this.tab.namespace, meta.leftPath);
         const rightId = resolveId(this.tab.namespace, meta.rightPath);
+        const leftControl = controlString(leftId);
+        const rightControl = controlString(rightId);
         const searchTexts = meta.keywords ?? [meta.title, meta.desc];
-        const leftValue = configStringValue(leftId);
-        const rightValue = configStringValue(rightId);
         const key = meta.key ?? `textPair_${meta.leftPath}_${meta.rightPath}`;
         this.composite({
             key,
             keywords: searchTexts,
-            html: () => genTextPairHtml(meta.title, meta.desc, leftId, leftValue, rightId, rightValue),
+            html: () => genTextPairHtml(meta.title, meta.desc, leftControl, rightControl),
             controls: [
-                {id: leftId, controlPart: {kind: "text", id: leftId, value: leftValue}},
-                {id: rightId, controlPart: {kind: "text", id: rightId, value: rightValue}},
+                {control: leftControl},
+                {control: rightControl},
             ],
         });
         return this;
@@ -424,12 +419,15 @@ export class GroupBuilder<TId extends string> {
         const controls: CompositeControlMeta[] = [];
         for (const item of meta.items) {
             const id = resolveId(this.tab.namespace, item.id);
-            items.push({...item, id});
-            controls.push(
-                item.kind === "switch"
-                    ? {id, controlPart: {kind: "switch", id}}
-                    : {id, controlPart: {kind: "number", id, min: item.min, max: item.max}},
-            );
+            if (item.kind === "switch") {
+                const control = controlBoolean(id);
+                items.push({...control, label: item.label, icon: item.icon});
+                controls.push({control});
+            } else {
+                const control = controlNumber(id, {min: item.min, max: item.max});
+                items.push({...control, label: item.label});
+                controls.push({control});
+            }
         }
         this.composite({
             key: meta.key,
@@ -467,17 +465,15 @@ export class GroupBuilder<TId extends string> {
             html: meta.html,
             afterMount: meta.afterMount,
         });
-        for (const control of meta.controls) {
-            const controlId = resolveId(this.tab.namespace, control.id);
-            const controlPart = {...control.controlPart, id: controlId};
+        for (const entry of meta.controls) {
             registerItem({
-                id: controlId,
+                id: entry.control.id,
                 tabId: this.tab.id,
                 groupKey: this.groupKey,
                 kind: "binding",
-                controlPart,
-                read: control.read ?? ((el) => readControlPart(controlPart, el)),
-                save: control.save ?? this.tab.defaultSave?.bind(null, controlId),
+                control: entry.control,
+                read: entry.read ?? ((el) => entry.control.readDom(el)),
+                save: entry.save ?? this.tab.defaultSave?.bind(null, entry.control.id),
             } as RegisterSettingItem);
         }
         return this;

@@ -1,6 +1,6 @@
 import {normalizeSearchText} from "../search/normalize";
 
-export interface SettingGroup {
+interface SettingGroup {
     key: string;
     tabId: string;
     title: string;
@@ -41,6 +41,3 @@ export const getGroupsByTabId = (tabId: string): SettingGroup[] => {
     const tabGroups = groupsByTab.get(tabId);
     return tabGroups ? [...tabGroups.values()].sort((a, b) => a.order - b.order) : [];
 };
-
-export const getGroup = (tabId: string, groupKey: string): SettingGroup | undefined =>
-    groupsByTab.get(tabId)?.get(groupKey);

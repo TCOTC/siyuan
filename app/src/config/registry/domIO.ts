@@ -1,10 +1,7 @@
-import type {RowPart} from "../render/parts";
 import {getAtPath} from "../util/dotPath";
 
-export type ControlPart = Extract<RowPart, {id: string}>;
-
 /** 解析并钳制 number / range 数值 */
-const normalizeNumberInputValue = (el: HTMLInputElement): number => {
+export const normalizeNumberInputValue = (el: HTMLInputElement): number => {
     const step = el.getAttribute("step")?.trim().toLowerCase() ?? "";
     const useFloat = step === "any" || step.includes(".");
     const parseNum = (s: string) => (useFloat ? parseFloat(s) : parseInt(s, 10));
@@ -70,52 +67,4 @@ export const syncRangeRowValue = (el: HTMLElement): void => {
     const valueStr = String(snapped);
     rangeEl.value = valueStr;
     selectEl.value = valueStr;
-};
-
-/** 从 DOM 读出控件值 */
-export function readDomValue(el: HTMLElement): unknown {
-    if (el instanceof HTMLSelectElement) {
-        const n = parseInt(el.value, 10);
-        return Number.isNaN(n) ? el.value : n;
-    }
-    if (el instanceof HTMLTextAreaElement) {
-        return el.value;
-    }
-    if (el instanceof HTMLInputElement) {
-        switch (el.type) {
-            case "checkbox":
-                return el.checked;
-            case "number":
-            case "range": {
-                const number = normalizeNumberInputValue(el);
-                const valueStr = String(number);
-                if (el.value !== valueStr) {
-                    el.value = valueStr;
-                }
-                return number;
-            }
-            default:
-                return el.value;
-        }
-    }
-    return undefined;
-}
-
-/** 按控件部件从 DOM 读值 */
-export const readControlPart = (part: ControlPart, el: HTMLElement): unknown => {
-    switch (part.kind) {
-        case "switch":
-            return (el as HTMLInputElement).checked;
-        case "number":
-        case "range":
-            return readDomValue(el);
-        case "select": {
-            const options = part.options ?? [];
-            const num = options.length > 0 && typeof options[0].value === "number";
-            return num ? parseInt((el as HTMLSelectElement).value, 10) : (el as HTMLSelectElement).value;
-        }
-        case "text":
-        case "textBlock":
-            return (el as HTMLInputElement | HTMLTextAreaElement).value;
-    }
 };

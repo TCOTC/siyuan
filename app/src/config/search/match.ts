@@ -10,7 +10,7 @@ export interface RegistryTabSearchVisibility {
     visibleGroupKeys: Set<string>;
 }
 
-export interface RegistryTabSearchScan extends RegistryTabSearchVisibility {
+interface RegistryTabSearchScan extends RegistryTabSearchVisibility {
     matches: boolean;
 }
 
