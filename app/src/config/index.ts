@@ -8,20 +8,10 @@ import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";
 import {getConfigTabDefs} from "./registry/tabs";
 /// #endif
-
 import type {TConfigTab} from "./registry/tabs";
 import type {App} from "../index";
 
 /// #if !MOBILE
-const genConfigTabListHTML = (activeTab: TConfigTab) => getConfigTabDefs().map(def => {
-    const focus = def.id === activeTab ? " b3-list-item--focus" : "";
-    return `<li data-name="${def.id}" class="b3-list-item${focus}${def.hidden ? " fn__none" : ""}"><svg class="b3-list-item__graphic"><use xlink:href="#${def.icon}"></use></svg><span class="b3-list-item__text">${def.title}</span></li>`;
-}).join("");
-
-const genConfigTabPanelsHTML = (activeTab: TConfigTab) => getConfigTabDefs()
-    .map(def => `<div class="config__tab-container${def.id === activeTab ? "" : " fn__none"}" data-name="${def.id}"></div>`)
-    .join("");
-
 const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
     const exitDialog = window.siyuan.dialogs.find((item) => {
         if (item.element.querySelector(".config__tab-container")) {
@@ -35,6 +25,13 @@ const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
     let range: Range;
     if (getSelection().rangeCount > 0) {
         range = getSelection().getRangeAt(0);
+    }
+    const tabListItems: string[] = [];
+    const tabPanels: string[] = [];
+    for (const def of getConfigTabDefs()) {
+        const isActive = def.id === initialTab;
+        tabListItems.push(`<li data-name="${def.id}" class="b3-list-item${isActive ? " b3-list-item--focus" : ""}${def.hidden ? " fn__none" : ""}"><svg class="b3-list-item__graphic"><use xlink:href="#${def.icon}"></use></svg><span class="b3-list-item__text">${def.title}</span></li>`);
+        tabPanels.push(`<div class="config__tab-container${isActive ? "" : " fn__none"}" data-name="${def.id}"></div>`);
     }
     const dialog = new Dialog({
         content: `<div class="fn__flex-1 fn__flex config__panel" style="overflow: hidden;position: relative">
@@ -51,11 +48,11 @@ const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
             <div class="config__tab-hr"></div>
         </div>
         <ul class="config__tab-scroll">
-            ${genConfigTabListHTML(initialTab)}
+            ${tabListItems.join("")}
         </ul>
     </div>
     <div class="config__tab-wrap">
-        ${genConfigTabPanelsHTML(initialTab)}
+        ${tabPanels.join("")}
     </div>
 </div>`,
         width: "90vw",

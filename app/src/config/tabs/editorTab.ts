@@ -2,7 +2,7 @@ import {updateHotkeyTip} from "../../protyle/util/compatibility";
 import {Constants} from "../../constants";
 import {isBrowser} from "../../util/functions";
 import {editorConfigApi} from "./editorRuntime";
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
 /// #endif

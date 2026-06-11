@@ -1,7 +1,7 @@
 /// #if !BROWSER
 import * as path from "path";
 /// #endif
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 import {Constants} from "../../constants";
 import {resetLayout} from "../../layout/util";
 import {desktopModeCookie} from "../../util/cookie";
@@ -176,7 +176,7 @@ export const registerAppearanceInterfaceGroup = (p: TabBuilder) => {
             saveThemeMode(themeValue);
         },
     });
-    s.block({
+    s.stack({
         key: "theme",
         keywords: [
             window.siyuan.languages.theme,
@@ -215,7 +215,7 @@ export const registerAppearanceInterfaceGroup = (p: TabBuilder) => {
             })),
         });
     });
-    s.block({
+    s.stack({
         key: "icon",
         keywords: [
             window.siyuan.languages.icon,
@@ -246,7 +246,7 @@ export const registerAppearanceInterfaceGroup = (p: TabBuilder) => {
             })),
         });
     });
-    s.block({
+    s.stack({
         key: "codeBlockTheme",
         keywords: [
             window.siyuan.languages.appearance1,
@@ -296,7 +296,7 @@ export const registerAppearanceControlsGroup = (p: TabBuilder) => {
             {value: 1, label: window.siyuan.languages.appearance11},
         ],
     });
-    s.block({
+    s.stack({
         key: "statusBar",
         keywords: [
             window.siyuan.languages.appearance16,
@@ -316,7 +316,7 @@ export const registerAppearanceControlsGroup = (p: TabBuilder) => {
             icon: "iconSettings",
         });
     });
-    if (isMobile()) {
+    if (isBrowser()) {
         s.slot({
             key: "desktopMode",
             keywords: [window.siyuan.languages.desktopMode, window.siyuan.languages.mobileModeTip],
@@ -431,7 +431,7 @@ export const registerAppearancePersonalizationGroup = (p: TabBuilder) => {
             },
         });
     }
-    s.block({
+    s.stack({
         key: "codeSnippet",
         keywords: [
             window.siyuan.languages.codeSnippet,

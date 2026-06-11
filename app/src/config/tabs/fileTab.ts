@@ -3,7 +3,7 @@ import {genNotebookOption} from "../../menus/onGetnotebookconf";
 import {fetchPost} from "../../util/fetch";
 import {editorConfigApi} from "./editorRuntime";
 import {fileConfigApi} from "./fileRuntime";
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 import {controlNumber, controlSelect, controlString} from "../registry/control";
 import {genConfigItemName} from "../render/fragments";
 

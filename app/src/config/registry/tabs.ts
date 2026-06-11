@@ -12,7 +12,7 @@ import {assets} from "../assets";
 import {collectKeymapTabSearchStrings, mountKeymapTab} from "../tabs/keymapUi";
 import {isHuawei, isInHarmony} from "../../protyle/util/compatibility";
 import {isMobile} from "../../util/functions";
-import {RegistryBuilder, type ConfigTab} from "./registry";
+import {RegistryBuilder, type ConfigTab} from "./builder";
 import {registerEditorTab} from "../tabs/editorTab";
 import {registerFileTab} from "../tabs/fileTab";
 import {registerFlashcardTab} from "../tabs/flashcardTab";

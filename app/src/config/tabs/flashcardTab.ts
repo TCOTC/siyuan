@@ -1,4 +1,4 @@
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 
 /** 闪卡 Tab：各组注册实现（由 registry/tabs.ts 中的 registry 调用） */
 export const registerFlashcardCreationGroup = (p: TabBuilder) => {

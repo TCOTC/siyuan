@@ -2,7 +2,7 @@
 import {ipcRenderer} from "electron";
 import * as path from "path";
 /// #endif
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 import {Constants} from "../../constants";
 import {fetchPost} from "../../util/fetch";
 import {exportLayout} from "../../layout/util";

@@ -1,4 +1,4 @@
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 import {Constants} from "../../constants";
 import {isBrowser} from "../../util/functions";
 import {fetchPost} from "../../util/fetch";
@@ -71,6 +71,7 @@ const mountAboutVersionSlot = (root: HTMLElement) => {
 
 export const registerAboutInfoGroup = (p: TabBuilder) => {
     const s = p.group("info", "");
+    const motto = "会泽百家 至公天下";
 
     s.slot({
         key: "aboutLogo",
@@ -80,7 +81,7 @@ export const registerAboutInfoGroup = (p: TabBuilder) => {
             window.siyuan.languages.about1,
             window.siyuan.languages.feedback,
             window.siyuan.languages.sponsor,
-            "会泽百家 至公天下",
+            motto,
         ],
         html: () => `<div class="fn__flex b3-label config-item config-wrap">
     <div class="fn__flex-1">
@@ -91,7 +92,7 @@ export const registerAboutInfoGroup = (p: TabBuilder) => {
             <span class="fn__space"></span>
             <span class="ft__on-surface">${window.siyuan.languages.slogan}</span>
             <span class="fn__space"></span>
-            <span class="config-about__motto">会泽百家 至公天下</span>
+            <span class="config-about__motto">${motto}</span>
         </div>
         <div class='fn__hr'></div>
         ${window.siyuan.languages.about1}${window.siyuan.config.system.container === "harmony" ? ` • ${window.siyuan.languages.feedback} 845765@qq.com` : ""}

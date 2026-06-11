@@ -13,6 +13,10 @@ import {
 import {bindPasswordIconaToggle} from "../render/fragments";
 import {registerGroup} from "./group";
 import {registerItem, RegisterSettingItem} from "./item";
+import type {RegistryTabSearchVisibility} from "../search/match";
+import {scanRegistryTabSearch, stringsMatchQuery} from "../search/match";
+import {normalizeSearchText} from "../search/normalize";
+import {applyConfigTabSearch, mountConfigTab} from "./mount";
 
 type SaveFn = (value: unknown) => void | Promise<void>;
 
@@ -107,17 +111,17 @@ type TextPairMeta = {
     rightPath: string;
     keywords?: string[];
 };
-type BlockMeta = {
+type StackMeta = {
     key: string;
     keywords?: string[];
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
-type BlockButtonMeta = {
+type StackButtonMeta = {
     id: string;
     label: string;
     icon: string;
 };
-type BlockSelectMeta = {
+type StackSelectMeta = {
     desc: string;
     options: {
         value: number | string;
@@ -125,15 +129,15 @@ type BlockSelectMeta = {
     }[];
     readConfig?: () => number | string;
 };
-type BlockNumberMeta = {
+type StackNumberMeta = {
     desc: string;
     min?: number;
     max?: number;
 };
-type BlockSwitchMeta = {
+type StackSwitchMeta = {
     desc: string;
 };
-type BlockTextBlockMeta = {
+type StackTextBlockMeta = {
     mode: "input-text" | "input-password" | "textarea";
     readConfig?: () => string;
 };
@@ -194,8 +198,8 @@ const defaultSearchTexts = (meta: {title?: string; desc?: string; keywords?: str
     return () => [meta.title, meta.desc].filter((s): s is string => Boolean(s));
 };
 
-/** 组合块内逐行注册；由 `GroupBuilder.block` 回调使用 */
-class BlockBuilder {
+/** stack 组合行内逐行注册；由 `GroupBuilder.stack` 回调使用 */
+class StackLineBuilder {
     private readonly lines: StackLine[] = [];
 
     constructor(private readonly namespace: string) {}
@@ -210,7 +214,7 @@ class BlockBuilder {
     }
 
     /** 为上一行（通常为 title / desc）追加右侧按钮 */
-    button(meta: BlockButtonMeta) {
+    button(meta: StackButtonMeta) {
         const last = this.lines[this.lines.length - 1];
         if (last) {
             last.right = {kind: "button", ...meta};
@@ -223,7 +227,7 @@ class BlockBuilder {
         return this;
     }
 
-    select(path: string, meta: BlockSelectMeta) {
+    select(path: string, meta: StackSelectMeta) {
         const id = resolveId(this.namespace, path);
         const control = controlSelect(id, {options: meta.options, read: meta.readConfig});
         this.lines.push({
@@ -233,7 +237,7 @@ class BlockBuilder {
         return this;
     }
 
-    switch(path: string, meta: BlockSwitchMeta) {
+    switch(path: string, meta: StackSwitchMeta) {
         const id = resolveId(this.namespace, path);
         const control = controlBoolean(id);
         this.lines.push({
@@ -243,7 +247,7 @@ class BlockBuilder {
         return this;
     }
 
-    number(path: string, meta: BlockNumberMeta) {
+    number(path: string, meta: StackNumberMeta) {
         const id = resolveId(this.namespace, path);
         const control = controlNumber(id, {min: meta.min, max: meta.max});
         this.lines.push({
@@ -253,7 +257,7 @@ class BlockBuilder {
         return this;
     }
 
-    textBlock(path: string, meta: BlockTextBlockMeta) {
+    textBlock(path: string, meta: StackTextBlockMeta) {
         const id = resolveId(this.namespace, path);
         const control = controlTextBlock(id, {mode: meta.mode, read: meta.readConfig});
         this.lines.push({left: control});
@@ -382,8 +386,8 @@ class GroupBuilder<TId extends string> {
         return this;
     }
 
-    block(meta: BlockMeta, configure: (b: BlockBuilder) => void) {
-        const builder = new BlockBuilder(this.tab.namespace);
+    stack(meta: StackMeta, configure: (b: StackLineBuilder) => void) {
+        const builder = new StackLineBuilder(this.tab.namespace);
         configure(builder);
         const lines = builder.getLines();
         const searchTexts = meta.keywords ?? [];
@@ -479,11 +483,102 @@ class GroupBuilder<TId extends string> {
         return this;
     }
 }
+
 export class TabBuilder<TId extends string = string> {
     constructor(private readonly tab: ConfigTabOptions<TId>) {}
 
     group(groupKey: string, groupTitle: string) {
         registerGroup(this.tab.id, groupKey, groupTitle);
         return new GroupBuilder(this.tab, groupKey);
+    }
+}
+
+interface ConfigTabSearchScan {
+    matches: boolean;
+    registryVisibility?: RegistryTabSearchVisibility;
+}
+
+export type ConfigTab = ConfigTabShell & {
+    mount: (
+        root: HTMLElement,
+        searchQueryLower?: string,
+        app?: App,
+        registryVisibility?: RegistryTabSearchVisibility,
+    ) => Promise<void>;
+    scanSearch: (queryLower: string) => ConfigTabSearchScan;
+};
+
+export class RegistryBuilder {
+    tab<TId extends string>(
+        options: ConfigTabOptions<TId>,
+        register: (tab: TabBuilder<TId>) => void,
+    ): ConfigTab {
+        const {afterMount, ...shell} = options;
+        let registered = false;
+        const ensureRegistered = () => {
+            if (registered) {
+                return;
+            }
+            registered = true;
+            register(new TabBuilder(options));
+        };
+        return {
+            ...shell,
+            mount: async (root, searchQueryLower, app, registryVisibility) => {
+                ensureRegistered();
+                if (root.innerHTML === "") {
+                    await mountConfigTab(options.id, root);
+                    await afterMount?.(root, app);
+                }
+                applyConfigTabSearch(
+                    root,
+                    options.id,
+                    options.title(),
+                    searchQueryLower,
+                    registryVisibility,
+                );
+            },
+            scanSearch: (queryLower) => {
+                ensureRegistered();
+                const scan = scanRegistryTabSearch(options.id, options.title(), queryLower);
+                return {
+                    matches: scan.matches,
+                    registryVisibility: {
+                        visibleGroupKeys: scan.visibleGroupKeys,
+                        visibleItemIds: scan.visibleItemIds,
+                    },
+                };
+            },
+        };
+    }
+
+    panel<TId extends string>(
+        options: PanelTabOptions<TId>,
+    ): ConfigTab {
+        const {searchStrings, mount: panelMount, ...shell} = options;
+        let normalizedTitle: string | undefined;
+        const getNormalizedTitle = () => {
+            if (normalizedTitle === undefined) {
+                normalizedTitle = normalizeSearchText(options.title());
+            }
+            return normalizedTitle;
+        };
+        let cachedSearchIndex: readonly string[] | undefined;
+        const getSearchIndex = () => {
+            if (!cachedSearchIndex) {
+                cachedSearchIndex = searchStrings()
+                    .map(normalizeSearchText)
+                    .filter((s) => s.length > 0);
+            }
+            return cachedSearchIndex;
+        };
+        return {
+            ...shell,
+            mount: async (root, searchQueryLower, app) => panelMount(root, searchQueryLower, app),
+            scanSearch: (queryLower) => ({
+                matches: getNormalizedTitle().includes(queryLower)
+                    || stringsMatchQuery(getSearchIndex(), queryLower),
+            }),
+        };
     }
 }

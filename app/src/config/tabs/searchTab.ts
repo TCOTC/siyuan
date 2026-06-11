@@ -1,4 +1,4 @@
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 
 export const registerSearchQueryGroup = (p: TabBuilder) => {
     const s = p.group("query", "");

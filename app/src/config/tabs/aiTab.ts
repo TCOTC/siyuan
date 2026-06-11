@@ -1,4 +1,4 @@
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 
 export const registerAiServiceGroup = (p: TabBuilder) => {
     const s = p.group("service", window.siyuan.languages.configGroupServiceConnection);

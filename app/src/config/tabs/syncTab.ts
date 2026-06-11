@@ -1,4 +1,4 @@
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 import {registerAccountGroup} from "./accountUi";
 import {Constants} from "../../constants";
 import {fetchPost} from "../../util/fetch";
@@ -148,7 +148,7 @@ export const registerRepoGroup = (p: TabBuilder) => {
 </div>`,
         afterMount: mountRepoKey,
     });
-    s.block({
+    s.stack({
         key: "repoPurge",
         keywords: [
             window.siyuan.languages.dataRepoPurge,

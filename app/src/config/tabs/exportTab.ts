@@ -1,7 +1,7 @@
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
 /// #endif
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 import {Constants} from "../../constants";
 import {isBrowser} from "../../util/functions";
 import {useShell} from "../../util/pathName";
@@ -92,7 +92,7 @@ export const registerExportPdfGroup = (p: TabBuilder) => {
         title: window.siyuan.languages.export21,
         desc: window.siyuan.languages.export22,
     });
-    s.block({
+    s.stack({
         key: "pdfWatermark",
         keywords: [
             window.siyuan.languages.export27,
@@ -115,7 +115,7 @@ export const registerExportPdfGroup = (p: TabBuilder) => {
 export const registerExportImagesGroup = (p: TabBuilder) => {
     const s = p.group("images", window.siyuan.languages.configGroupImages);
 
-    s.block({
+    s.stack({
         key: "imageWatermark",
         keywords: [
             window.siyuan.languages.export30,
@@ -142,7 +142,7 @@ export const registerExportPandocGroup = (p: TabBuilder) => {
     }
     const s = p.group("pandoc", window.siyuan.languages.configGroupPandoc);
 
-    s.block({
+    s.stack({
         key: "pandocBin",
         keywords: [
             window.siyuan.languages.export19,

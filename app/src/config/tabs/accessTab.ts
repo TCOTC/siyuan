@@ -1,4 +1,4 @@
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 import {fetchPost} from "../../util/fetch";
 import {Dialog} from "../../dialog";
 import {Constants} from "../../constants";
@@ -171,7 +171,7 @@ export const registerAccessServerGroup = (p: TabBuilder) => {
             },
         });
     }
-    s.block({
+    s.stack({
         key: "localServer",
         keywords: [
             window.siyuan.languages.about2,

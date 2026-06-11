@@ -11,7 +11,7 @@ import {iOSPurchase} from "../../util/iOSPurchase";
 import {hideElements} from "../../protyle/ui/hideElements";
 import {closePanel} from "../../mobile/util/closePanel";
 import md5 from "blueimp-md5";
-import type {TabBuilder} from "../registry/tabBuilder";
+import type {TabBuilder} from "../registry/builder";
 import {patchSyncConfig, refreshSyncCloudSpaceGroup, syncTabElement} from "./syncRuntime";
 import {escapeAttr, escapeHtml} from "../../util/escape";
 
