@@ -1,7 +1,7 @@
 import type {SettingTabBuilder} from "../setting/builder";
 
 /** 闪卡 Tab：各组注册实现（由 setting/tabs.ts 调用） */
-export const registerFlashcardCreationGroup = (tab: SettingTabBuilder) => {
+const registerFlashcardCreationGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("creation", window.siyuan.languages.configGroupCardCreation);
 
     group.switch("flashcard.mark", {
@@ -22,7 +22,7 @@ export const registerFlashcardCreationGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerFlashcardReviewGroup = (tab: SettingTabBuilder) => {
+const registerFlashcardReviewGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("review", window.siyuan.languages.configGroupReview);
 
     group.select("flashcard.reviewMode", {
@@ -64,7 +64,7 @@ export const registerFlashcardReviewGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerFlashcardOthersGroup = (tab: SettingTabBuilder) => {
+const registerFlashcardOthersGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("others", window.siyuan.languages.configGroupOthers);
 
     group.switch("flashcard.deck", {

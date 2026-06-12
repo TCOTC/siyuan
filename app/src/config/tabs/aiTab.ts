@@ -1,6 +1,6 @@
 import type {SettingTabBuilder} from "../setting/builder";
 
-export const registerAiServiceGroup = (tab: SettingTabBuilder) => {
+const registerAiServiceGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("service", window.siyuan.languages.configGroupServiceConnection);
 
     group.select("ai.openAI.apiProvider", {
@@ -51,7 +51,7 @@ const bindApiProviderToggle = (root: HTMLElement) => {
     toggleVersionWrap();
 };
 
-export const registerAiModelGroup = (tab: SettingTabBuilder) => {
+const registerAiModelGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("model", window.siyuan.languages.configGroupModelParameters);
 
     group.textBlock("ai.openAI.apiModel", {

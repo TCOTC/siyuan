@@ -5,7 +5,7 @@ import {fetchPost} from "../../util/fetch";
 import {getCloudURL} from "../util/about";
 import {sendAppSetting} from "./appRuntime";
 
-export const registerAboutVersionGroup = (tab: SettingTabBuilder) => {
+const registerAboutVersionGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("version", "");
 
     group.slot({
@@ -69,7 +69,7 @@ const mountAboutVersionSlot = (root: HTMLElement) => {
     });
 };
 
-export const registerAboutInfoGroup = (tab: SettingTabBuilder) => {
+const registerAboutInfoGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("info", "");
     const motto = "会泽百家 至公天下";
 

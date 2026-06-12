@@ -1,6 +1,6 @@
 import type {SettingTabBuilder} from "../setting/builder";
 
-export const registerSearchQueryGroup = (tab: SettingTabBuilder) => {
+const registerSearchQueryGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("query", "");
 
     group.switchQuery({
@@ -68,7 +68,7 @@ export const registerSearchQueryGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerSearchLimitsGroup = (tab: SettingTabBuilder) => {
+const registerSearchLimitsGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("limits", "");
 
     group.number("search.limit", {

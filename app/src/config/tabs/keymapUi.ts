@@ -12,8 +12,6 @@ import {sendGlobalShortcut, sendUnregisterGlobalShortcut} from "../../boot/globa
 import {normalizeSearchText} from "../search/normalize";
 import {genButtonRowHtml, genConfigGroup} from "../render/render";
 import type {Plugin} from "../../plugin";
-import type {App} from "../../index";
-
 const keymapToolbarSearchStrings = (): string[] => [
     window.siyuan.languages.keymapTip,
     window.siyuan.languages.keymapTip2,
@@ -78,7 +76,7 @@ const bindKeymapToolbar = (root: HTMLElement) => {
 };
 
 /** 快捷键 Tab 挂载（面板页，不走注册表渲染） */
-export const mountKeymapTab = async (root: HTMLElement, keywords?: string, _app?: App) => {
+export const mountKeymapTab = async (root: HTMLElement, keywords?: string) => {
     if (root.innerHTML === "") {
         root.innerHTML = genKeymapTabHtml();
         bindKeymapToolbar(root);

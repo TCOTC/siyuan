@@ -27,7 +27,7 @@ const genNotebookSavePathHtml = (
     </div>
 </div>`;
 
-export const registerFileTabsGroup = (tab: SettingTabBuilder) => {
+const registerFileTabsGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("tabs", window.siyuan.languages.configGroupTabs);
 
     group.switch("fileTree.alwaysSelectOpenedFile", {
@@ -54,7 +54,7 @@ export const registerFileTabsGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerFileNewDocumentGroup = (tab: SettingTabBuilder) => {
+const registerFileNewDocumentGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("newDocument", window.siyuan.languages.configGroupNewDocument);
 
     group.switch("fileTree.createDocAtTop", {
@@ -155,7 +155,7 @@ export const registerFileNewDocumentGroup = (tab: SettingTabBuilder) => {
     }
 };
 
-export const registerFileManagementGroup = (tab: SettingTabBuilder) => {
+const registerFileManagementGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("fileManagement", window.siyuan.languages.configGroupFileManagement);
 
     group.number("editor.generateHistoryInterval", {
@@ -247,7 +247,7 @@ export const registerFileManagementGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerFileOthersGroup = (tab: SettingTabBuilder) => {
+const registerFileOthersGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("others", window.siyuan.languages.configGroupOthers);
 
     group.number("fileTree.recentDocsMaxListCount", {

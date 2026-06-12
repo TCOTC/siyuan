@@ -7,7 +7,7 @@ import {isBrowser} from "../../util/functions";
 import {useShell} from "../../util/pathName";
 import {exportConfigApi} from "./exportRuntime";
 
-export const registerExportReferencesGroup = (tab: SettingTabBuilder) => {
+const registerExportReferencesGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("references", window.siyuan.languages.configGroupReferences);
 
     group.switch("export.includeSubDocs", {
@@ -37,7 +37,7 @@ export const registerExportReferencesGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerExportFormatGroup = (tab: SettingTabBuilder) => {
+const registerExportFormatGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("format", window.siyuan.languages.configGroupFormat);
 
     group.switch("export.markdownYFM", {
@@ -74,7 +74,7 @@ export const registerExportFormatGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerExportPdfGroup = (tab: SettingTabBuilder) => {
+const registerExportPdfGroup = (tab: SettingTabBuilder) => {
     if (isBrowser()) {
         return;
     }
@@ -112,7 +112,7 @@ export const registerExportPdfGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerExportImagesGroup = (tab: SettingTabBuilder) => {
+const registerExportImagesGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("images", window.siyuan.languages.configGroupImages);
 
     group.stack({
@@ -136,7 +136,7 @@ export const registerExportImagesGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerExportPandocGroup = (tab: SettingTabBuilder) => {
+const registerExportPandocGroup = (tab: SettingTabBuilder) => {
     if (isBrowser()) {
         return;
     }

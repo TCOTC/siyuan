@@ -274,7 +274,7 @@ export const genConfigGroup = (itemsHtml: string, title?: string, attrs?: Record
     return `<div class="config-group"${attrsHtml}>${title ? `<div class="config-title">${title}</div>` : ""}<div class="config-items">${itemsHtml}</div></div>`;
 };
 
-export type GroupedItemsView = {
+type GroupedItemsView = {
     html: string;
     /** 与 html 中 DOM 顺序一致 */
     items: MountableSettingItem[];

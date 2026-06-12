@@ -41,7 +41,7 @@ export const mountBazaarTab = (root: HTMLElement, keywords?: string, app?: App) 
     }
 };
 
-export const bazaar = {
+const bazaar = {
     element: undefined as Element,
     genHTML() {
         if (!window.siyuan.config.bazaar.trust) {

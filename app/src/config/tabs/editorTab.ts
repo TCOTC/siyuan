@@ -8,7 +8,7 @@ import {ipcRenderer} from "electron";
 /// #endif
 
 /** 编辑器 Tab：各组注册实现（由 setting/tabs.ts 调用） */
-export const registerEditorBehaviorGroup = (tab: SettingTabBuilder) => {
+const registerEditorBehaviorGroup = (tab: SettingTabBuilder) => {
     const browser = isBrowser();
     const group = tab.group("behavior", window.siyuan.languages.configGroupBehavior);
     const readOnlyKeymap = window.siyuan.config.keymap.general.editReadonly.custom;
@@ -97,7 +97,7 @@ const bindSpellcheckLanguagesChips = async (root: HTMLElement) => {
     /// #endif
 };
 
-export const registerEditorBlockFeaturesGroup = (tab: SettingTabBuilder) => {
+const registerEditorBlockFeaturesGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("blockFeatures", window.siyuan.languages.configGroupBlockFeatures);
     group.switch("editor.displayNetImgMark", {
         title: window.siyuan.languages.md7,
@@ -134,7 +134,7 @@ export const registerEditorBlockFeaturesGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerEditorBidirectionalGroup = (tab: SettingTabBuilder) => {
+const registerEditorBidirectionalGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("bidirectional", window.siyuan.languages.configGroupBidirectionalLinks);
     group.switch("editor.onlySearchForDoc", {
         title: window.siyuan.languages.onlySearchForDoc,
@@ -178,7 +178,7 @@ export const registerEditorBidirectionalGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerEditorMarkdownInlineGroup = (tab: SettingTabBuilder) => {
+const registerEditorMarkdownInlineGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("markdownInline", window.siyuan.languages.configGroupMarkdownInlineSyntax);
     group.switch("editor.markdown.inlineAsterisk", {
         title: window.siyuan.languages.editorMarkdownInlineAsterisk,
@@ -214,7 +214,7 @@ export const registerEditorMarkdownInlineGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerEditorAdvancedGroup = (tab: SettingTabBuilder) => {
+const registerEditorAdvancedGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("advanced", window.siyuan.languages.configGroupAdvanced);
     group.text("editor.plantUMLServePath", {
         title: window.siyuan.languages.md39,

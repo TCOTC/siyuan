@@ -150,9 +150,6 @@ const stackLinesToControls = (lines: StackLine[]): CompositeControlSpec[] => {
     return controls;
 };
 
-const defaultSearchTexts = (spec: {title?: string; desc?: string}) =>
-    () => [spec.title, spec.desc].filter((s): s is string => Boolean(s));
-
 /** stack 组合行内逐行注册；由 `SettingGroupBuilder.stack` 回调使用 */
 class StackLineBuilder {
     private readonly lines: StackLine[] = [];
@@ -242,7 +239,6 @@ class SettingGroupBuilder<TId extends string> {
             kind: "full",
             rowParts,
             control,
-            searchTexts: defaultSearchTexts({title: spec.title, desc: spec.desc}),
             readValue: (el) => control.readValue(el),
             save: spec.save ?? this.tab.defaultSave?.bind(null, path),
             afterMount,

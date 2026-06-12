@@ -2,7 +2,7 @@ import {fetchPost} from "../../util/fetch";
 import {isMobile} from "../../util/functions";
 
 /** 访问授权 Tab 根节点，供 send 回调更新局部 UI */
-export let accessTabElement: HTMLElement | undefined;
+let accessTabElement: HTMLElement | undefined;
 
 /** 访问授权 Tab 挂载后记录根节点（供 setting/tabs.ts afterMount 调用） */
 export const mountAccessTab = (root: HTMLElement) => {

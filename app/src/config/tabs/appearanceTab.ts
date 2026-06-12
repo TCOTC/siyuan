@@ -18,7 +18,7 @@ import {genConfigItemMainHtml, genListSwitchItemHtml, genSwitchRow} from "../ren
 import {editorConfigApi} from "./editorRuntime";
 import {appearanceThemeModeValue, saveThemeMode} from "./appearanceRuntime";
 
-export const registerAppearanceContentGroup = (tab: SettingTabBuilder) => {
+const registerAppearanceContentGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("content", window.siyuan.languages.configGroupContent);
 
     group.slot({
@@ -150,7 +150,7 @@ const mountAppearanceFontFamily = (root: HTMLElement) => {
     }
 };
 
-export const registerAppearanceInterfaceGroup = (tab: SettingTabBuilder) => {
+const registerAppearanceInterfaceGroup = (tab: SettingTabBuilder) => {
     const browser = isBrowser();
     const group = tab.group("interface", window.siyuan.languages.configGroupInterface);
 
@@ -266,7 +266,7 @@ export const registerAppearanceInterfaceGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerAppearanceControlsGroup = (tab: SettingTabBuilder) => {
+const registerAppearanceControlsGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("controls", window.siyuan.languages.configGroupControls);
 
     group.select("editor.floatWindowMode", {
@@ -413,7 +413,7 @@ const mountAppearanceSetStatusBar = (root: HTMLElement) => {
     });
 };
 
-export const registerAppearancePersonalizationGroup = (tab: SettingTabBuilder) => {
+const registerAppearancePersonalizationGroup = (tab: SettingTabBuilder) => {
     const browser = isBrowser();
     const group = tab.group("personalization", window.siyuan.languages.configGroupPersonalization);
 

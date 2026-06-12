@@ -12,7 +12,7 @@ import {genConfigItemMainHtml, genConfigItemName} from "../render/fragments";
 import {getSyncProviderConfigKeywords} from "./syncUi";
 import {patchSyncConfig} from "./syncRuntime";
 
-export const registerSyncGroup = (tab: SettingTabBuilder) => {
+const registerSyncGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("sync", window.siyuan.languages.configGroupSync);
 
     group.select("sync.provider", {
@@ -107,7 +107,7 @@ const mountSyncCloudDir = (root: HTMLElement) => {
     }
 };
 
-export const registerRepoGroup = (tab: SettingTabBuilder) => {
+const registerRepoGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("repo", window.siyuan.languages.configGroupLocalDataRepo);
 
     group.slot({

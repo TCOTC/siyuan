@@ -21,7 +21,7 @@ const genImportUploadButtonHtml = (inputId: string, label: string): string =>
     ${label}
 </button>`;
 
-export const registerAppGeneralGroup = (tab: SettingTabBuilder) => {
+const registerAppGeneralGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("general", window.siyuan.languages.configGroupGeneral);
 
     if (!isBrowser() && !window.siyuan.config.system.isMicrosoftStore && window.siyuan.config.system.container === "std" && window.siyuan.config.system.os !== "linux") {
@@ -102,7 +102,7 @@ const mountNetworkProxy = (root: HTMLElement) => {
     });
 };
 
-export const registerAppDataGroup = (tab: SettingTabBuilder) => {
+const registerAppDataGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("data", window.siyuan.languages.configGroupData);
 
     group.button({
@@ -198,7 +198,7 @@ const mountExportData = (root: HTMLElement) => {
     });
 };
 
-export const registerAppMaintenanceGroup = (tab: SettingTabBuilder) => {
+const registerAppMaintenanceGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("maintenance", window.siyuan.languages.configGroupMaintenance);
 
     group.button({

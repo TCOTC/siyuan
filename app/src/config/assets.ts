@@ -38,7 +38,7 @@ export const mountAssetsTab = (root: HTMLElement, keywords?: string, app?: App) 
     }
 };
 
-export const assets = {
+const assets = {
     element: undefined as Element,
     genHTML: () => {
         const mobile = isMobile();

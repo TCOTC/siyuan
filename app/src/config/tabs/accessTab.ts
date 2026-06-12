@@ -12,7 +12,7 @@ import {genConfigItemMainHtml} from "../render/fragments";
 import {renderPublishAuthAccounts, savePublish, sendAccessSetting, updatePublishConfig} from "./accessRuntime";
 import {sendAppSetting} from "./appRuntime";
 
-export const registerAccessAuthGroup = (tab: SettingTabBuilder) => {
+const registerAccessAuthGroup = (tab: SettingTabBuilder) => {
     const hideOnWeb = isBrowser() && !isInMobileApp();
     if (hideOnWeb) {
         return;
@@ -91,7 +91,7 @@ const bindApiTokenInput = (root: HTMLElement) => {
     });
 };
 
-export const registerAccessServerGroup = (tab: SettingTabBuilder) => {
+const registerAccessServerGroup = (tab: SettingTabBuilder) => {
     const hideOnWeb = isBrowser() && !isInMobileApp();
     if (hideOnWeb) {
         return;
@@ -211,7 +211,7 @@ export const registerAccessServerGroup = (tab: SettingTabBuilder) => {
     });
 };
 
-export const registerAccessPublishGroup = (tab: SettingTabBuilder) => {
+const registerAccessPublishGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("publish", window.siyuan.languages.configGroupPublish);
 
     group.switch("publish.enable", {
