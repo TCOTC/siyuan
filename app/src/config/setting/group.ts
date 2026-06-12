@@ -1,12 +1,12 @@
 import {normalizeSearchText} from "../search/normalize";
 
-interface SettingGroup {
+export interface SettingGroup {
     id: string;
     tabId: string;
     title: string;
     order: number;
-    /** 分组检索串（注册时 normalize） */
-    searchIndex: readonly string[];
+    /** 标题检索串（注册时 normalize） */
+    searchTitle: string;
 }
 
 const groupsByTab = new Map<string, Map<string, SettingGroup>>();
@@ -24,13 +24,12 @@ export const registerSettingGroup = (tabId: string, groupId: string, title: stri
     }
     const order = groupOrderByTab.get(tabId) ?? 0;
     groupOrderByTab.set(tabId, order + 1);
-    const searchText = normalizeSearchText(title);
     const group: SettingGroup = {
         id: groupId,
         tabId,
         title,
         order,
-        searchIndex: searchText ? [searchText] : [],
+        searchTitle: normalizeSearchText(title),
     };
     tabGroups.set(groupId, group);
     return group;

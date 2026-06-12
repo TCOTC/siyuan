@@ -11,6 +11,45 @@ export const normalizeSearchText = (text: string): string => {
     return plain.trim().toLowerCase();
 };
 
+/** 注册时构建检索索引（normalize、去重） */
+export const buildSearchIndex = (rawStrings: readonly string[]): readonly string[] => {
+    const strings: string[] = [];
+    for (const text of rawStrings) {
+        const normalized = normalizeSearchText(text);
+        if (normalized.length > 0) {
+            strings.push(normalized);
+        }
+    }
+    return [...new Set(strings)];
+};
+
+/** 注册时构建条目检索索引（normalize、去重） */
+export const buildItemSearchIndex = (item: {
+    kind: string;
+    rowParts?: RowPart[];
+    searchTexts?: () => string[];
+}): readonly string[] => {
+    const strings: string[] = [];
+    if (item.kind === "full" && item.rowParts) {
+        for (const part of item.rowParts) {
+            for (const s of collectPartSearchStrings(part)) {
+                if (s.length > 0) {
+                    strings.push(s);
+                }
+            }
+        }
+    }
+    if (item.searchTexts) {
+        for (const text of item.searchTexts()) {
+            const normalized = normalizeSearchText(text);
+            if (normalized.length > 0) {
+                strings.push(normalized);
+            }
+        }
+    }
+    return [...new Set(strings)];
+};
+
 const collectPartSearchStrings = (part: RowPart): string[] => {
     switch (part.kind) {
         case "title":
@@ -23,24 +62,4 @@ const collectPartSearchStrings = (part: RowPart): string[] => {
         default:
             return [];
     }
-};
-
-/** 注册时构建条目检索索引（已 normalize） */
-export const buildItemSearchIndex = (item: {
-    kind: string;
-    rowParts?: RowPart[];
-    searchTexts?: () => string[];
-}): readonly string[] => {
-    const strings: string[] = [];
-    if (item.kind === "full" && item.rowParts) {
-        for (const part of item.rowParts) {
-            strings.push(...collectPartSearchStrings(part));
-        }
-    }
-    if (item.searchTexts) {
-        for (const text of item.searchTexts()) {
-            strings.push(normalizeSearchText(text));
-        }
-    }
-    return [...new Set(strings.filter((s) => s.length > 0))];
 };

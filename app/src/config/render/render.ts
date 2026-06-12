@@ -1,6 +1,5 @@
 import type {MountableSettingItem} from "../setting/item";
-import {getMountableItemsByGroup} from "../setting/item";
-import {getSettingGroupsByTabId} from "../setting/group";
+import {getTabGroupEntries} from "../setting/item";
 import type {StringControl} from "../setting/control";
 import {
     isSettingControl,
@@ -275,16 +274,21 @@ export const genConfigGroup = (itemsHtml: string, title?: string, attrs?: Record
     return `<div class="config-group"${attrsHtml}>${title ? `<div class="config-title">${title}</div>` : ""}<div class="config-items">${itemsHtml}</div></div>`;
 };
 
-/** 按分组渲染注册项列表 */
-export const genGroupedItems = (tabId: string): string => {
-    const groups = getSettingGroupsByTabId(tabId);
-    const itemsByGroup = getMountableItemsByGroup(tabId);
+export type GroupedItemsView = {
+    html: string;
+    /** 与 html 中 DOM 顺序一致 */
+    items: MountableSettingItem[];
+};
+
+/** 按分组构建 HTML 与条目列表（mount 单次遍历共用） */
+export const buildGroupedItemsView = (tabId: string): GroupedItemsView => {
     const parts: string[] = [];
-    for (const group of groups) {
-        const groupItems = itemsByGroup.get(group.id) ?? [];
+    const items: MountableSettingItem[] = [];
+    for (const {group, items: groupItems} of getTabGroupEntries(tabId)) {
+        items.push(...groupItems);
         const itemsHtml = groupItems.map((item) => renderItemHtml(item)).join("");
         const title = group.title || undefined;
         parts.push(genConfigGroup(itemsHtml, title, {"data-config-group-id": group.id}));
     }
-    return parts.join("");
+    return {html: parts.join(""), items};
 };

@@ -12,7 +12,8 @@ import {
 } from "./control";
 import {registerSettingGroup} from "./group";
 import {registerSettingItem, type RegisterSettingItem} from "./item";
-import {scanPanelSettingTabSearch, scanSettingTabSearch} from "../search/match";
+import {scanSettingTabSearch} from "../search/match";
+import {buildSearchIndex, normalizeSearchText} from "../search/normalize";
 import {applySettingTabSearchVisibility, mountSettingTab} from "./mount";
 
 type SaveFn = (value: unknown) => void | Promise<void>;
@@ -519,13 +520,14 @@ export class SettingBuilder {
         register: (tab: SettingTabBuilder<TId>) => void,
     ): SettingTab {
         const {afterMount, ...shell} = options;
-        // 延迟注册至首次 mount / scanSearch：import 时 languages 未就绪，且搜索可能先于 mount
         let registered = false;
+        let tabSearchTitle: string | undefined;
         const ensureRegistered = () => {
             if (registered) {
                 return;
             }
             registered = true;
+            // 延迟注册至首次 mount / scanSearch：import 时 languages 未就绪，且搜索可能先于 mount
             register(new SettingTabBuilder(options));
         };
         return {
@@ -543,7 +545,10 @@ export class SettingBuilder {
             },
             scanSearch: (keywords) => {
                 ensureRegistered();
-                return scanSettingTabSearch(options.id, options.title(), keywords);
+                if (tabSearchTitle === undefined) {
+                    tabSearchTitle = normalizeSearchText(options.title());
+                }
+                return scanSettingTabSearch(options.id, tabSearchTitle, keywords);
             },
         };
     }
@@ -552,10 +557,28 @@ export class SettingBuilder {
         options: PanelSettingTabOptions<TId>,
     ): SettingTab {
         const {searchStrings, mount, ...shell} = options;
+        let tabSearchTitle: string | undefined;
+        let tabSearchIndex: readonly string[] | undefined;
         return {
             ...shell,
             mount: async (root, {keywords} = {}, app) => mount(root, keywords, app),
-            scanSearch: (keywords) => scanPanelSettingTabSearch(options.title(), searchStrings(), keywords),
+            scanSearch: (keywords) => {
+                if (tabSearchTitle === undefined) {
+                    tabSearchTitle = normalizeSearchText(options.title());
+                }
+                if (tabSearchIndex === undefined) {
+                    tabSearchIndex = buildSearchIndex(searchStrings());
+                }
+                let matches = false;
+                if (tabSearchTitle.length > 0 && tabSearchTitle.includes(keywords)) {
+                    // 匹配标签页标题
+                    matches = true;
+                } else if (tabSearchIndex.some((s) => s.includes(keywords))) {
+                    // 匹配标签页内部文案
+                    matches = true;
+                }
+                return {matches};
+            },
         };
     }
 }

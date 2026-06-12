@@ -1,14 +1,13 @@
-import {genGroupedItems} from "../render/render";
+import {buildGroupedItemsView} from "../render/render";
 import {normalizeSearchText} from "../search/normalize";
-import {getMountableItemsByTabId} from "./item";
 import {syncRangeRowValue} from "./domIO";
 
 /** 首次挂载：渲染全部注册项并执行 afterMount */
 export const mountSettingTab = async (tabId: string, root: HTMLElement) => {
-    root.innerHTML = genGroupedItems(tabId);
+    const {html, items} = buildGroupedItemsView(tabId);
+    root.innerHTML = html;
 
-    const tabItems = getMountableItemsByTabId(tabId);
-    for (const item of tabItems) {
+    for (const item of items) {
         await item.afterMount?.(root);
 
         if (item.kind === "full") {

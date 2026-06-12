@@ -1,5 +1,7 @@
 import type {RowPart} from "../render/parts";
 import type {SettingControl} from "./control";
+import type {SettingGroup} from "./group";
+import {getSettingGroupsByTabId} from "./group";
 import {buildItemSearchIndex} from "../search/normalize";
 
 type SettingItemBase = {
@@ -41,8 +43,42 @@ export type RegisterSettingItem =
     | Omit<RenderSettingItem, "searchIndex">
     | Omit<BindingSettingItem, "searchIndex">;
 
+export type TabGroupEntry = {
+    group: SettingGroup;
+    items: MountableSettingItem[];
+};
+
 const settingItemsById = new Map<SettingItem["id"], SettingItem>();
 const itemsByGroupCache = new Map<string, Map<string, MountableSettingItem[]>>();
+
+const getMountableItemsByGroup = (tabId: string): Map<string, MountableSettingItem[]> => {
+    let itemsByGroup = itemsByGroupCache.get(tabId);
+    if (itemsByGroup) {
+        return itemsByGroup;
+    }
+    itemsByGroup = new Map<string, MountableSettingItem[]>();
+    for (const item of settingItemsById.values()) {
+        if (item.kind !== "binding" && item.tabId === tabId) {
+            const groupItems = itemsByGroup.get(item.groupId);
+            if (groupItems) {
+                groupItems.push(item);
+            } else {
+                itemsByGroup.set(item.groupId, [item]);
+            }
+        }
+    }
+    itemsByGroupCache.set(tabId, itemsByGroup);
+    return itemsByGroup;
+};
+
+/** Tab 下按分组注册顺序的条目视图（渲染 / 搜索 / mount 共用） */
+export const getTabGroupEntries = (tabId: string): TabGroupEntry[] => {
+    const itemsByGroup = getMountableItemsByGroup(tabId);
+    return getSettingGroupsByTabId(tabId).map((group) => ({
+        group,
+        items: itemsByGroup.get(group.id) ?? [],
+    }));
+};
 
 export const registerSettingItem = (item: RegisterSettingItem) => {
     settingItemsById.set(item.id, {
@@ -52,35 +88,6 @@ export const registerSettingItem = (item: RegisterSettingItem) => {
     if (item.kind !== "binding") {
         itemsByGroupCache.delete(item.tabId);
     }
-};
-
-export const getMountableItemsByTabId = (tabId: string): MountableSettingItem[] => {
-    const result: MountableSettingItem[] = [];
-    for (const item of settingItemsById.values()) {
-        if (item.kind !== "binding" && item.tabId === tabId) {
-            result.push(item);
-        }
-    }
-    return result;
-};
-
-/** 按分组返回注册项（组内保持注册顺序）；注册变更后自动失效并懒重建 */
-export const getMountableItemsByGroup = (tabId: string) => {
-    let itemsByGroup = itemsByGroupCache.get(tabId);
-    if (itemsByGroup) {
-        return itemsByGroup;
-    }
-    itemsByGroup = new Map<string, MountableSettingItem[]>();
-    for (const item of getMountableItemsByTabId(tabId)) {
-        const groupItems = itemsByGroup.get(item.groupId);
-        if (groupItems) {
-            groupItems.push(item);
-        } else {
-            itemsByGroup.set(item.groupId, [item]);
-        }
-    }
-    itemsByGroupCache.set(tabId, itemsByGroup);
-    return itemsByGroup;
 };
 
 export const getSettingItem = (id: string) => settingItemsById.get(id);

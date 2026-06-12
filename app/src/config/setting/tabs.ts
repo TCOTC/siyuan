@@ -157,15 +157,12 @@ export const getSettingTabDefs = (): ISettingTabShell<TSettingTab>[] => {
     if (settingTabShellCache) {
         return settingTabShellCache;
     }
-    settingTabShellCache = (Object.keys(settingTabs) as TSettingTab[]).map((id) => {
-        const tab = settingTabs[id];
-        return {
-            id,
-            icon: tab.icon,
-            title: tab.title(),
-            hidden: tab.hidden?.(),
-        };
-    });
+    settingTabShellCache = (Object.entries(settingTabs) as [TSettingTab, SettingTab][]).map(([id, tab]) => ({
+        id,
+        icon: tab.icon,
+        title: tab.title(),
+        hidden: tab.hidden?.(),
+    }));
     return settingTabShellCache;
 };
 

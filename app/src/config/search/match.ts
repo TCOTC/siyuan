@@ -1,25 +1,20 @@
 import {SettingTabSearchResult} from "../setting/builder";
-import {getSettingGroupsByTabId} from "../setting/group";
-import {getMountableItemsByGroup} from "../setting/item";
-import {normalizeSearchText} from "./normalize";
-
-const stringsMatchQuery = (strings: readonly string[], keywords: string): boolean =>
-    strings.some((s) => s.includes(keywords));
+import {getTabGroupEntries} from "../setting/item";
 
 /** 一次遍历 SettingTab 的 Group / Item，同时得到侧栏命中与内容区可见性 */
 export const scanSettingTabSearch = (
     tabId: string,
-    tabTitle: string,
+    tabSearchTitle: string,
     keywords: string,
 ): SettingTabSearchResult => {
     const visibleItemIds = new Set<string>();
     const visibleGroupIds = new Set<string>();
 
-    if (stringsMatchQuery([normalizeSearchText(tabTitle)], keywords)) {
-        const itemsByGroup = getMountableItemsByGroup(tabId);
-        for (const group of getSettingGroupsByTabId(tabId)) {
+    if (tabSearchTitle.length > 0 && tabSearchTitle.includes(keywords)) {
+        // 匹配标签页标题
+        for (const {group, items} of getTabGroupEntries(tabId)) {
             visibleGroupIds.add(group.id);
-            for (const item of itemsByGroup.get(group.id) ?? []) {
+            for (const item of items) {
                 visibleItemIds.add(item.id);
             }
         }
@@ -27,18 +22,19 @@ export const scanSettingTabSearch = (
     }
 
     let matches = false;
-    const itemsByGroup = getMountableItemsByGroup(tabId);
-    for (const group of getSettingGroupsByTabId(tabId)) {
-        if (stringsMatchQuery(group.searchIndex, keywords)) {
+    for (const {group, items} of getTabGroupEntries(tabId)) {
+        if (group.searchTitle.length > 0 && group.searchTitle.includes(keywords)) {
+            // 匹配分组标题
             matches = true;
             visibleGroupIds.add(group.id);
-            for (const item of itemsByGroup.get(group.id) ?? []) {
+            for (const item of items) {
                 visibleItemIds.add(item.id);
             }
             continue;
         }
-        for (const item of itemsByGroup.get(group.id) ?? []) {
-            if (stringsMatchQuery(item.searchIndex, keywords)) {
+        for (const item of items) {
+            if (item.searchIndex.some((s) => s.includes(keywords))) {
+                // 匹配设置项文案
                 matches = true;
                 visibleItemIds.add(item.id);
                 visibleGroupIds.add(group.id);
@@ -46,23 +42,4 @@ export const scanSettingTabSearch = (
         }
     }
     return {matches, visibleItemIds, visibleGroupIds};
-};
-
-/** 面板型 SettingTab 的侧栏命中判断 */
-export const scanPanelSettingTabSearch = (
-    tabTitle: string,
-    searchStrings: readonly string[],
-    keywords: string,
-): SettingTabSearchResult => {
-    if (stringsMatchQuery([normalizeSearchText(tabTitle)], keywords)) {
-        return {matches: true};
-    }
-    const searchIndex: string[] = [];
-    for (const s of searchStrings) {
-        const normalized = normalizeSearchText(s);
-        if (normalized.length > 0) {
-            searchIndex.push(normalized);
-        }
-    }
-    return {matches: stringsMatchQuery(searchIndex, keywords)};
 };
