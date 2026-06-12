@@ -30,25 +30,25 @@ const genNotebookSavePathHtml = (
 export const registerFileTabsGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("tabs", window.siyuan.languages.configGroupTabs);
 
-    group.switch("alwaysSelectOpenedFile", {
+    group.switch("fileTree.alwaysSelectOpenedFile", {
         title: window.siyuan.languages.selectOpen,
         desc: window.siyuan.languages.fileTree2,
     });
-    group.switch("openFilesUseCurrentTab", {
+    group.switch("fileTree.openFilesUseCurrentTab", {
         title: window.siyuan.languages.fileTree7,
         desc: window.siyuan.languages.fileTree8,
     });
-    group.switch("noSplitScreenWhenOpenTab", {
+    group.switch("fileTree.noSplitScreenWhenOpenTab", {
         title: window.siyuan.languages.noSplitScreenWhenOpenTab,
         desc: window.siyuan.languages.noSplitScreenWhenOpenTabTip,
     });
-    group.number("maxOpenTabCount", {
+    group.number("fileTree.maxOpenTabCount", {
         title: window.siyuan.languages.tabLimit,
         desc: window.siyuan.languages.tabLimit1,
         min: 1,
         max: 32,
     });
-    group.switch("closeTabsOnStart", {
+    group.switch("fileTree.closeTabsOnStart", {
         title: window.siyuan.languages.fileTree9,
         desc: window.siyuan.languages.fileTree10,
     });
@@ -57,7 +57,7 @@ export const registerFileTabsGroup = (tab: SettingTabBuilder) => {
 export const registerFileNewDocumentGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("newDocument", window.siyuan.languages.configGroupNewDocument);
 
-    group.switch("createDocAtTop", {
+    group.switch("fileTree.createDocAtTop", {
         title: window.siyuan.languages.fileTree24,
         desc: window.siyuan.languages.fileTree25,
     });
@@ -220,28 +220,28 @@ export const registerFileManagementGroup = (tab: SettingTabBuilder) => {
         }],
     });
 
-    group.number("maxListCount", {
+    group.number("fileTree.maxListCount", {
         title: window.siyuan.languages.fileTree16,
         desc: window.siyuan.languages.fileTree17,
         min: 1,
         max: 10240,
     });
-    group.number("largeFileWarningSize", {
+    group.number("fileTree.largeFileWarningSize", {
         title: window.siyuan.languages.fileTree22,
         desc: window.siyuan.languages.fileTree23,
         min: 2,
         max: 10240,
         unit: "MB",
     });
-    group.switch("allowCreateDeeper", {
+    group.switch("fileTree.allowCreateDeeper", {
         title: window.siyuan.languages.fileTree18,
         desc: window.siyuan.languages.fileTree19,
     });
-    group.switch("useSingleLineSave", {
+    group.switch("fileTree.useSingleLineSave", {
         title: window.siyuan.languages.fileTree20,
         desc: window.siyuan.languages.fileTree21,
     });
-    group.switch("removeDocWithoutConfirm", {
+    group.switch("fileTree.removeDocWithoutConfirm", {
         title: window.siyuan.languages.fileTree3,
         desc: window.siyuan.languages.fileTree4,
     });
@@ -250,7 +250,7 @@ export const registerFileManagementGroup = (tab: SettingTabBuilder) => {
 export const registerFileOthersGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("others", window.siyuan.languages.configGroupOthers);
 
-    group.number("recentDocsMaxListCount", {
+    group.number("fileTree.recentDocsMaxListCount", {
         title: window.siyuan.languages.recentDocsMaxListCount,
         desc: window.siyuan.languages.recentDocsMaxListCountTip,
         min: 32,

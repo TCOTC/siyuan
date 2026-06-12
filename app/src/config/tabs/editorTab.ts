@@ -12,11 +12,11 @@ export const registerEditorBehaviorGroup = (tab: SettingTabBuilder) => {
     const browser = isBrowser();
     const group = tab.group("behavior", window.siyuan.languages.configGroupBehavior);
     const readOnlyKeymap = window.siyuan.config.keymap.general.editReadonly.custom;
-    group.switch("readOnly", {
+    group.switch("editor.readOnly", {
         title: `${window.siyuan.languages.editReadonly} <code class="fn__code${readOnlyKeymap ? "" : " fn__none"}">${updateHotkeyTip(readOnlyKeymap)}</code>`,
         desc: window.siyuan.languages.editReadonlyTip,
     });
-    group.switch("spellcheck", {
+    group.switch("editor.spellcheck", {
         title: window.siyuan.languages.spellcheck,
         desc: browser ? window.siyuan.languages.spellcheckTip : window.siyuan.languages.spellcheckTip2,
         afterMount: bindSpellcheckLanguagesVisibility,
@@ -32,26 +32,26 @@ export const registerEditorBehaviorGroup = (tab: SettingTabBuilder) => {
             afterMount: bindSpellcheckLanguagesChips,
         });
     }
-    group.range("codeTabSpaces", {
+    group.range("editor.codeTabSpaces", {
         title: window.siyuan.languages.md29,
         desc: window.siyuan.languages.md30,
         min: 0,
         max: 8,
         step: 2,
     });
-    group.switch("listLogicalOutdent", {
+    group.switch("editor.listLogicalOutdent", {
         title: window.siyuan.languages.outlineOutdent,
         desc: window.siyuan.languages.outlineOutdentTip,
     });
-    group.switch("listItemDotNumberClickFocus", {
+    group.switch("editor.listItemDotNumberClickFocus", {
         title: window.siyuan.languages.listItemDotNumberClickFocus,
         desc: window.siyuan.languages.listItemDotNumberClickFocusTip,
     });
-    group.switch("pasteURLAutoConvert", {
+    group.switch("editor.pasteURLAutoConvert", {
         title: window.siyuan.languages.pasteURLAutoConvert,
         desc: window.siyuan.languages.pasteURLAutoConvertTip,
     });
-    group.number("dynamicLoadBlocks", {
+    group.number("editor.dynamicLoadBlocks", {
         title: window.siyuan.languages.dynamicLoadBlocks,
         desc: window.siyuan.languages.dynamicLoadBlocksTip,
         min: 48,
@@ -99,19 +99,19 @@ const bindSpellcheckLanguagesChips = async (root: HTMLElement) => {
 
 export const registerEditorBlockFeaturesGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("blockFeatures", window.siyuan.languages.configGroupBlockFeatures);
-    group.switch("displayNetImgMark", {
+    group.switch("editor.displayNetImgMark", {
         title: window.siyuan.languages.md7,
         desc: window.siyuan.languages.md8,
     });
-    group.switch("displayBookmarkIcon", {
+    group.switch("editor.displayBookmarkIcon", {
         title: window.siyuan.languages.md12,
         desc: window.siyuan.languages.md16,
     });
-    group.switch("embedBlockBreadcrumb", {
+    group.switch("editor.embedBlockBreadcrumb", {
         title: window.siyuan.languages.embedBlockBreadcrumb,
         desc: window.siyuan.languages.embedBlockBreadcrumbTip,
     });
-    group.select("headingEmbedMode", {
+    group.select("editor.headingEmbedMode", {
         title: window.siyuan.languages.headingEmbedMode,
         desc: window.siyuan.languages.headingEmbedModeTip,
         options: [
@@ -120,15 +120,15 @@ export const registerEditorBlockFeaturesGroup = (tab: SettingTabBuilder) => {
             {value: 2, label: window.siyuan.languages.showHeadingOnlyBlocks},
         ],
     });
-    group.switch("codeLineWrap", {
+    group.switch("editor.codeLineWrap", {
         title: window.siyuan.languages.md31,
         desc: window.siyuan.languages.md32,
     });
-    group.switch("codeLigatures", {
+    group.switch("editor.codeLigatures", {
         title: window.siyuan.languages.md2,
         desc: window.siyuan.languages.md3,
     });
-    group.switch("codeSyntaxHighlightLineNum", {
+    group.switch("editor.codeSyntaxHighlightLineNum", {
         title: window.siyuan.languages.md27,
         desc: window.siyuan.languages.md28,
     });
@@ -136,41 +136,41 @@ export const registerEditorBlockFeaturesGroup = (tab: SettingTabBuilder) => {
 
 export const registerEditorBidirectionalGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("bidirectional", window.siyuan.languages.configGroupBidirectionalLinks);
-    group.switch("onlySearchForDoc", {
+    group.switch("editor.onlySearchForDoc", {
         title: window.siyuan.languages.onlySearchForDoc,
         desc: window.siyuan.languages.onlySearchForDocTip,
     });
-    group.number("blockRefDynamicAnchorTextMaxLen", {
+    group.number("editor.blockRefDynamicAnchorTextMaxLen", {
         title: window.siyuan.languages.md37,
         desc: window.siyuan.languages.md38,
         min: 1,
         max: 5120,
     });
-    group.switch("virtualBlockRef", {
+    group.switch("editor.virtualBlockRef", {
         title: window.siyuan.languages.md33,
         desc: window.siyuan.languages.md34,
     });
-    group.textBlock("virtualBlockRefInclude", {
+    group.textBlock("editor.virtualBlockRefInclude", {
         title: window.siyuan.languages.md9,
         desc: window.siyuan.languages.md36,
         mode: "textarea",
     });
-    group.textBlock("virtualBlockRefExclude", {
+    group.textBlock("editor.virtualBlockRefExclude", {
         title: window.siyuan.languages.md35,
         desc: window.siyuan.languages.md41,
         mode: "textarea",
     });
-    group.switch("backlinkContainChildren", {
+    group.switch("editor.backlinkContainChildren", {
         title: window.siyuan.languages.backlinkContainChildren,
         desc: window.siyuan.languages.backlinkContainChildrenTip,
     });
-    group.number("backlinkExpandCount", {
+    group.number("editor.backlinkExpandCount", {
         title: window.siyuan.languages.backlinkExpand,
         desc: window.siyuan.languages.backlinkExpandTip,
         min: 0,
         max: 512,
     });
-    group.number("backmentionExpandCount", {
+    group.number("editor.backmentionExpandCount", {
         title: window.siyuan.languages.backmentionExpand,
         desc: window.siyuan.languages.backmentionExpandTip,
         min: -1,
@@ -180,35 +180,35 @@ export const registerEditorBidirectionalGroup = (tab: SettingTabBuilder) => {
 
 export const registerEditorMarkdownInlineGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("markdownInline", window.siyuan.languages.configGroupMarkdownInlineSyntax);
-    group.switch("markdown.inlineAsterisk", {
+    group.switch("editor.markdown.inlineAsterisk", {
         title: window.siyuan.languages.editorMarkdownInlineAsterisk,
         desc: window.siyuan.languages.editorMarkdownInlineAsteriskTip,
     });
-    group.switch("markdown.inlineUnderscore", {
+    group.switch("editor.markdown.inlineUnderscore", {
         title: window.siyuan.languages.editorMarkdownInlineUnderscore,
         desc: window.siyuan.languages.editorMarkdownInlineUnderscoreTip,
     });
-    group.switch("markdown.inlineSup", {
+    group.switch("editor.markdown.inlineSup", {
         title: window.siyuan.languages.editorMarkdownInlineSup,
         desc: window.siyuan.languages.editorMarkdownInlineSupTip,
     });
-    group.switch("markdown.inlineSub", {
+    group.switch("editor.markdown.inlineSub", {
         title: window.siyuan.languages.editorMarkdownInlineSub,
         desc: window.siyuan.languages.editorMarkdownInlineSubTip,
     });
-    group.switch("markdown.inlineTag", {
+    group.switch("editor.markdown.inlineTag", {
         title: window.siyuan.languages.editorMarkdownInlineTag,
         desc: window.siyuan.languages.editorMarkdownInlineTagTip,
     });
-    group.switch("markdown.inlineMath", {
+    group.switch("editor.markdown.inlineMath", {
         title: window.siyuan.languages.editorMarkdownInlineMath,
         desc: window.siyuan.languages.editorMarkdownInlineMathTip,
     });
-    group.switch("markdown.inlineStrikethrough", {
+    group.switch("editor.markdown.inlineStrikethrough", {
         title: window.siyuan.languages.editorMarkdownInlineStrikethrough,
         desc: window.siyuan.languages.editorMarkdownInlineStrikethroughTip,
     });
-    group.switch("markdown.inlineMark", {
+    group.switch("editor.markdown.inlineMark", {
         title: window.siyuan.languages.editorMarkdownInlineMark,
         desc: window.siyuan.languages.editorMarkdownInlineMarkTip,
     });
@@ -216,20 +216,20 @@ export const registerEditorMarkdownInlineGroup = (tab: SettingTabBuilder) => {
 
 export const registerEditorAdvancedGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("advanced", window.siyuan.languages.configGroupAdvanced);
-    group.text("plantUMLServePath", {
+    group.text("editor.plantUMLServePath", {
         title: window.siyuan.languages.md39,
         desc: window.siyuan.languages.md40,
     });
-    group.textBlock("katexMacros", {
+    group.textBlock("editor.katexMacros", {
         title: window.siyuan.languages.katexMacros,
         desc: window.siyuan.languages.katexMacrosTip,
         mode: "textarea",
     });
-    group.switch("allowSVGScript", {
+    group.switch("editor.allowSVGScript", {
         title: window.siyuan.languages.allowSVGScript,
         desc: window.siyuan.languages.allowSVGScriptTip,
     });
-    group.switch("allowHTMLBLockScript", {
+    group.switch("editor.allowHTMLBLockScript", {
         title: window.siyuan.languages.allowHTMLBLockScript,
         desc: window.siyuan.languages.allowHTMLBLockScriptTip,
     });

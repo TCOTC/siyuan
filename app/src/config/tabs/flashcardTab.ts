@@ -4,19 +4,19 @@ import type {SettingTabBuilder} from "../setting/builder";
 export const registerFlashcardCreationGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("creation", window.siyuan.languages.configGroupCardCreation);
 
-    group.switch("mark", {
+    group.switch("flashcard.mark", {
         title: window.siyuan.languages.flashcardMark,
         desc: window.siyuan.languages.flashcardMarkTip,
     });
-    group.switch("list", {
+    group.switch("flashcard.list", {
         title: window.siyuan.languages.flashcardList,
         desc: window.siyuan.languages.flashcardListTip,
     });
-    group.switch("heading", {
+    group.switch("flashcard.heading", {
         title: window.siyuan.languages.flashcardHeading,
         desc: window.siyuan.languages.flashcardHeadingTip,
     });
-    group.switch("superBlock", {
+    group.switch("flashcard.superBlock", {
         title: window.siyuan.languages.flashcardSuperBlock,
         desc: window.siyuan.languages.flashcardSuperBlockTip,
     });
@@ -25,7 +25,7 @@ export const registerFlashcardCreationGroup = (tab: SettingTabBuilder) => {
 export const registerFlashcardReviewGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("review", window.siyuan.languages.configGroupReview);
 
-    group.select("reviewMode", {
+    group.select("flashcard.reviewMode", {
         title: window.siyuan.languages.reviewMode,
         desc: window.siyuan.languages.reviewModeTip,
         options: [
@@ -34,30 +34,30 @@ export const registerFlashcardReviewGroup = (tab: SettingTabBuilder) => {
             {value: 2, label: window.siyuan.languages.reviewMode2},
         ],
     });
-    group.number("newCardLimit", {
+    group.number("flashcard.newCardLimit", {
         title: window.siyuan.languages.flashcardNewCardLimit,
         desc: window.siyuan.languages.flashcardNewCardLimitTip,
         min: 0,
     });
-    group.number("reviewCardLimit", {
+    group.number("flashcard.reviewCardLimit", {
         title: window.siyuan.languages.flashcardReviewCardLimit,
         desc: window.siyuan.languages.flashcardReviewCardLimitTip,
         min: 0,
     });
-    group.number("requestRetention", {
+    group.number("flashcard.requestRetention", {
         title: window.siyuan.languages.flashcardFSRSParamRequestRetention,
         desc: window.siyuan.languages.flashcardFSRSParamRequestRetentionTip,
         min: 0,
         max: 1,
         step: "0.01",
     });
-    group.number("maximumInterval", {
+    group.number("flashcard.maximumInterval", {
         title: window.siyuan.languages.flashcardFSRSParamMaximumInterval,
         desc: window.siyuan.languages.flashcardFSRSParamMaximumIntervalTip,
         min: 365,
         max: 36500,
     });
-    group.textBlock("weights", {
+    group.textBlock("flashcard.weights", {
         title: window.siyuan.languages.flashcardFSRSParamWeights,
         desc: window.siyuan.languages.flashcardFSRSParamWeightsTip,
         mode: "input-text",
@@ -67,7 +67,7 @@ export const registerFlashcardReviewGroup = (tab: SettingTabBuilder) => {
 export const registerFlashcardOthersGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("others", window.siyuan.languages.configGroupOthers);
 
-    group.switch("deck", {
+    group.switch("flashcard.deck", {
         title: window.siyuan.languages.flashcardDeck,
         desc: window.siyuan.languages.flashcardDeckTip,
     });

@@ -27,7 +27,6 @@ export interface SettingTabShell<TId extends string = string> {
 }
 
 interface ItemsSettingTabOptions<TId extends string = string> extends SettingTabShell<TId> {
-    namespace: string;
     /** 控件未指定 save 时，按控件 id 提交配置变更 */
     defaultSave?: (controlId: string, value: unknown) => void;
     /** 条目 mount 完成后的 SettingTab 级初始化（如记录根节点、拉取动态数据） */
@@ -165,30 +164,6 @@ const stackLinesToControls = (lines: StackLine[]): CompositeControlSpec[] => {
     return controls;
 };
 
-const CONFIG_ID_PREFIXES = [
-    "editor.",
-    "fileTree.",
-    "appearance.",
-    "export.",
-    "search.",
-    "flashcard.",
-    "ai.",
-    "system.",
-    "api.",
-    "publish.",
-    "account.",
-    "sync.",
-    "repo.",
-];
-
-/** 相对路径加命名空间前缀；已含已知配置域前缀则视为全路径 */
-const resolveId = (namespace: string, path: string) => {
-    if (path.startsWith(`${namespace}.`) || CONFIG_ID_PREFIXES.some((prefix) => path.startsWith(prefix))) {
-        return path;
-    }
-    return `${namespace}.${path}`;
-};
-
 const defaultSearchTexts = (spec: {title?: string; desc?: string; keywords?: string[]}) => {
     if (spec.keywords) {
         return () => [...spec.keywords!];
@@ -199,8 +174,6 @@ const defaultSearchTexts = (spec: {title?: string; desc?: string; keywords?: str
 /** stack 组合行内逐行注册；由 `SettingGroupBuilder.stack` 回调使用 */
 class StackLineBuilder {
     private readonly lines: StackLine[] = [];
-
-    constructor(private readonly namespace: string) {}
 
     getLines(): StackLine[] {
         return this.lines;
@@ -226,8 +199,7 @@ class StackLineBuilder {
     }
 
     select(path: string, spec: StackSelectSpec) {
-        const id = resolveId(this.namespace, path);
-        const control = controlSelect(id, {options: spec.options, read: spec.readConfig});
+        const control = controlSelect(path, {options: spec.options, read: spec.readConfig});
         this.lines.push({
             left: {kind: "desc", text: spec.desc},
             right: control,
@@ -236,8 +208,7 @@ class StackLineBuilder {
     }
 
     switch(path: string, spec: StackSwitchSpec) {
-        const id = resolveId(this.namespace, path);
-        const control = controlBoolean(id);
+        const control = controlBoolean(path);
         this.lines.push({
             left: {kind: "desc", text: spec.desc},
             right: control,
@@ -246,8 +217,7 @@ class StackLineBuilder {
     }
 
     number(path: string, spec: StackNumberSpec) {
-        const id = resolveId(this.namespace, path);
-        const control = controlNumber(id, {min: spec.min, max: spec.max});
+        const control = controlNumber(path, {min: spec.min, max: spec.max});
         this.lines.push({
             left: {kind: "desc", text: spec.desc},
             right: control,
@@ -256,8 +226,7 @@ class StackLineBuilder {
     }
 
     textBlock(path: string, spec: StackTextBlockSpec) {
-        const id = resolveId(this.namespace, path);
-        const control = controlTextBlock(id, {mode: spec.mode, read: spec.readConfig});
+        const control = controlTextBlock(path, {mode: spec.mode, read: spec.readConfig});
         this.lines.push({left: control});
         return this;
     }
@@ -278,7 +247,6 @@ class SettingGroupBuilder<TId extends string> {
         control: SettingControl,
         spec: ControlSpecBase,
     ) {
-        const id = resolveId(this.tab.namespace, path);
         const afterMount = control.afterMount || spec.afterMount
             ? async (root: HTMLElement) => {
                 await control.afterMount?.(root);
@@ -286,7 +254,7 @@ class SettingGroupBuilder<TId extends string> {
             }
             : undefined;
         registerSettingItem({
-            id,
+            id: path,
             tabId: this.tab.id,
             groupId: this.groupId,
             kind: "full",
@@ -294,15 +262,14 @@ class SettingGroupBuilder<TId extends string> {
             control,
             searchTexts: defaultSearchTexts({title: spec.title, desc: spec.desc, keywords: spec.keywords}),
             read: spec.read ?? ((el) => control.readDom(el)),
-            save: spec.save ?? this.tab.defaultSave?.bind(null, id),
+            save: spec.save ?? this.tab.defaultSave?.bind(null, path),
             afterMount,
         } as RegisterSettingItem);
         return this;
     }
 
     switch(path: string, spec: SwitchSpec) {
-        const id = resolveId(this.tab.namespace, path);
-        const control = controlBoolean(id, {read: spec.readConfig});
+        const control = controlBoolean(path, {read: spec.readConfig});
         return this.registerControl(path, [
             {kind: "title", text: spec.title},
             ...(spec.desc ? [{kind: "desc" as const, text: spec.desc}] : []),
@@ -311,8 +278,7 @@ class SettingGroupBuilder<TId extends string> {
     }
 
     number(path: string, spec: NumberSpec) {
-        const id = resolveId(this.tab.namespace, path);
-        const control = controlNumber(id, {
+        const control = controlNumber(path, {
             min: spec.min,
             max: spec.max,
             step: spec.step,
@@ -326,8 +292,7 @@ class SettingGroupBuilder<TId extends string> {
     }
 
     range(path: string, spec: RangeSpec) {
-        const id = resolveId(this.tab.namespace, path);
-        const control = controlRange(id, {min: spec.min, max: spec.max, step: spec.step});
+        const control = controlRange(path, {min: spec.min, max: spec.max, step: spec.step});
         return this.registerControl(path, [
             {kind: "title", text: spec.title},
             {kind: "desc", text: spec.desc ?? ""},
@@ -336,8 +301,7 @@ class SettingGroupBuilder<TId extends string> {
     }
 
     select(path: string, spec: SelectSpec) {
-        const id = resolveId(this.tab.namespace, path);
-        const control = controlSelect(id, {options: spec.options, read: spec.readConfig});
+        const control = controlSelect(path, {options: spec.options, read: spec.readConfig});
         return this.registerControl(path, [
             {kind: "title", text: spec.title},
             {kind: "desc", text: spec.desc ?? ""},
@@ -346,8 +310,7 @@ class SettingGroupBuilder<TId extends string> {
     }
 
     text(path: string, spec: TextSpec) {
-        const id = resolveId(this.tab.namespace, path);
-        const control = controlString(id);
+        const control = controlString(path);
         return this.registerControl(path, [
             {kind: "title", text: spec.title},
             {kind: "desc", text: spec.desc},
@@ -356,8 +319,7 @@ class SettingGroupBuilder<TId extends string> {
     }
 
     textBlock(path: string, spec: TextBlockSpec) {
-        const id = resolveId(this.tab.namespace, path);
-        const control = controlTextBlock(id, {mode: spec.mode, read: spec.readConfig});
+        const control = controlTextBlock(path, {mode: spec.mode, read: spec.readConfig});
         return this.registerControl(path, [
             {kind: "title", text: spec.title},
             {kind: "desc", text: spec.desc},
@@ -366,10 +328,8 @@ class SettingGroupBuilder<TId extends string> {
     }
 
     textPair(spec: TextPairSpec) {
-        const leftId = resolveId(this.tab.namespace, spec.leftPath);
-        const rightId = resolveId(this.tab.namespace, spec.rightPath);
-        const leftControl = controlString(leftId);
-        const rightControl = controlString(rightId);
+        const leftControl = controlString(spec.leftPath);
+        const rightControl = controlString(spec.rightPath);
         const searchTexts = spec.keywords ?? [spec.title, spec.desc];
         const key = spec.key ?? `textPair_${spec.leftPath}_${spec.rightPath}`;
         this.composite({
@@ -385,7 +345,7 @@ class SettingGroupBuilder<TId extends string> {
     }
 
     stack(spec: StackSpec, configure: (b: StackLineBuilder) => void) {
-        const builder = new StackLineBuilder(this.tab.namespace);
+        const builder = new StackLineBuilder();
         configure(builder);
         const lines = builder.getLines();
         const searchTexts = spec.keywords ?? [];
@@ -420,13 +380,12 @@ class SettingGroupBuilder<TId extends string> {
         const items: SwitchQueryItem[] = [];
         const controls: CompositeControlSpec[] = [];
         for (const item of spec.items) {
-            const id = resolveId(this.tab.namespace, item.id);
             if (item.kind === "switch") {
-                const control = controlBoolean(id);
+                const control = controlBoolean(item.id);
                 items.push({...control, label: item.label, icon: item.icon});
                 controls.push({control});
             } else {
-                const control = controlNumber(id, {min: item.min, max: item.max});
+                const control = controlNumber(item.id, {min: item.min, max: item.max});
                 items.push({...control, label: item.label});
                 controls.push({control});
             }
@@ -444,7 +403,7 @@ class SettingGroupBuilder<TId extends string> {
      * 纯展示 / 自行绑定事件的块。
      */
     slot(spec: SlotSpec) {
-        const id = `${this.tab.namespace}.__slot.${spec.key}`;
+        const id = `${this.tab.id}.__slot.${spec.key}`;
         registerSettingItem({
             id,
             tabId: this.tab.id,

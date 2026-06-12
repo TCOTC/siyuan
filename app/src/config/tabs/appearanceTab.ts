@@ -154,7 +154,7 @@ export const registerAppearanceInterfaceGroup = (tab: SettingTabBuilder) => {
     const browser = isBrowser();
     const group = tab.group("interface", window.siyuan.languages.configGroupInterface);
 
-    group.select("lang", {
+    group.select("appearance.lang", {
         title: window.siyuan.languages.language,
         desc: window.siyuan.languages.language1,
         options: window.siyuan.config.langs.map((lang) => ({
@@ -162,7 +162,7 @@ export const registerAppearanceInterfaceGroup = (tab: SettingTabBuilder) => {
             label: `${lang.label} (${lang.name})`,
         })),
     });
-    group.select("__themeMode", {
+    group.select("appearance.__themeMode", {
         title: window.siyuan.languages.appearance4,
         desc: window.siyuan.languages.appearance5,
         options: [
@@ -288,7 +288,7 @@ export const registerAppearanceControlsGroup = (tab: SettingTabBuilder) => {
         unit: "ms",
         save: (value) => editorConfigApi.patch("editor.floatWindowDelay", value),
     });
-    group.select("closeButtonBehavior", {
+    group.select("appearance.closeButtonBehavior", {
         title: window.siyuan.languages.appearance10,
         desc: window.siyuan.languages.appearance12,
         options: [

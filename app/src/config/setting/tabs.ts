@@ -31,21 +31,18 @@ const settingTabs = {
         id: "editor",
         icon: "iconEdit",
         title: () => window.siyuan.languages.editor,
-        namespace: "editor",
         defaultSave: editorConfigApi.patch,
     }, registerEditorTab),
     file: setting.tab({
         id: "file",
         icon: "iconFiles",
         title: () => window.siyuan.languages.fileTree,
-        namespace: "fileTree",
         defaultSave: fileConfigApi.patch,
     }, registerFileTab),
     appearance: setting.tab({
         id: "appearance",
         icon: "iconTheme",
         title: () => window.siyuan.languages.appearance,
-        namespace: "appearance",
         defaultSave: appearanceConfigApi.patch,
     }, registerAppearanceTab),
     bazaar: setting.panel({
@@ -68,14 +65,12 @@ const settingTabs = {
         id: "flashcard",
         icon: "iconRiffCard",
         title: () => window.siyuan.languages.riffCard,
-        namespace: "flashcard",
         defaultSave: flashcardConfigApi.patch,
     }, registerFlashcardTab),
     ai: setting.tab({
         id: "ai",
         icon: "iconSparkles",
         title: () => window.siyuan.languages.ai,
-        namespace: "ai",
         defaultSave: aiConfigApi.patch,
     }, registerAiTab),
     assets: setting.panel({
@@ -94,14 +89,12 @@ const settingTabs = {
         id: "export",
         icon: "iconUpload",
         title: () => window.siyuan.languages.export,
-        namespace: "export",
         defaultSave: exportConfigApi.patch,
     }, registerExportTab),
     search: setting.tab({
         id: "search",
         icon: "iconSearch",
         title: () => window.siyuan.languages.search,
-        namespace: "search",
         defaultSave: searchConfigApi.patch,
     }, registerSearchTab),
     keymap: setting.panel({
@@ -115,7 +108,6 @@ const settingTabs = {
         id: "sync",
         icon: "iconCloud",
         title: () => window.siyuan.languages.accountSync,
-        namespace: "sync",
         defaultSave: patchSyncConfig,
         afterMount: mountSyncTabExtras,
     }, registerSyncTab),
@@ -123,20 +115,17 @@ const settingTabs = {
         id: "access",
         icon: "iconLock",
         title: () => window.siyuan.languages.authentication,
-        namespace: "access",
         afterMount: mountAccessTab,
     }, registerAccessTab),
     app: setting.tab({
         id: "app",
         icon: "iconSiYuan",
         title: () => window.siyuan.languages.application,
-        namespace: "system",
     }, registerAppTab),
     about: setting.tab({
         id: "about",
         icon: "iconInfo",
         title: () => window.siyuan.languages.about,
-        namespace: "about",
     }, registerAboutTab),
 };
 

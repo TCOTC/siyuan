@@ -10,15 +10,15 @@ import {exportConfigApi} from "./exportRuntime";
 export const registerExportReferencesGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("references", window.siyuan.languages.configGroupReferences);
 
-    group.switch("includeSubDocs", {
+    group.switch("export.includeSubDocs", {
         title: window.siyuan.languages.includeSubDocs,
         desc: window.siyuan.languages.includeSubDocsTip,
     });
-    group.switch("includeRelatedDocs", {
+    group.switch("export.includeRelatedDocs", {
         title: window.siyuan.languages.includeRelatedDocs,
         desc: window.siyuan.languages.includeRelatedDocsTip,
     });
-    group.select("blockRefMode", {
+    group.select("export.blockRefMode", {
         title: window.siyuan.languages.ref,
         desc: window.siyuan.languages.export11,
         options: [
@@ -27,7 +27,7 @@ export const registerExportReferencesGroup = (tab: SettingTabBuilder) => {
             {value: 4, label: window.siyuan.languages.export4},
         ],
     });
-    group.select("blockEmbedMode", {
+    group.select("export.blockEmbedMode", {
         title: window.siyuan.languages.blockEmbed,
         desc: window.siyuan.languages.export12,
         options: [
@@ -40,37 +40,37 @@ export const registerExportReferencesGroup = (tab: SettingTabBuilder) => {
 export const registerExportFormatGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("format", window.siyuan.languages.configGroupFormat);
 
-    group.switch("markdownYFM", {
+    group.switch("export.markdownYFM", {
         title: window.siyuan.languages.export23,
         desc: window.siyuan.languages.export24,
     });
-    group.switch("addTitle", {
+    group.switch("export.addTitle", {
         title: window.siyuan.languages.export17,
         desc: window.siyuan.languages.export18,
     });
-    group.switch("paragraphBeginningSpace", {
+    group.switch("export.paragraphBeginningSpace", {
         title: window.siyuan.languages.paragraphBeginningSpace,
         desc: window.siyuan.languages.md4,
     });
-    group.switch("removeAssetsID", {
+    group.switch("export.removeAssetsID", {
         title: window.siyuan.languages.removeAssetsID,
         desc: window.siyuan.languages.removeAssetsIDTip,
     });
-    group.switch("inlineMemo", {
+    group.switch("export.inlineMemo", {
         title: window.siyuan.languages.export31,
         desc: window.siyuan.languages.export32,
     });
     group.textPair({
         title: window.siyuan.languages.export13,
         desc: window.siyuan.languages.export14,
-        leftPath: "blockRefTextLeft",
-        rightPath: "blockRefTextRight",
+        leftPath: "export.blockRefTextLeft",
+        rightPath: "export.blockRefTextRight",
     });
     group.textPair({
         title: window.siyuan.languages.export15,
         desc: window.siyuan.languages.export16,
-        leftPath: "tagOpenMarker",
-        rightPath: "tagCloseMarker",
+        leftPath: "export.tagOpenMarker",
+        rightPath: "export.tagCloseMarker",
     });
 };
 
@@ -80,7 +80,7 @@ export const registerExportPdfGroup = (tab: SettingTabBuilder) => {
     }
     const group = tab.group("pdf", window.siyuan.languages.configGroupPDF);
 
-    group.select("fileAnnotationRefMode", {
+    group.select("export.fileAnnotationRefMode", {
         title: window.siyuan.languages.export5,
         desc: window.siyuan.languages.export6,
         options: [
@@ -88,7 +88,7 @@ export const registerExportPdfGroup = (tab: SettingTabBuilder) => {
             {value: 1, label: window.siyuan.languages.export8},
         ],
     });
-    group.text("pdfFooter", {
+    group.text("export.pdfFooter", {
         title: window.siyuan.languages.export21,
         desc: window.siyuan.languages.export22,
     });
@@ -165,7 +165,7 @@ export const registerExportPandocGroup = (tab: SettingTabBuilder) => {
             icon: "iconSettings",
         });
     });
-    group.textBlock("pandocParams", {
+    group.textBlock("export.pandocParams", {
         title: window.siyuan.languages.export25,
         desc: window.siyuan.languages.export26,
         mode: "textarea",
