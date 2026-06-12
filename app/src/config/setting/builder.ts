@@ -41,15 +41,10 @@ interface PanelSettingTabOptions<TId extends string = string> extends SettingTab
 type ControlSpecBase = {
     title: string;
     desc?: string;
-    read?: (el: HTMLElement) => unknown;
     save?: SaveFn;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
-    keywords?: string[];
 };
-type SwitchSpec = ControlSpecBase & {
-    /** 省略时按控件 id 从 config 读取 */
-    readConfig?: () => boolean;
-};
+type SwitchSpec = ControlSpecBase;
 type NumberSpec = ControlSpecBase & {
     min?: number;
     max?: number;
@@ -74,8 +69,6 @@ type TextSpec = ControlSpecBase & {
 };
 type TextBlockSpec = TextSpec & {
     mode: "input-text" | "input-password" | "textarea";
-    /** 省略时按控件 id 从 config 读取 */
-    readConfig?: () => string;
 };
 type SlotSpec = {
     key: string;
@@ -85,7 +78,6 @@ type SlotSpec = {
 };
 type CompositeControlSpec = {
     control: SettingControl;
-    read?: (el: HTMLElement) => unknown;
     save?: SaveFn;
 };
 type CompositeSpec = SlotSpec & {
@@ -101,16 +93,14 @@ type SwitchQuerySpec = {
     items: SwitchQueryInputItem[];
 };
 type TextPairSpec = {
-    key?: string;
     title: string;
     desc: string;
     leftPath: string;
     rightPath: string;
-    keywords?: string[];
 };
 type StackSpec = {
     key: string;
-    keywords?: string[];
+    keywords: string[];
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
 type StackButtonSpec = {
@@ -124,7 +114,6 @@ type StackSelectSpec = {
         value: number | string;
         label?: string;
     }[];
-    readConfig?: () => number | string;
 };
 type StackNumberSpec = {
     desc: string;
@@ -136,16 +125,13 @@ type StackSwitchSpec = {
 };
 type StackTextBlockSpec = {
     mode: "input-text" | "input-password" | "textarea";
-    readConfig?: () => string;
 };
 type ButtonSpec = {
-    key?: string;
     id: string;
     title: string;
     desc?: string;
     label: string;
     icon: string;
-    keywords?: string[];
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
 
@@ -164,12 +150,8 @@ const stackLinesToControls = (lines: StackLine[]): CompositeControlSpec[] => {
     return controls;
 };
 
-const defaultSearchTexts = (spec: {title?: string; desc?: string; keywords?: string[]}) => {
-    if (spec.keywords) {
-        return () => [...spec.keywords!];
-    }
-    return () => [spec.title, spec.desc].filter((s): s is string => Boolean(s));
-};
+const defaultSearchTexts = (spec: {title?: string; desc?: string}) =>
+    () => [spec.title, spec.desc].filter((s): s is string => Boolean(s));
 
 /** stack 组合行内逐行注册；由 `SettingGroupBuilder.stack` 回调使用 */
 class StackLineBuilder {
@@ -199,7 +181,7 @@ class StackLineBuilder {
     }
 
     select(path: string, spec: StackSelectSpec) {
-        const control = controlSelect(path, {options: spec.options, read: spec.readConfig});
+        const control = controlSelect(path, {options: spec.options});
         this.lines.push({
             left: {kind: "desc", text: spec.desc},
             right: control,
@@ -226,7 +208,7 @@ class StackLineBuilder {
     }
 
     textBlock(path: string, spec: StackTextBlockSpec) {
-        const control = controlTextBlock(path, {mode: spec.mode, read: spec.readConfig});
+        const control = controlTextBlock(path, {mode: spec.mode});
         this.lines.push({left: control});
         return this;
     }
@@ -260,8 +242,8 @@ class SettingGroupBuilder<TId extends string> {
             kind: "full",
             rowParts,
             control,
-            searchTexts: defaultSearchTexts({title: spec.title, desc: spec.desc, keywords: spec.keywords}),
-            read: spec.read ?? ((el) => control.readDom(el)),
+            searchTexts: defaultSearchTexts({title: spec.title, desc: spec.desc}),
+            read: (el) => control.readDom(el),
             save: spec.save ?? this.tab.defaultSave?.bind(null, path),
             afterMount,
         } as RegisterSettingItem);
@@ -269,7 +251,7 @@ class SettingGroupBuilder<TId extends string> {
     }
 
     switch(path: string, spec: SwitchSpec) {
-        const control = controlBoolean(path, {read: spec.readConfig});
+        const control = controlBoolean(path);
         return this.registerControl(path, [
             {kind: "title", text: spec.title},
             ...(spec.desc ? [{kind: "desc" as const, text: spec.desc}] : []),
@@ -319,7 +301,7 @@ class SettingGroupBuilder<TId extends string> {
     }
 
     textBlock(path: string, spec: TextBlockSpec) {
-        const control = controlTextBlock(path, {mode: spec.mode, read: spec.readConfig});
+        const control = controlTextBlock(path, {mode: spec.mode});
         return this.registerControl(path, [
             {kind: "title", text: spec.title},
             {kind: "desc", text: spec.desc},
@@ -330,11 +312,9 @@ class SettingGroupBuilder<TId extends string> {
     textPair(spec: TextPairSpec) {
         const leftControl = controlString(spec.leftPath);
         const rightControl = controlString(spec.rightPath);
-        const searchTexts = spec.keywords ?? [spec.title, spec.desc];
-        const key = spec.key ?? `textPair_${spec.leftPath}_${spec.rightPath}`;
         this.composite({
-            key,
-            keywords: searchTexts,
+            key: `textPair_${spec.leftPath}_${spec.rightPath}`,
+            keywords: [spec.title, spec.desc],
             html: () => genTextPairHtml(spec.title, spec.desc, leftControl, rightControl),
             controls: [
                 {control: leftControl},
@@ -348,10 +328,9 @@ class SettingGroupBuilder<TId extends string> {
         const builder = new StackLineBuilder();
         configure(builder);
         const lines = builder.getLines();
-        const searchTexts = spec.keywords ?? [];
         this.composite({
             key: spec.key,
-            keywords: searchTexts,
+            keywords: spec.keywords,
             html: () => genStackHtml(lines),
             afterMount: spec.afterMount,
             controls: stackLinesToControls(lines),
@@ -360,11 +339,9 @@ class SettingGroupBuilder<TId extends string> {
     }
 
     button(spec: ButtonSpec) {
-        const searchTexts = spec.keywords ?? [spec.title, spec.desc, spec.label].filter((s): s is string => Boolean(s));
-        const key = spec.key ?? `button_${spec.id}`;
         this.slot({
-            key,
-            keywords: searchTexts,
+            key: `button_${spec.id}`,
+            keywords: [spec.title, spec.desc, spec.label].filter((s): s is string => Boolean(s)),
             html: () => genButtonRowHtml(spec.id, spec.title, spec.desc, spec.label, spec.icon),
             afterMount: spec.afterMount,
         });
@@ -433,7 +410,7 @@ class SettingGroupBuilder<TId extends string> {
                 groupId: this.groupId,
                 kind: "binding",
                 control: entry.control,
-                read: entry.read ?? ((el) => entry.control.readDom(el)),
+                read: (el) => entry.control.readDom(el),
                 save: entry.save ?? this.tab.defaultSave?.bind(null, entry.control.id),
             } as RegisterSettingItem);
         }
