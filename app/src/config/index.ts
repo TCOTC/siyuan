@@ -1,18 +1,18 @@
 /// #if MOBILE
 import {popMenu} from "../mobile/menu";
 /// #else
-import {initConfigSearch, switchConfigTab} from "./search/dialog";
-import {bindSettingSaveDelegation} from "./registry/save";
+import {initSettingSearch, switchSettingTab} from "./search/dialog";
+import {bindSettingSaveDelegation} from "./setting/save";
 import {Dialog} from "../dialog";
 import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";
-import {getConfigTabDefs} from "./registry/tabs";
+import {getSettingTabDefs} from "./setting/tabs";
 /// #endif
-import type {TConfigTab} from "./registry/tabs";
+import type {TSettingTab} from "./setting/tabs";
 import type {App} from "../index";
 
 /// #if !MOBILE
-const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
+const openSettingDialog = (app: App, initialTab: TSettingTab = "editor") => {
     const exitDialog = window.siyuan.dialogs.find((item) => {
         if (item.element.querySelector(".config__tab-container")) {
             item.destroy();
@@ -28,7 +28,7 @@ const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
     }
     const tabListItems: string[] = [];
     const tabPanels: string[] = [];
-    for (const def of getConfigTabDefs()) {
+    for (const def of getSettingTabDefs()) {
         const isActive = def.id === initialTab;
         tabListItems.push(`<li data-name="${def.id}" class="b3-list-item${isActive ? " b3-list-item--focus" : ""}${def.hidden ? " fn__none" : ""}"><svg class="b3-list-item__graphic"><use xlink:href="#${def.icon}"></use></svg><span class="b3-list-item__text">${def.title}</span></li>`);
         tabPanels.push(`<div class="config__tab-container${isActive ? "" : " fn__none"}" data-name="${def.id}"></div>`);
@@ -67,21 +67,21 @@ const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
 
     const tabWrap = dialog.element.querySelector(".config__tab-wrap") as HTMLElement;
     bindSettingSaveDelegation(tabWrap);
-    initConfigSearch(dialog.element, app);
+    initSettingSearch(dialog.element, app);
     (dialog.element.querySelector(".b3-dialog__container") as HTMLElement).style.maxWidth = "1280px";
     dialog.element.querySelectorAll(".config__side .b3-list-item").forEach(item => {
         // 兼容社区 JS 代码片段模拟点击，不做事件委托
         item.addEventListener("click", () => {
-            const tabId = item.getAttribute("data-name") as TConfigTab;
-            switchConfigTab(dialog.element, app, tabId);
+            const tabId = item.getAttribute("data-name") as TSettingTab;
+            switchSettingTab(dialog.element, app, tabId);
         });
     });
-    switchConfigTab(dialog.element, app, initialTab);
+    switchSettingTab(dialog.element, app, initialTab);
     return dialog;
 };
 /// #endif
 
-export const openSetting = (app: App, tab?: TConfigTab) => {
+export const openSetting = (app: App, tab?: TSettingTab) => {
     /// #if MOBILE
     popMenu();
     /// #else

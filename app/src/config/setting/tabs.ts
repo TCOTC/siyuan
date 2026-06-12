@@ -12,7 +12,7 @@ import {assets} from "../assets";
 import {collectKeymapTabSearchStrings, mountKeymapTab} from "../tabs/keymapUi";
 import {isHuawei, isInHarmony} from "../../protyle/util/compatibility";
 import {isMobile} from "../../util/functions";
-import {RegistryBuilder, type ConfigTab} from "./builder";
+import {SettingBuilder, type SettingTab} from "./builder";
 import {registerEditorTab} from "../tabs/editorTab";
 import {registerFileTab} from "../tabs/fileTab";
 import {registerFlashcardTab} from "../tabs/flashcardTab";
@@ -25,30 +25,30 @@ import {registerAccessTab} from "../tabs/accessTab";
 import {registerAppTab} from "../tabs/appTab";
 import {registerAboutTab} from "../tabs/aboutTab";
 
-const r = new RegistryBuilder();
-export const configTabs = {
-    editor: r.tab({
+const setting = new SettingBuilder();
+const settingTabs = {
+    editor: setting.tab({
         id: "editor",
         icon: "iconEdit",
         title: () => window.siyuan.languages.editor,
         namespace: "editor",
         defaultSave: editorConfigApi.patch,
     }, registerEditorTab),
-    file: r.tab({
+    file: setting.tab({
         id: "file",
         icon: "iconFiles",
         title: () => window.siyuan.languages.fileTree,
         namespace: "fileTree",
         defaultSave: fileConfigApi.patch,
     }, registerFileTab),
-    appearance: r.tab({
+    appearance: setting.tab({
         id: "appearance",
         icon: "iconTheme",
         title: () => window.siyuan.languages.appearance,
         namespace: "appearance",
         defaultSave: appearanceConfigApi.patch,
     }, registerAppearanceTab),
-    bazaar: r.panel({
+    bazaar: setting.panel({
         id: "bazaar",
         icon: "iconBazaar",
         title: () => window.siyuan.languages.bazaar,
@@ -70,21 +70,21 @@ export const configTabs = {
             }
         },
     }),
-    flashcard: r.tab({
+    flashcard: setting.tab({
         id: "flashcard",
         icon: "iconRiffCard",
         title: () => window.siyuan.languages.riffCard,
         namespace: "flashcard",
         defaultSave: flashcardConfigApi.patch,
     }, registerFlashcardTab),
-    ai: r.tab({
+    ai: setting.tab({
         id: "ai",
         icon: "iconSparkles",
         title: () => window.siyuan.languages.ai,
         namespace: "ai",
         defaultSave: aiConfigApi.patch,
     }, registerAiTab),
-    assets: r.panel({
+    assets: setting.panel({
         id: "assets",
         icon: "iconImage",
         title: () => window.siyuan.languages.assets,
@@ -102,28 +102,28 @@ export const configTabs = {
             }
         },
     }),
-    export: r.tab({
+    export: setting.tab({
         id: "export",
         icon: "iconUpload",
         title: () => window.siyuan.languages.export,
         namespace: "export",
         defaultSave: exportConfigApi.patch,
     }, registerExportTab),
-    search: r.tab({
+    search: setting.tab({
         id: "search",
         icon: "iconSearch",
         title: () => window.siyuan.languages.search,
         namespace: "search",
         defaultSave: searchConfigApi.patch,
     }, registerSearchTab),
-    keymap: r.panel({
+    keymap: setting.panel({
         id: "keymap",
         icon: "iconKeymap",
         title: () => window.siyuan.languages.keymap,
         searchStrings: collectKeymapTabSearchStrings,
         mount: mountKeymapTab,
     }),
-    sync: r.tab({
+    sync: setting.tab({
         id: "sync",
         icon: "iconCloud",
         title: () => window.siyuan.languages.accountSync,
@@ -131,20 +131,20 @@ export const configTabs = {
         defaultSave: patchSyncConfig,
         afterMount: mountSyncTabExtras,
     }, registerSyncTab),
-    access: r.tab({
+    access: setting.tab({
         id: "access",
         icon: "iconLock",
         title: () => window.siyuan.languages.authentication,
         namespace: "access",
         afterMount: mountAccessTab,
     }, registerAccessTab),
-    app: r.tab({
+    app: setting.tab({
         id: "app",
         icon: "iconSiYuan",
         title: () => window.siyuan.languages.application,
         namespace: "system",
     }, registerAppTab),
-    about: r.tab({
+    about: setting.tab({
         id: "about",
         icon: "iconInfo",
         title: () => window.siyuan.languages.about,
@@ -152,25 +152,25 @@ export const configTabs = {
     }, registerAboutTab),
 };
 
-export type TConfigTab = keyof typeof configTabs;
+export type TSettingTab = keyof typeof settingTabs;
 
-export const getConfigTab = (id: TConfigTab): ConfigTab => configTabs[id];
+export const getSettingTab = (id: TSettingTab): SettingTab => settingTabs[id];
 
-export interface IConfigTabShell<TId extends string = string> {
+export interface ISettingTabShell<TId extends string = string> {
     id: TId;
     icon: string;
     title: string;
     hidden?: boolean;
 }
 
-let configTabShellCache: IConfigTabShell<TConfigTab>[] | undefined;
+let settingTabShellCache: ISettingTabShell<TSettingTab>[] | undefined;
 
-export const getConfigTabDefs = (): IConfigTabShell<TConfigTab>[] => {
-    if (configTabShellCache) {
-        return configTabShellCache;
+export const getSettingTabDefs = (): ISettingTabShell<TSettingTab>[] => {
+    if (settingTabShellCache) {
+        return settingTabShellCache;
     }
-    configTabShellCache = (Object.keys(configTabs) as TConfigTab[]).map((id) => {
-        const tab = configTabs[id];
+    settingTabShellCache = (Object.keys(settingTabs) as TSettingTab[]).map((id) => {
+        const tab = settingTabs[id];
         return {
             id,
             icon: tab.icon,
@@ -178,9 +178,9 @@ export const getConfigTabDefs = (): IConfigTabShell<TConfigTab>[] => {
             hidden: tab.hidden?.(),
         };
     });
-    return configTabShellCache;
+    return settingTabShellCache;
 };
 
 /** 移动端侧栏中设置标签页菜单项的 DOM `id` */
-export const configTabToMenuId = (tabId: string): string =>
+export const settingTabToMenuId = (tabId: string): string =>
     "menuConfig" + tabId[0].toUpperCase() + tabId.slice(1);

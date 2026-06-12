@@ -1,4 +1,4 @@
-import type {TabBuilder} from "../registry/builder";
+import type {SettingTabBuilder} from "../setting/builder";
 import {fetchPost} from "../../util/fetch";
 import {Dialog} from "../../dialog";
 import {Constants} from "../../constants";
@@ -12,15 +12,15 @@ import {genConfigItemMainHtml} from "../render/fragments";
 import {renderPublishAuthAccounts, savePublish, sendAccessSetting, updatePublishConfig} from "./accessRuntime";
 import {sendAppSetting} from "./appRuntime";
 
-export const registerAccessAuthGroup = (p: TabBuilder) => {
+export const registerAccessAuthGroup = (tab: SettingTabBuilder) => {
     const hideOnWeb = isBrowser() && !isInMobileApp();
     if (hideOnWeb) {
         return;
     }
-    const s = p.group("authentication", window.siyuan.languages.authentication);
+    const group = tab.group("authentication", window.siyuan.languages.authentication);
 
     if (!window.siyuan.config.readonly) {
-        s.button({
+        group.button({
             id: "authCode",
             title: window.siyuan.languages.about5,
             desc: window.siyuan.languages.about6,
@@ -30,13 +30,13 @@ export const registerAccessAuthGroup = (p: TabBuilder) => {
         });
     }
     if (window.siyuan.config.accessAuthCode) {
-        s.switch("system.lockScreenMode", {
+        group.switch("system.lockScreenMode", {
             title: window.siyuan.languages.about7,
             desc: window.siyuan.languages.about8,
             save: (value) => sendAppSetting("system.lockScreenMode", value),
         });
     }
-    s.text("api.token", {
+    group.text("api.token", {
         title: window.siyuan.languages.about13,
         desc: window.siyuan.languages.about14.replace("${token}", window.siyuan.config.api.token),
         save: (value) => sendAccessSetting("api.token", value),
@@ -91,27 +91,27 @@ const bindApiTokenInput = (root: HTMLElement) => {
     });
 };
 
-export const registerAccessServerGroup = (p: TabBuilder) => {
+export const registerAccessServerGroup = (tab: SettingTabBuilder) => {
     const hideOnWeb = isBrowser() && !isInMobileApp();
     if (hideOnWeb) {
         return;
     }
-    const s = p.group("server", window.siyuan.languages.configGroupServer);
+    const group = tab.group("server", window.siyuan.languages.configGroupServer);
 
-    s.switch("system.networkServe", {
+    group.switch("system.networkServe", {
         title: window.siyuan.languages.about11,
         desc: window.siyuan.languages.about12,
         save: (value) => sendAppSetting("system.networkServe", value),
     });
     if (window.siyuan.config.system.networkServe) {
-        s.switch("system.networkServeTLS", {
+        group.switch("system.networkServeTLS", {
             title: window.siyuan.languages.networkServeTLS,
             desc: `${window.siyuan.languages.networkServeTLSTip}<div class="fn__hr--small"></div>${window.siyuan.languages.networkServeTLSTip2}`,
             save: (value) => sendAppSetting("system.networkServeTLS", value),
         });
     }
     if (window.siyuan.config.system.networkServe && window.siyuan.config.system.networkServeTLS) {
-        s.button({
+        group.button({
             id: "exportCACert",
             title: window.siyuan.languages.exportCACert,
             desc: window.siyuan.languages.exportCACertTip,
@@ -125,7 +125,7 @@ export const registerAccessServerGroup = (p: TabBuilder) => {
                 });
             },
         });
-        s.button({
+        group.button({
             id: "exportCABundle",
             title: window.siyuan.languages.exportCABundle,
             desc: window.siyuan.languages.exportCABundleTip,
@@ -139,7 +139,7 @@ export const registerAccessServerGroup = (p: TabBuilder) => {
                 });
             },
         });
-        s.button({
+        group.button({
             id: "importCABundle",
             title: window.siyuan.languages.importCABundle,
             desc: window.siyuan.languages.importCABundleTip,
@@ -171,7 +171,7 @@ export const registerAccessServerGroup = (p: TabBuilder) => {
             },
         });
     }
-    s.stack({
+    group.stack({
         key: "localServer",
         keywords: [
             window.siyuan.languages.about2,
@@ -211,22 +211,22 @@ export const registerAccessServerGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerAccessPublishGroup = (p: TabBuilder) => {
-    const s = p.group("publish", window.siyuan.languages.configGroupPublish);
+export const registerAccessPublishGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("publish", window.siyuan.languages.configGroupPublish);
 
-    s.switch("publish.enable", {
+    group.switch("publish.enable", {
         title: window.siyuan.languages.publishService,
         desc: window.siyuan.languages.publishServiceTip,
         save: (value) => sendAccessSetting("publish.enable", value),
     });
-    s.number("publish.port", {
+    group.number("publish.port", {
         title: window.siyuan.languages.publishServicePort,
         desc: window.siyuan.languages.publishServicePortTip,
         min: 0,
         max: 65535,
         save: (value) => sendAccessSetting("publish.port", value),
     });
-    s.slot({
+    group.slot({
         key: "publishAddresses",
         keywords: [
             window.siyuan.languages.publishServiceAddresses,
@@ -246,12 +246,12 @@ export const registerAccessPublishGroup = (p: TabBuilder) => {
             });
         },
     });
-    s.switch("publish.auth.enable", {
+    group.switch("publish.auth.enable", {
         title: window.siyuan.languages.publishServiceAuth,
         desc: window.siyuan.languages.publishServiceAuthTip,
         save: (value) => sendAccessSetting("publish.auth.enable", value),
     });
-    s.button({
+    group.button({
         id: "publishAuthAccountAdd",
         title: window.siyuan.languages.publishServiceAuthAccounts,
         desc: window.siyuan.languages.publishServiceAuthAccountsTip,
@@ -268,7 +268,7 @@ export const registerAccessPublishGroup = (p: TabBuilder) => {
             });
         },
     });
-    s.slot({
+    group.slot({
         key: "publishAuthAccounts",
         keywords: [
             window.siyuan.languages.userName,
@@ -316,8 +316,8 @@ const mountPublishAuthAccounts = (root: HTMLElement) => {
     });
 };
 
-export const registerAccessTab = (p: TabBuilder) => {
-    registerAccessAuthGroup(p);
-    registerAccessServerGroup(p);
-    registerAccessPublishGroup(p);
+export const registerAccessTab = (tab: SettingTabBuilder) => {
+    registerAccessAuthGroup(tab);
+    registerAccessServerGroup(tab);
+    registerAccessPublishGroup(tab);
 };

@@ -1,24 +1,24 @@
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
 /// #endif
-import type {TabBuilder} from "../registry/builder";
+import type {SettingTabBuilder} from "../setting/builder";
 import {Constants} from "../../constants";
 import {isBrowser} from "../../util/functions";
 import {useShell} from "../../util/pathName";
 import {exportConfigApi} from "./exportRuntime";
 
-export const registerExportReferencesGroup = (p: TabBuilder) => {
-    const s = p.group("references", window.siyuan.languages.configGroupReferences);
+export const registerExportReferencesGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("references", window.siyuan.languages.configGroupReferences);
 
-    s.switch("includeSubDocs", {
+    group.switch("includeSubDocs", {
         title: window.siyuan.languages.includeSubDocs,
         desc: window.siyuan.languages.includeSubDocsTip,
     });
-    s.switch("includeRelatedDocs", {
+    group.switch("includeRelatedDocs", {
         title: window.siyuan.languages.includeRelatedDocs,
         desc: window.siyuan.languages.includeRelatedDocsTip,
     });
-    s.select("blockRefMode", {
+    group.select("blockRefMode", {
         title: window.siyuan.languages.ref,
         desc: window.siyuan.languages.export11,
         options: [
@@ -27,7 +27,7 @@ export const registerExportReferencesGroup = (p: TabBuilder) => {
             {value: 4, label: window.siyuan.languages.export4},
         ],
     });
-    s.select("blockEmbedMode", {
+    group.select("blockEmbedMode", {
         title: window.siyuan.languages.blockEmbed,
         desc: window.siyuan.languages.export12,
         options: [
@@ -37,36 +37,36 @@ export const registerExportReferencesGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerExportFormatGroup = (p: TabBuilder) => {
-    const s = p.group("format", window.siyuan.languages.configGroupFormat);
+export const registerExportFormatGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("format", window.siyuan.languages.configGroupFormat);
 
-    s.switch("markdownYFM", {
+    group.switch("markdownYFM", {
         title: window.siyuan.languages.export23,
         desc: window.siyuan.languages.export24,
     });
-    s.switch("addTitle", {
+    group.switch("addTitle", {
         title: window.siyuan.languages.export17,
         desc: window.siyuan.languages.export18,
     });
-    s.switch("paragraphBeginningSpace", {
+    group.switch("paragraphBeginningSpace", {
         title: window.siyuan.languages.paragraphBeginningSpace,
         desc: window.siyuan.languages.md4,
     });
-    s.switch("removeAssetsID", {
+    group.switch("removeAssetsID", {
         title: window.siyuan.languages.removeAssetsID,
         desc: window.siyuan.languages.removeAssetsIDTip,
     });
-    s.switch("inlineMemo", {
+    group.switch("inlineMemo", {
         title: window.siyuan.languages.export31,
         desc: window.siyuan.languages.export32,
     });
-    s.textPair({
+    group.textPair({
         title: window.siyuan.languages.export13,
         desc: window.siyuan.languages.export14,
         leftPath: "blockRefTextLeft",
         rightPath: "blockRefTextRight",
     });
-    s.textPair({
+    group.textPair({
         title: window.siyuan.languages.export15,
         desc: window.siyuan.languages.export16,
         leftPath: "tagOpenMarker",
@@ -74,13 +74,13 @@ export const registerExportFormatGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerExportPdfGroup = (p: TabBuilder) => {
+export const registerExportPdfGroup = (tab: SettingTabBuilder) => {
     if (isBrowser()) {
         return;
     }
-    const s = p.group("pdf", window.siyuan.languages.configGroupPDF);
+    const group = tab.group("pdf", window.siyuan.languages.configGroupPDF);
 
-    s.select("fileAnnotationRefMode", {
+    group.select("fileAnnotationRefMode", {
         title: window.siyuan.languages.export5,
         desc: window.siyuan.languages.export6,
         options: [
@@ -88,11 +88,11 @@ export const registerExportPdfGroup = (p: TabBuilder) => {
             {value: 1, label: window.siyuan.languages.export8},
         ],
     });
-    s.text("pdfFooter", {
+    group.text("pdfFooter", {
         title: window.siyuan.languages.export21,
         desc: window.siyuan.languages.export22,
     });
-    s.stack({
+    group.stack({
         key: "pdfWatermark",
         keywords: [
             window.siyuan.languages.export27,
@@ -112,10 +112,10 @@ export const registerExportPdfGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerExportImagesGroup = (p: TabBuilder) => {
-    const s = p.group("images", window.siyuan.languages.configGroupImages);
+export const registerExportImagesGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("images", window.siyuan.languages.configGroupImages);
 
-    s.stack({
+    group.stack({
         key: "imageWatermark",
         keywords: [
             window.siyuan.languages.export30,
@@ -136,13 +136,13 @@ export const registerExportImagesGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerExportPandocGroup = (p: TabBuilder) => {
+export const registerExportPandocGroup = (tab: SettingTabBuilder) => {
     if (isBrowser()) {
         return;
     }
-    const s = p.group("pandoc", window.siyuan.languages.configGroupPandoc);
+    const group = tab.group("pandoc", window.siyuan.languages.configGroupPandoc);
 
-    s.stack({
+    group.stack({
         key: "pandocBin",
         keywords: [
             window.siyuan.languages.export19,
@@ -165,7 +165,7 @@ export const registerExportPandocGroup = (p: TabBuilder) => {
             icon: "iconSettings",
         });
     });
-    s.textBlock("pandocParams", {
+    group.textBlock("pandocParams", {
         title: window.siyuan.languages.export25,
         desc: window.siyuan.languages.export26,
         mode: "textarea",
@@ -194,10 +194,10 @@ const mountExportPandocStack = (root: HTMLElement) => {
     });
 };
 
-export const registerExportTab = (p: TabBuilder) => {
-    registerExportReferencesGroup(p);
-    registerExportFormatGroup(p);
-    registerExportPdfGroup(p);
-    registerExportImagesGroup(p);
-    registerExportPandocGroup(p);
+export const registerExportTab = (tab: SettingTabBuilder) => {
+    registerExportReferencesGroup(tab);
+    registerExportFormatGroup(tab);
+    registerExportPdfGroup(tab);
+    registerExportImagesGroup(tab);
+    registerExportPandocGroup(tab);
 };

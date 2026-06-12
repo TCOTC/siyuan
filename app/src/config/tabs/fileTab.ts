@@ -3,8 +3,8 @@ import {genNotebookOption} from "../../menus/onGetnotebookconf";
 import {fetchPost} from "../../util/fetch";
 import {editorConfigApi} from "./editorRuntime";
 import {fileConfigApi} from "./fileRuntime";
-import type {TabBuilder} from "../registry/builder";
-import {controlNumber, controlSelect, controlString} from "../registry/control";
+import type {SettingTabBuilder} from "../setting/builder";
+import {controlNumber, controlSelect, controlString} from "../setting/control";
 import {genConfigItemName} from "../render/fragments";
 
 const isMobileKernelContainer = () =>
@@ -27,44 +27,44 @@ const genNotebookSavePathHtml = (
     </div>
 </div>`;
 
-export const registerFileTabsGroup = (p: TabBuilder) => {
-    const s = p.group("tabs", window.siyuan.languages.configGroupTabs);
+export const registerFileTabsGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("tabs", window.siyuan.languages.configGroupTabs);
 
-    s.switch("alwaysSelectOpenedFile", {
+    group.switch("alwaysSelectOpenedFile", {
         title: window.siyuan.languages.selectOpen,
         desc: window.siyuan.languages.fileTree2,
     });
-    s.switch("openFilesUseCurrentTab", {
+    group.switch("openFilesUseCurrentTab", {
         title: window.siyuan.languages.fileTree7,
         desc: window.siyuan.languages.fileTree8,
     });
-    s.switch("noSplitScreenWhenOpenTab", {
+    group.switch("noSplitScreenWhenOpenTab", {
         title: window.siyuan.languages.noSplitScreenWhenOpenTab,
         desc: window.siyuan.languages.noSplitScreenWhenOpenTabTip,
     });
-    s.number("maxOpenTabCount", {
+    group.number("maxOpenTabCount", {
         title: window.siyuan.languages.tabLimit,
         desc: window.siyuan.languages.tabLimit1,
         min: 1,
         max: 32,
     });
-    s.switch("closeTabsOnStart", {
+    group.switch("closeTabsOnStart", {
         title: window.siyuan.languages.fileTree9,
         desc: window.siyuan.languages.fileTree10,
     });
 };
 
-export const registerFileNewDocumentGroup = (p: TabBuilder) => {
-    const s = p.group("newDocument", window.siyuan.languages.configGroupNewDocument);
+export const registerFileNewDocumentGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("newDocument", window.siyuan.languages.configGroupNewDocument);
 
-    s.switch("createDocAtTop", {
+    group.switch("createDocAtTop", {
         title: window.siyuan.languages.fileTree24,
         desc: window.siyuan.languages.fileTree25,
     });
 
     const docCreateTitle = window.siyuan.languages.fileTree12;
     const docCreateDesc = window.siyuan.languages.fileTree13;
-    s.composite({
+    group.composite({
         key: "docCreateSavePath",
         keywords: [docCreateTitle, docCreateDesc],
         html: () => genNotebookSavePathHtml(
@@ -94,7 +94,7 @@ export const registerFileNewDocumentGroup = (p: TabBuilder) => {
 
     const refCreateTitle = window.siyuan.languages.fileTree5;
     const refCreateDesc = window.siyuan.languages.fileTree6;
-    s.composite({
+    group.composite({
         key: "refCreateSavePath",
         keywords: [refCreateTitle, refCreateDesc],
         html: () => genNotebookSavePathHtml(
@@ -125,7 +125,7 @@ export const registerFileNewDocumentGroup = (p: TabBuilder) => {
     if (!isMobileKernelContainer()) {
         const shorthandTitle = window.siyuan.languages.fileTree26;
         const shorthandDesc = window.siyuan.languages.fileTree27;
-        s.composite({
+        group.composite({
             key: "shorthandSavePath",
             keywords: [shorthandTitle, shorthandDesc],
             html: () => genNotebookSavePathHtml(
@@ -155,10 +155,10 @@ export const registerFileNewDocumentGroup = (p: TabBuilder) => {
     }
 };
 
-export const registerFileManagementGroup = (p: TabBuilder) => {
-    const s = p.group("fileManagement", window.siyuan.languages.configGroupFileManagement);
+export const registerFileManagementGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("fileManagement", window.siyuan.languages.configGroupFileManagement);
 
-    s.number("editor.generateHistoryInterval", {
+    group.number("editor.generateHistoryInterval", {
         title: window.siyuan.languages.generateHistory,
         desc: window.siyuan.languages.generateHistoryInterval,
         min: 0,
@@ -173,7 +173,7 @@ export const registerFileManagementGroup = (p: TabBuilder) => {
         window.siyuan.languages.purge,
         window.siyuan.languages.historyRetentionDays,
     ];
-    s.composite({
+    group.composite({
         key: "historyRetention",
         keywords: historyKeywords,
         html: () => `<div class="b3-label config-item">
@@ -220,37 +220,37 @@ export const registerFileManagementGroup = (p: TabBuilder) => {
         }],
     });
 
-    s.number("maxListCount", {
+    group.number("maxListCount", {
         title: window.siyuan.languages.fileTree16,
         desc: window.siyuan.languages.fileTree17,
         min: 1,
         max: 10240,
     });
-    s.number("largeFileWarningSize", {
+    group.number("largeFileWarningSize", {
         title: window.siyuan.languages.fileTree22,
         desc: window.siyuan.languages.fileTree23,
         min: 2,
         max: 10240,
         unit: "MB",
     });
-    s.switch("allowCreateDeeper", {
+    group.switch("allowCreateDeeper", {
         title: window.siyuan.languages.fileTree18,
         desc: window.siyuan.languages.fileTree19,
     });
-    s.switch("useSingleLineSave", {
+    group.switch("useSingleLineSave", {
         title: window.siyuan.languages.fileTree20,
         desc: window.siyuan.languages.fileTree21,
     });
-    s.switch("removeDocWithoutConfirm", {
+    group.switch("removeDocWithoutConfirm", {
         title: window.siyuan.languages.fileTree3,
         desc: window.siyuan.languages.fileTree4,
     });
 };
 
-export const registerFileOthersGroup = (p: TabBuilder) => {
-    const s = p.group("others", window.siyuan.languages.configGroupOthers);
+export const registerFileOthersGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("others", window.siyuan.languages.configGroupOthers);
 
-    s.number("recentDocsMaxListCount", {
+    group.number("recentDocsMaxListCount", {
         title: window.siyuan.languages.recentDocsMaxListCount,
         desc: window.siyuan.languages.recentDocsMaxListCountTip,
         min: 32,
@@ -258,9 +258,9 @@ export const registerFileOthersGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerFileTab = (p: TabBuilder) => {
-    registerFileTabsGroup(p);
-    registerFileNewDocumentGroup(p);
-    registerFileManagementGroup(p);
-    registerFileOthersGroup(p);
+export const registerFileTab = (tab: SettingTabBuilder) => {
+    registerFileTabsGroup(tab);
+    registerFileNewDocumentGroup(tab);
+    registerFileManagementGroup(tab);
+    registerFileOthersGroup(tab);
 };

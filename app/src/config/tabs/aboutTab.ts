@@ -1,14 +1,14 @@
-import type {TabBuilder} from "../registry/builder";
+import type {SettingTabBuilder} from "../setting/builder";
 import {Constants} from "../../constants";
 import {isBrowser} from "../../util/functions";
 import {fetchPost} from "../../util/fetch";
 import {getCloudURL} from "../util/about";
 import {sendAppSetting} from "./appRuntime";
 
-export const registerAboutVersionGroup = (p: TabBuilder) => {
-    const s = p.group("version", "");
+export const registerAboutVersionGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("version", "");
 
-    s.slot({
+    group.slot({
         key: "version",
         keywords: [
             window.siyuan.languages.currentVer,
@@ -20,7 +20,7 @@ export const registerAboutVersionGroup = (p: TabBuilder) => {
         afterMount: mountAboutVersionSlot,
     });
     if (!isBrowser() && !window.siyuan.config.system.isMicrosoftStore && window.siyuan.config.system.container === "std" && window.siyuan.config.system.os !== "linux") {
-        s.switch("system.downloadInstallPkg", {
+        group.switch("system.downloadInstallPkg", {
             title: window.siyuan.languages.autoDownloadUpdatePkg,
             desc: window.siyuan.languages.autoDownloadUpdatePkgTip,
             save: (value) => sendAppSetting("system.downloadInstallPkg", value),
@@ -69,11 +69,11 @@ const mountAboutVersionSlot = (root: HTMLElement) => {
     });
 };
 
-export const registerAboutInfoGroup = (p: TabBuilder) => {
-    const s = p.group("info", "");
+export const registerAboutInfoGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("info", "");
     const motto = "会泽百家 至公天下";
 
-    s.slot({
+    group.slot({
         key: "aboutLogo",
         keywords: [
             window.siyuan.languages.siyuanNote,
@@ -111,7 +111,7 @@ export const registerAboutInfoGroup = (p: TabBuilder) => {
             });
         },
     });
-    s.slot({
+    group.slot({
         key: "accountSupport",
         keywords: [
             window.siyuan.languages.accountSupport1,
@@ -125,7 +125,7 @@ export const registerAboutInfoGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerAboutTab = (p: TabBuilder) => {
-    registerAboutVersionGroup(p);
-    registerAboutInfoGroup(p);
+export const registerAboutTab = (tab: SettingTabBuilder) => {
+    registerAboutVersionGroup(tab);
+    registerAboutInfoGroup(tab);
 };

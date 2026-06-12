@@ -1,9 +1,9 @@
-import type {MountableSettingItem} from "../registry/item";
-import {getMountableItemsByGroup} from "../registry/item";
-import {getGroupsByTabId} from "../registry/group";
-import type {StringControl} from "../registry/control";
+import type {MountableSettingItem} from "../setting/item";
+import {getMountableItemsByGroup} from "../setting/item";
+import {getSettingGroupsByTabId} from "../setting/group";
+import type {StringControl} from "../setting/control";
 import {
-    isConfigControl,
+    isSettingControl,
     type RowPart,
     type StackLeft,
     type StackLine,
@@ -11,7 +11,7 @@ import {
     type SwitchQueryItem
 } from "./parts";
 import {escapeAttr} from "../../util/escape";
-import {buildRangeValues} from "../registry/domIO";
+import {buildRangeValues} from "../setting/domIO";
 import {genConfigItemMainHtml, genConfigItemName, genSwitchRow} from "./fragments";
 
 const genNumberInputHtml = (
@@ -204,7 +204,7 @@ const pickMeta = (parts: RowPart[]) => {
 
 const renderControlParts = (parts: RowPart[]): string => {
     const {title, desc} = pickMeta(parts);
-    const control = parts.find(isConfigControl);
+    const control = parts.find(isSettingControl);
     if (!control) {
         return "";
     }
@@ -277,7 +277,7 @@ export const genConfigGroup = (itemsHtml: string, title?: string, attrs?: Record
 
 /** 按分组渲染注册项列表 */
 export const genGroupedItems = (tabId: string): string => {
-    const groups = getGroupsByTabId(tabId);
+    const groups = getSettingGroupsByTabId(tabId);
     const itemsByGroup = getMountableItemsByGroup(tabId);
     const parts: string[] = [];
     for (const group of groups) {

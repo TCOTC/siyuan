@@ -8,33 +8,33 @@ import {
     controlSelect,
     controlString,
     controlTextBlock,
-    type ConfigControl,
+    type SettingControl,
 } from "./control";
 import {bindPasswordIconaToggle} from "../render/fragments";
-import {registerGroup} from "./group";
-import {registerItem, RegisterSettingItem} from "./item";
-import {scanPanelTabSearch, scanRegistryTabSearch} from "../search/match";
-import {applyConfigTabSearchVisibility, mountConfigTab} from "./mount";
+import {registerSettingGroup} from "./group";
+import {registerSettingItem, type RegisterSettingItem} from "./item";
+import {scanPanelSettingTabSearch, scanSettingTabSearch} from "../search/match";
+import {applySettingTabSearchVisibility, mountSettingTab} from "./mount";
 
 type SaveFn = (value: unknown) => void | Promise<void>;
 
-/** 侧栏 / 菜单等壳层字段（`RegistryBuilder.tab` / `panel` 入参均平铺） */
-export interface ConfigTabShell<TId extends string = string> {
+/** 侧栏 / 菜单等壳层字段（`SettingBuilder.tab` / `panel` 入参均平铺） */
+export interface SettingTabShell<TId extends string = string> {
     id: TId;
     icon: string;
     title: () => string;
     hidden?: () => boolean;
 }
 
-export interface ConfigTabOptions<TId extends string = string> extends ConfigTabShell<TId> {
+interface ItemsSettingTabOptions<TId extends string = string> extends SettingTabShell<TId> {
     namespace: string;
     /** 控件未指定 save 时，按控件 id 提交配置变更 */
     defaultSave?: (controlId: string, value: unknown) => void;
-    /** 注册表 mount 完成后的 Tab 级初始化（如记录根节点、拉取动态数据） */
+    /** 条目 mount 完成后的 SettingTab 级初始化（如记录根节点、拉取动态数据） */
     afterMount?: (root: HTMLElement, app?: App) => void | Promise<void>;
 }
 
-export interface PanelTabOptions<TId extends string = string> extends ConfigTabShell<TId> {
+interface PanelSettingTabOptions<TId extends string = string> extends SettingTabShell<TId> {
     searchStrings: () => string[];
     mount: (root: HTMLElement, keywords?: string, app?: App) => void | Promise<void>;
 }
@@ -84,8 +84,8 @@ type SlotMeta = {
     html: () => string;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
-export type CompositeControlMeta = {
-    control: ConfigControl;
+type CompositeControlMeta = {
+    control: SettingControl;
     read?: (el: HTMLElement) => unknown;
     save?: SaveFn;
 };
@@ -196,7 +196,7 @@ const defaultSearchTexts = (meta: {title?: string; desc?: string; keywords?: str
     return () => [meta.title, meta.desc].filter((s): s is string => Boolean(s));
 };
 
-/** stack 组合行内逐行注册；由 `GroupBuilder.stack` 回调使用 */
+/** stack 组合行内逐行注册；由 `SettingGroupBuilder.stack` 回调使用 */
 class StackLineBuilder {
     private readonly lines: StackLine[] = [];
 
@@ -263,9 +263,9 @@ class StackLineBuilder {
     }
 }
 
-class GroupBuilder<TId extends string> {
+class SettingGroupBuilder<TId extends string> {
     constructor(
-        private readonly tab: ConfigTabOptions<TId>,
+        private readonly tab: ItemsSettingTabOptions<TId>,
         readonly groupKey: string,
     ) {}
 
@@ -275,11 +275,11 @@ class GroupBuilder<TId extends string> {
     private registerControl(
         path: string,
         rowParts: RowPart[],
-        control: ConfigControl,
+        control: SettingControl,
         meta: ControlMetaBase,
     ) {
         const id = resolveId(this.tab.namespace, path);
-        registerItem({
+        registerSettingItem({
             id,
             tabId: this.tab.id,
             groupKey: this.groupKey,
@@ -445,7 +445,7 @@ class GroupBuilder<TId extends string> {
      */
     slot(meta: SlotMeta) {
         const id = `${this.tab.namespace}.__slot.${meta.key}`;
-        registerItem({
+        registerSettingItem({
             id,
             tabId: this.tab.id,
             groupKey: this.groupKey,
@@ -468,7 +468,7 @@ class GroupBuilder<TId extends string> {
             afterMount: meta.afterMount,
         });
         for (const entry of meta.controls) {
-            registerItem({
+            registerSettingItem({
                 id: entry.control.id,
                 tabId: this.tab.id,
                 groupKey: this.groupKey,
@@ -482,43 +482,43 @@ class GroupBuilder<TId extends string> {
     }
 }
 
-export class TabBuilder<TId extends string = string> {
-    constructor(private readonly tab: ConfigTabOptions<TId>) {}
+export class SettingTabBuilder<TId extends string = string> {
+    constructor(private readonly tab: ItemsSettingTabOptions<TId>) {}
 
     group(groupKey: string, groupTitle: string) {
-        registerGroup(this.tab.id, groupKey, groupTitle);
-        return new GroupBuilder(this.tab, groupKey);
+        registerSettingGroup(this.tab.id, groupKey, groupTitle);
+        return new SettingGroupBuilder(this.tab, groupKey);
     }
 }
 
-/** `scanSearch` 返回值：侧栏过滤用 `matches`，注册表 Tab 另含条目可见条目 ID / 分组键 */
-export interface ConfigTabSearchResult {
+/** `scanSearch` 返回值：侧栏过滤用 `matches`，条目型 SettingTab 另含可见条目 ID / 分组键 */
+export interface SettingTabSearchResult {
     matches: boolean;
     visibleItemIds?: Set<string>;
     visibleGroupKeys?: Set<string>;
 }
 
 /** mount 时的搜索上下文（`keywords` 由壳层持有，与扫描结果在调用处拼装） */
-export interface ConfigTabMountSearch {
+export interface SettingTabMountContext {
     keywords: string;
     visibleItemIds?: Set<string>;
     visibleGroupKeys?: Set<string>;
 }
 
-export type ConfigTab = ConfigTabShell & {
+export type SettingTab = SettingTabShell & {
     mount: (
         root: HTMLElement,
-        search?: Partial<ConfigTabMountSearch>,
+        search?: Partial<SettingTabMountContext>,
         app?: App,
     ) => Promise<void>;
-    scanSearch: (keywords: string) => ConfigTabSearchResult;
+    scanSearch: (keywords: string) => SettingTabSearchResult;
 };
 
-export class RegistryBuilder {
+export class SettingBuilder {
     tab<TId extends string>(
-        options: ConfigTabOptions<TId>,
-        register: (tab: TabBuilder<TId>) => void,
-    ): ConfigTab {
+        options: ItemsSettingTabOptions<TId>,
+        register: (tab: SettingTabBuilder<TId>) => void,
+    ): SettingTab {
         const {afterMount, ...shell} = options;
         // 延迟注册至首次 mount / scanSearch：import 时 languages 未就绪，且搜索可能先于 mount
         let registered = false;
@@ -527,7 +527,7 @@ export class RegistryBuilder {
                 return;
             }
             registered = true;
-            register(new TabBuilder(options));
+            register(new SettingTabBuilder(options));
         };
         return {
             ...shell,
@@ -535,28 +535,28 @@ export class RegistryBuilder {
                 ensureRegistered();
                 const wasMounted = root.innerHTML !== "";
                 if (!wasMounted) {
-                    await mountConfigTab(options.id, root);
+                    await mountSettingTab(options.id, root);
                     await afterMount?.(root, app);
                 }
                 if (visibleItemIds && visibleGroupKeys) {
-                    applyConfigTabSearchVisibility(root, visibleItemIds, visibleGroupKeys);
+                    applySettingTabSearchVisibility(root, visibleItemIds, visibleGroupKeys);
                 }
             },
             scanSearch: (keywords) => {
                 ensureRegistered();
-                return scanRegistryTabSearch(options.id, options.title(), keywords);
+                return scanSettingTabSearch(options.id, options.title(), keywords);
             },
         };
     }
 
     panel<TId extends string>(
-        options: PanelTabOptions<TId>,
-    ): ConfigTab {
+        options: PanelSettingTabOptions<TId>,
+    ): SettingTab {
         const {searchStrings, mount, ...shell} = options;
         return {
             ...shell,
             mount: async (root, {keywords} = {}, app) => mount(root, keywords, app),
-            scanSearch: (keywords) => scanPanelTabSearch(options.title(), searchStrings(), keywords),
+            scanSearch: (keywords) => scanPanelSettingTabSearch(options.title(), searchStrings(), keywords),
         };
     }
 }

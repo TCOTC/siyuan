@@ -12,7 +12,7 @@ interface SettingGroup {
 const groupsByTab = new Map<string, Map<string, SettingGroup>>();
 const groupOrderByTab = new Map<string, number>();
 
-export const registerGroup = (tabId: string, key: string, title: string): SettingGroup => {
+export const registerSettingGroup = (tabId: string, key: string, title: string): SettingGroup => {
     let tabGroups = groupsByTab.get(tabId);
     if (!tabGroups) {
         tabGroups = new Map();
@@ -37,7 +37,7 @@ export const registerGroup = (tabId: string, key: string, title: string): Settin
 };
 
 /** 按注册顺序返回 Tab 下全部分组 */
-export const getGroupsByTabId = (tabId: string): SettingGroup[] => {
+export const getSettingGroupsByTabId = (tabId: string): SettingGroup[] => {
     const tabGroups = groupsByTab.get(tabId);
     return tabGroups ? [...tabGroups.values()].sort((a, b) => a.order - b.order) : [];
 };

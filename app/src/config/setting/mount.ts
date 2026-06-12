@@ -3,7 +3,7 @@ import {getMountableItemsByTabId} from "./item";
 import {syncRangeRowValue} from "./domIO";
 
 /** 首次挂载：渲染全部注册项并执行 afterMount */
-export const mountConfigTab = async (tabId: string, root: HTMLElement) => {
+export const mountSettingTab = async (tabId: string, root: HTMLElement) => {
     const tabItems = getMountableItemsByTabId(tabId);
 
     root.innerHTML = genGroupedItems(tabId);
@@ -27,7 +27,7 @@ export const mountConfigTab = async (tabId: string, root: HTMLElement) => {
     }
 };
 
-export const applyConfigTabSearchVisibility = (
+export const applySettingTabSearchVisibility = (
     root: HTMLElement,
     visibleItemIds: Set<string>,
     visibleGroupKeys: Set<string>,
@@ -55,7 +55,7 @@ export const applyConfigTabSearchVisibility = (
     });
 };
 
-export const clearConfigTabSearch = (root: HTMLElement) => {
+export const clearSettingTabSearch = (root: HTMLElement) => {
     root.querySelectorAll("[data-config-group-key], [data-config-item-id]").forEach((el) => {
         el.classList.remove("config-search-hidden", "config-item--last-visible");
     });

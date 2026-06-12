@@ -11,15 +11,15 @@ import {iOSPurchase} from "../../util/iOSPurchase";
 import {hideElements} from "../../protyle/ui/hideElements";
 import {closePanel} from "../../mobile/util/closePanel";
 import md5 from "blueimp-md5";
-import type {TabBuilder} from "../registry/builder";
+import type {SettingTabBuilder} from "../setting/builder";
 import {patchSyncConfig, refreshSyncCloudSpaceGroup, syncTabElement} from "./syncRuntime";
 import {escapeAttr, escapeHtml} from "../../util/escape";
 
 /** 账号节：由 syncTab 注册 */
-export const registerAccountGroup = (p: TabBuilder) => {
-    const s = p.group("account", window.siyuan.languages.configGroupAccount);
+export const registerAccountGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("account", window.siyuan.languages.configGroupAccount);
 
-    s.slot({
+    group.slot({
         key: "accountMain",
         keywords: [
             window.siyuan.languages.account,
@@ -41,7 +41,7 @@ export const registerAccountGroup = (p: TabBuilder) => {
         html: genAccountMainHTML,
         afterMount: bindAccountMainEvent,
     });
-    s.slot({
+    group.slot({
         key: "accountPayment",
         keywords: [
             window.siyuan.languages.paymentStatus,
@@ -65,11 +65,11 @@ export const registerAccountGroup = (p: TabBuilder) => {
         afterMount: bindAccountPaymentEvent,
     });
     if (!isMobile()) {
-        s.switch("account.displayTitle", {
+        group.switch("account.displayTitle", {
             title: window.siyuan.languages.accountDisplayTitle,
             save: (value) => patchSyncConfig("account.displayTitle", value),
         });
-        s.switch("account.displayVIP", {
+        group.switch("account.displayVIP", {
             title: window.siyuan.languages.accountDisplayVIP,
             save: (value) => patchSyncConfig("account.displayVIP", value),
         });

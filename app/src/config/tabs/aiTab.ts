@@ -1,9 +1,9 @@
-import type {TabBuilder} from "../registry/builder";
+import type {SettingTabBuilder} from "../setting/builder";
 
-export const registerAiServiceGroup = (p: TabBuilder) => {
-    const s = p.group("service", window.siyuan.languages.configGroupServiceConnection);
+export const registerAiServiceGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("service", window.siyuan.languages.configGroupServiceConnection);
 
-    s.select("openAI.apiProvider", {
+    group.select("openAI.apiProvider", {
         title: window.siyuan.languages.apiProvider,
         desc: window.siyuan.languages.apiProviderTip,
         options: [
@@ -12,27 +12,27 @@ export const registerAiServiceGroup = (p: TabBuilder) => {
         ],
         afterMount: bindApiProviderToggle,
     });
-    s.textBlock("openAI.apiBaseURL", {
+    group.textBlock("openAI.apiBaseURL", {
         title: window.siyuan.languages.apiBaseURL,
         desc: window.siyuan.languages.apiBaseURLTip,
         mode: "input-text",
     });
-    s.textBlock("openAI.apiKey", {
+    group.textBlock("openAI.apiKey", {
         title: window.siyuan.languages.apiKey,
         desc: window.siyuan.languages.apiKeyTip,
         mode: "input-password",
     });
-    s.textBlock("openAI.apiVersion", {
+    group.textBlock("openAI.apiVersion", {
         title: window.siyuan.languages.apiVersion,
         desc: window.siyuan.languages.apiVersionTip,
         mode: "input-text",
     });
-    s.textBlock("openAI.apiProxy", {
+    group.textBlock("openAI.apiProxy", {
         title: window.siyuan.languages.apiProxy,
         desc: window.siyuan.languages.apiProxyTip,
         mode: "input-text",
     });
-    s.textBlock("openAI.apiUserAgent", {
+    group.textBlock("openAI.apiUserAgent", {
         title: "User-Agent",
         desc: window.siyuan.languages.apiUserAgentTip,
         mode: "input-text",
@@ -51,53 +51,53 @@ const bindApiProviderToggle = (root: HTMLElement) => {
     toggleVersionWrap();
 };
 
-export const registerAiModelGroup = (p: TabBuilder) => {
-    const s = p.group("model", window.siyuan.languages.configGroupModelParameters);
+export const registerAiModelGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("model", window.siyuan.languages.configGroupModelParameters);
 
-    s.textBlock("openAI.apiModel", {
+    group.textBlock("openAI.apiModel", {
         title: window.siyuan.languages.apiModel,
         desc: window.siyuan.languages.apiModelTip,
         mode: "input-text",
     });
-    s.number("openAI.apiTimeout", {
+    group.number("openAI.apiTimeout", {
         title: window.siyuan.languages.apiTimeout,
         desc: window.siyuan.languages.apiTimeoutTip,
         min: 5,
         max: 600,
         unit: "s",
     });
-    s.number("openAI.apiMaxTokens", {
+    group.number("openAI.apiMaxTokens", {
         title: window.siyuan.languages.apiMaxTokens,
         desc: window.siyuan.languages.apiMaxTokensTip,
         min: 0,
     });
-    s.number("openAI.apiMaxContexts", {
+    group.number("openAI.apiMaxContexts", {
         title: window.siyuan.languages.apiMaxContexts,
         desc: window.siyuan.languages.apiMaxContextsTip,
         min: 1,
         max: 64,
     });
-    s.number("openAI.apiTemperature", {
+    group.number("openAI.apiTemperature", {
         title: window.siyuan.languages.apiTemperature,
         desc: window.siyuan.languages.apiTemperatureTip,
         min: 0,
         max: 2,
         step: "0.1",
     });
-    s.number("openAI.agentTimeout", {
+    group.number("openAI.agentTimeout", {
         title: window.siyuan.languages.agentTimeout,
         desc: window.siyuan.languages.agentTimeoutTip,
         min: 0,
         unit: "s",
     });
-    s.number("openAI.agentConfirmTimeout", {
+    group.number("openAI.agentConfirmTimeout", {
         title: window.siyuan.languages.agentConfirmTimeout,
         desc: window.siyuan.languages.agentConfirmTimeoutTip,
         min: 10,
         max: 600,
         unit: "s",
     });
-    s.number("openAI.agentMaxRetries", {
+    group.number("openAI.agentMaxRetries", {
         title: window.siyuan.languages.agentMaxRetries,
         desc: window.siyuan.languages.agentMaxRetriesTip,
         min: 0,
@@ -105,7 +105,7 @@ export const registerAiModelGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerAiTab = (p: TabBuilder) => {
-    registerAiServiceGroup(p);
-    registerAiModelGroup(p);
+export const registerAiTab = (tab: SettingTabBuilder) => {
+    registerAiServiceGroup(tab);
+    registerAiModelGroup(tab);
 };

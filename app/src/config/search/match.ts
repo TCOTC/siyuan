@@ -1,23 +1,23 @@
-import {ConfigTabSearchResult} from "../registry/builder";
-import {getGroupsByTabId} from "../registry/group";
-import {getMountableItemsByGroup} from "../registry/item";
+import {SettingTabSearchResult} from "../setting/builder";
+import {getSettingGroupsByTabId} from "../setting/group";
+import {getMountableItemsByGroup} from "../setting/item";
 import {normalizeSearchText} from "./normalize";
 
-export const stringsMatchQuery = (strings: readonly string[], keywords: string): boolean =>
+const stringsMatchQuery = (strings: readonly string[], keywords: string): boolean =>
     strings.some((s) => s.includes(keywords));
 
-/** 一次遍历注册 Tab 的 Group / Item，同时得到侧栏命中与内容区可见性 */
-export const scanRegistryTabSearch = (
+/** 一次遍历 SettingTab 的 Group / Item，同时得到侧栏命中与内容区可见性 */
+export const scanSettingTabSearch = (
     tabId: string,
     tabTitle: string,
     keywords: string,
-): ConfigTabSearchResult => {
+): SettingTabSearchResult => {
     const visibleItemIds = new Set<string>();
     const visibleGroupKeys = new Set<string>();
 
     if (stringsMatchQuery([normalizeSearchText(tabTitle)], keywords)) {
         const itemsByGroup = getMountableItemsByGroup(tabId);
-        for (const group of getGroupsByTabId(tabId)) {
+        for (const group of getSettingGroupsByTabId(tabId)) {
             visibleGroupKeys.add(group.key);
             for (const item of itemsByGroup.get(group.key) ?? []) {
                 visibleItemIds.add(item.id);
@@ -28,7 +28,7 @@ export const scanRegistryTabSearch = (
 
     let matches = false;
     const itemsByGroup = getMountableItemsByGroup(tabId);
-    for (const group of getGroupsByTabId(tabId)) {
+    for (const group of getSettingGroupsByTabId(tabId)) {
         if (stringsMatchQuery(group.searchIndex, keywords)) {
             matches = true;
             visibleGroupKeys.add(group.key);
@@ -48,12 +48,12 @@ export const scanRegistryTabSearch = (
     return {matches, visibleItemIds, visibleGroupKeys};
 };
 
-/** 面板 Tab（不走注册表）的侧栏命中判断 */
-export const scanPanelTabSearch = (
+/** 面板型 SettingTab 的侧栏命中判断 */
+export const scanPanelSettingTabSearch = (
     tabTitle: string,
     searchStrings: readonly string[],
     keywords: string,
-): ConfigTabSearchResult => {
+): SettingTabSearchResult => {
     if (stringsMatchQuery([normalizeSearchText(tabTitle)], keywords)) {
         return {matches: true};
     }

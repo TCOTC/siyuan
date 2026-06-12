@@ -1,6 +1,6 @@
-import {getConfigTab, type TConfigTab} from "../registry/tabs";
-import type {ConfigTabMountSearch} from "../registry/builder";
-import {clearConfigTabSearch} from "../registry/mount";
+import {getSettingTab, type TSettingTab} from "../setting/tabs";
+import type {SettingTabMountContext} from "../setting/builder";
+import {clearSettingTabSearch} from "../setting/mount";
 import {App} from "../../index";
 import {isPhablet} from "../../protyle/util/compatibility";
 
@@ -10,11 +10,11 @@ const readSearchKeywordsLower = (dialogElement: HTMLElement): string | undefined
     return trimmed ? trimmed.toLowerCase() : undefined;
 };
 
-export const switchConfigTab = (
+export const switchSettingTab = (
     dialogElement: HTMLElement,
     app: App,
-    tabId: TConfigTab,
-    search?: ConfigTabMountSearch,
+    tabId: TSettingTab,
+    search?: SettingTabMountContext,
 ) => {
     const containerElement = dialogElement.querySelector(`.config__tab-container[data-name="${tabId}"]`) as HTMLElement | null;
     if (!containerElement) {
@@ -22,7 +22,7 @@ export const switchConfigTab = (
     }
 
     const focusLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
-    const focusedTabId = focusLi?.getAttribute("data-name") as TConfigTab;
+    const focusedTabId = focusLi?.getAttribute("data-name") as TSettingTab;
     if (tabId !== focusedTabId) {
         dialogElement.querySelectorAll(".config__tab-container").forEach((container) => {
             container.classList.toggle("fn__none", container !== containerElement);
@@ -35,33 +35,33 @@ export const switchConfigTab = (
     if (!search) {
         const keywords = readSearchKeywordsLower(dialogElement);
         if (keywords) {
-            const {visibleItemIds, visibleGroupKeys} = getConfigTab(tabId).scanSearch(keywords);
+            const {visibleItemIds, visibleGroupKeys} = getSettingTab(tabId).scanSearch(keywords);
             search = {keywords, visibleItemIds, visibleGroupKeys};
         }
     }
-    void getConfigTab(tabId).mount(containerElement, search, app);
+    void getSettingTab(tabId).mount(containerElement, search, app);
 };
 
-const syncConfigSearch = (dialogElement: HTMLElement, app: App) => {
+const syncSettingSearch = (dialogElement: HTMLElement, app: App) => {
     const keywords = readSearchKeywordsLower(dialogElement);
     if (!keywords) {
         dialogElement.querySelectorAll(".config__side .b3-list-item").forEach((item: HTMLElement) => {
             item.style.display = "";
         });
-        clearConfigTabSearch(dialogElement);
+        clearSettingTabSearch(dialogElement);
         return;
     }
 
     const focusedLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
-    const focusedTabId = (focusedLi && focusedLi.style.display !== "none") ? focusedLi.getAttribute("data-name") as TConfigTab | null : null;
-    let currentMatch: ({tabId: TConfigTab} & Pick<ConfigTabMountSearch, "visibleItemIds" | "visibleGroupKeys">) | undefined;
+    const focusedTabId = (focusedLi && focusedLi.style.display !== "none") ? focusedLi.getAttribute("data-name") as TSettingTab | null : null;
+    let currentMatch: ({tabId: TSettingTab} & Pick<SettingTabMountContext, "visibleItemIds" | "visibleGroupKeys">) | undefined;
     for (const item of dialogElement.querySelectorAll<HTMLElement>(".config__side .b3-list-item")) {
-        const tabId = item.getAttribute("data-name") as TConfigTab | null;
+        const tabId = item.getAttribute("data-name") as TSettingTab | null;
         if (!tabId) {
             item.style.display = "none";
             continue;
         }
-        const {matches, visibleItemIds, visibleGroupKeys} = getConfigTab(tabId).scanSearch(keywords);
+        const {matches, visibleItemIds, visibleGroupKeys} = getSettingTab(tabId).scanSearch(keywords);
         if (!matches) {
             item.style.display = "none";
             continue;
@@ -74,7 +74,7 @@ const syncConfigSearch = (dialogElement: HTMLElement, app: App) => {
     }
 
     if (currentMatch) {
-        switchConfigTab(dialogElement, app, currentMatch.tabId, {
+        switchSettingTab(dialogElement, app, currentMatch.tabId, {
             keywords,
             visibleItemIds: currentMatch.visibleItemIds,
             visibleGroupKeys: currentMatch.visibleGroupKeys,
@@ -86,7 +86,7 @@ const syncConfigSearch = (dialogElement: HTMLElement, app: App) => {
     }
 };
 
-export const initConfigSearch = (element: HTMLElement, app: App) => {
+export const initSettingSearch = (element: HTMLElement, app: App) => {
     const inputElement = element.querySelector(".b3-form__icon input") as HTMLInputElement;
     if (!isPhablet()) {
         inputElement.focus();
@@ -95,12 +95,12 @@ export const initConfigSearch = (element: HTMLElement, app: App) => {
     }
 
     inputElement.addEventListener("compositionend", () => {
-        syncConfigSearch(element, app);
+        syncSettingSearch(element, app);
     });
     inputElement.addEventListener("input", (event: InputEvent) => {
         if (event.isComposing) {
             return;
         }
-        syncConfigSearch(element, app);
+        syncSettingSearch(element, app);
     });
 };

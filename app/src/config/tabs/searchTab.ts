@@ -1,9 +1,9 @@
-import type {TabBuilder} from "../registry/builder";
+import type {SettingTabBuilder} from "../setting/builder";
 
-export const registerSearchQueryGroup = (p: TabBuilder) => {
-    const s = p.group("query", "");
+export const registerSearchQueryGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("query", "");
 
-    s.switchQuery({
+    group.switchQuery({
         key: "blockType",
         title: window.siyuan.languages.searchBlockType,
         footer: `[1] ${window.siyuan.languages.containerBlockTip1}`,
@@ -28,7 +28,7 @@ export const registerSearchQueryGroup = (p: TabBuilder) => {
             {kind: "switch", id: "document", label: window.siyuan.languages.doc, icon: "iconFile"},
         ],
     });
-    s.switchQuery({
+    group.switchQuery({
         key: "blockAttr",
         title: window.siyuan.languages.searchBlockAttr,
         items: [
@@ -38,7 +38,7 @@ export const registerSearchQueryGroup = (p: TabBuilder) => {
             {kind: "switch", id: "ial", label: window.siyuan.languages.allAttrs},
         ],
     });
-    s.switchQuery({
+    group.switchQuery({
         key: "backmention",
         title: window.siyuan.languages.searchBackmention,
         items: [
@@ -49,7 +49,7 @@ export const registerSearchQueryGroup = (p: TabBuilder) => {
             {kind: "number", id: "backlinkMentionKeywordsLimit", label: window.siyuan.languages.keywordsLimit, min: 1, max: 10240},
         ],
     });
-    s.switchQuery({
+    group.switchQuery({
         key: "virtualRef",
         title: window.siyuan.languages.searchVirtualRef,
         items: [
@@ -59,7 +59,7 @@ export const registerSearchQueryGroup = (p: TabBuilder) => {
             {kind: "switch", id: "virtualRefDoc", label: window.siyuan.languages.docName},
         ],
     });
-    s.switchQuery({
+    group.switchQuery({
         key: "index",
         title: window.siyuan.languages.searchIndex,
         items: [
@@ -68,22 +68,22 @@ export const registerSearchQueryGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerSearchLimitsGroup = (p: TabBuilder) => {
-    const s = p.group("limits", "");
+export const registerSearchLimitsGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("limits", "");
 
-    s.number("limit", {
+    group.number("limit", {
         title: window.siyuan.languages.searchLimit,
         desc: `${window.siyuan.languages.searchLimit1}<br>${window.siyuan.languages.searchLimit2}`,
         min: 32,
         max: 10240,
     });
-    s.switch("caseSensitive", {
+    group.switch("caseSensitive", {
         title: window.siyuan.languages.searchCaseSensitive,
         desc: window.siyuan.languages.searchCaseSensitive1,
     });
 };
 
-export const registerSearchTab = (p: TabBuilder) => {
-    registerSearchQueryGroup(p);
-    registerSearchLimitsGroup(p);
+export const registerSearchTab = (tab: SettingTabBuilder) => {
+    registerSearchQueryGroup(tab);
+    registerSearchLimitsGroup(tab);
 };

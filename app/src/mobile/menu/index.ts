@@ -13,18 +13,18 @@ import {newFile} from "../../util/newFile";
 import {afterLoadPlugin} from "../../plugin/loader";
 import {commandPanel} from "../../boot/globalEvent/command/panel";
 import {openTopBarMenu} from "../../plugin/openTopBarMenu";
-import {configTabToMenuId, getConfigTab, getConfigTabDefs, type IConfigTabShell, type TConfigTab} from "../../config/registry/tabs";
-import {bindSettingSaveDelegation} from "../../config/registry/save";
+import {settingTabToMenuId, getSettingTab, getSettingTabDefs, type ISettingTabShell, type TSettingTab} from "../../config/setting/tabs";
+import {bindSettingSaveDelegation} from "../../config/setting/save";
 import {isMobile} from "../../util/functions";
 import {openModel} from "./model";
 import {getCurrentEditor} from "../editor";
 
-const getConfigTabFromMenuTarget = (target: HTMLElement): IConfigTabShell<TConfigTab> | undefined => {
+const getSettingTabFromMenuTarget = (target: HTMLElement): ISettingTabShell<TSettingTab> | undefined => {
     const item = target.closest(".b3-menu__item") as HTMLElement | null;
     if (!item?.id) {
         return undefined;
     }
-    return getConfigTabDefs().find(def => configTabToMenuId(def.id) === item.id);
+    return getSettingTabDefs().find(def => settingTabToMenuId(def.id) === item.id);
 };
 
 export const popMenu = () => {
@@ -37,8 +37,8 @@ export const popMenu = () => {
 
 export const initRightMenu = (app: App) => {
     const menuElement = document.getElementById("menu");
-    const configSettingsMenuHTML = getConfigTabDefs().map(def =>
-        `<div class="b3-menu__item${def.hidden ? " fn__none" : ""}" id="${configTabToMenuId(def.id)}">
+    const settingTabsMenuHTML = getSettingTabDefs().map(def =>
+        `<div class="b3-menu__item${def.hidden ? " fn__none" : ""}" id="${settingTabToMenuId(def.id)}">
         <svg class="b3-menu__icon"><use xlink:href="#${def.icon}"></use></svg>
         <span class="b3-menu__label">${def.title}</span>
     </div>`).join("");
@@ -84,7 +84,7 @@ export const initRightMenu = (app: App) => {
         <svg class="b3-menu__icon"><use xlink:href="#iconQuit"></use></svg><span class="b3-menu__label">${window.siyuan.languages.safeQuit}</span>
     </div>
     <div class="b3-menu__separator"></div>
-    ${configSettingsMenuHTML}
+    ${settingTabsMenuHTML}
     <div class="b3-menu__item" id="menuPlugin">
         <svg class="b3-menu__icon"><use xlink:href="#iconPlugin"></use></svg><span class="b3-menu__label">${window.siyuan.languages.plugin}</span>
     </div>
@@ -104,7 +104,7 @@ export const initRightMenu = (app: App) => {
     // 只能用 click，否则无法上下滚动 https://github.com/siyuan-note/siyuan/issues/6628
     menuElement.addEventListener("click", (event) => {
         let target = event.target as HTMLElement;
-        let configTabDef: IConfigTabShell<TConfigTab> | undefined;
+        let settingTabDef: ISettingTabShell<TSettingTab> | undefined;
         while (target && !target.isEqualNode(menuElement)) {
             if (target.classList.contains("b3-menu__title")) {
                 closePanel();
@@ -174,16 +174,16 @@ export const initRightMenu = (app: App) => {
                 event.stopPropagation();
                 exitSiYuan();
                 break;
-            } else if ((configTabDef = getConfigTabFromMenuTarget(target))) {
-                if (!configTabDef.hidden) {
+            } else if ((settingTabDef = getSettingTabFromMenuTarget(target))) {
+                if (!settingTabDef.hidden) {
                     openModel({
-                        title: configTabDef.title,
-                        icon: configTabDef.icon,
+                        title: settingTabDef.title,
+                        icon: settingTabDef.icon,
                         html: `<div class="config${isMobile() ? " config--mobile" : ""}"></div>`,
                         bindEvent(modelMainElement: HTMLElement) {
                             const root = modelMainElement.firstElementChild as HTMLElement;
                             bindSettingSaveDelegation(root);
-                            void getConfigTab(configTabDef.id).mount(root, undefined, app);
+                            void getSettingTab(settingTabDef.id).mount(root, undefined, app);
                         }
                     });
                 }

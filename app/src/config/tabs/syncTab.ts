@@ -1,4 +1,4 @@
-import type {TabBuilder} from "../registry/builder";
+import type {SettingTabBuilder} from "../setting/builder";
 import {registerAccountGroup} from "./accountUi";
 import {Constants} from "../../constants";
 import {fetchPost} from "../../util/fetch";
@@ -12,10 +12,10 @@ import {genConfigItemMainHtml, genConfigItemName} from "../render/fragments";
 import {getSyncProviderConfigKeywords} from "./syncUi";
 import {patchSyncConfig} from "./syncRuntime";
 
-export const registerSyncGroup = (p: TabBuilder) => {
-    const s = p.group("sync", window.siyuan.languages.configGroupSync);
+export const registerSyncGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("sync", window.siyuan.languages.configGroupSync);
 
-    s.select("sync.provider", {
+    group.select("sync.provider", {
         title: window.siyuan.languages.syncProvider,
         desc: window.siyuan.languages.syncProviderTip,
         options: [
@@ -26,27 +26,27 @@ export const registerSyncGroup = (p: TabBuilder) => {
         ],
         save: (value) => patchSyncConfig("sync.provider", value),
     });
-    s.slot({
+    group.slot({
         key: "syncProviderConfig",
         keywords: getSyncProviderConfigKeywords(),
         html: () => '<div id="syncProviderConfig" class="b3-label config-item"></div>',
     });
-    s.slot({
+    group.slot({
         key: "cloudSpace",
         keywords: [window.siyuan.languages.cloudStorage, window.siyuan.languages.trafficStat, window.siyuan.languages.backup],
         html: () => '<div id="cloudSpace" class="b3-label config-item"></div>',
     });
-    s.switch("sync.enabled", {
+    group.switch("sync.enabled", {
         title: window.siyuan.languages.openSyncTip1,
         desc: window.siyuan.languages.openSyncTip2,
         save: (value) => patchSyncConfig("sync.enabled", value),
     });
-    s.switch("sync.generateConflictDoc", {
+    group.switch("sync.generateConflictDoc", {
         title: window.siyuan.languages.generateConflictDoc,
         desc: window.siyuan.languages.generateConflictDocTip,
         save: (value) => patchSyncConfig("sync.generateConflictDoc", value),
     });
-    s.select("sync.mode", {
+    group.select("sync.mode", {
         title: window.siyuan.languages.syncMode,
         desc: window.siyuan.languages.syncModeTip,
         options: [
@@ -56,7 +56,7 @@ export const registerSyncGroup = (p: TabBuilder) => {
         ],
         save: (value) => patchSyncConfig("sync.mode", value),
     });
-    s.number("sync.interval", {
+    group.number("sync.interval", {
         title: window.siyuan.languages.syncInterval,
         desc: window.siyuan.languages.syncIntervalTip,
         min: 30,
@@ -64,12 +64,12 @@ export const registerSyncGroup = (p: TabBuilder) => {
         unit: window.siyuan.languages.second,
         save: (value) => patchSyncConfig("sync.interval", value),
     });
-    s.switch("sync.perception", {
+    group.switch("sync.perception", {
         title: window.siyuan.languages.syncPerception,
         desc: window.siyuan.languages.syncPerceptionTip,
         save: (value) => patchSyncConfig("sync.perception", value),
     });
-    s.slot({
+    group.slot({
         key: "syncCloudDir",
         keywords: [window.siyuan.languages.cloudSyncDir, window.siyuan.languages.cloudSyncDirTip, window.siyuan.languages.config],
         html: () => `<div class="b3-label config-item" id="syncCloudDirBlock">
@@ -84,7 +84,7 @@ export const registerSyncGroup = (p: TabBuilder) => {
 </div>`,
         afterMount: mountSyncCloudDir,
     });
-    s.slot({
+    group.slot({
         key: "syncCloudBackup",
         keywords: [window.siyuan.languages.cloudBackup, window.siyuan.languages.cloudBackupTip],
         html: () => `<div class="fn__flex b3-label config-item" id="syncCloudBackupBlock">
@@ -107,10 +107,10 @@ const mountSyncCloudDir = (root: HTMLElement) => {
     }
 };
 
-export const registerRepoGroup = (p: TabBuilder) => {
-    const s = p.group("repo", window.siyuan.languages.configGroupLocalDataRepo);
+export const registerRepoGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("repo", window.siyuan.languages.configGroupLocalDataRepo);
 
-    s.slot({
+    group.slot({
         key: "repoKey",
         keywords: [
             window.siyuan.languages.dataRepoKey,
@@ -148,7 +148,7 @@ export const registerRepoGroup = (p: TabBuilder) => {
 </div>`,
         afterMount: mountRepoKey,
     });
-    s.stack({
+    group.stack({
         key: "repoPurge",
         keywords: [
             window.siyuan.languages.dataRepoPurge,
@@ -247,8 +247,8 @@ const mountRepoKey = (root: HTMLElement) => {
     });
 };
 
-export const registerSyncTab = (p: TabBuilder) => {
-    registerAccountGroup(p);
-    registerSyncGroup(p);
-    registerRepoGroup(p);
+export const registerSyncTab = (tab: SettingTabBuilder) => {
+    registerAccountGroup(tab);
+    registerSyncGroup(tab);
+    registerRepoGroup(tab);
 };

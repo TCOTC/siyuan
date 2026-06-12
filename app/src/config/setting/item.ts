@@ -1,5 +1,5 @@
 import type {RowPart} from "../render/parts";
-import type {ConfigControl} from "./control";
+import type {SettingControl} from "./control";
 import {buildItemSearchIndex} from "../search/normalize";
 
 type SettingItemBase = {
@@ -17,7 +17,7 @@ type SettingItemBase = {
 type FullSettingItem = SettingItemBase & {
     kind: "full";
     rowParts: RowPart[];
-    control: ConfigControl;
+    control: SettingControl;
     searchTexts?: () => string[];
 };
 
@@ -31,7 +31,7 @@ type RenderSettingItem = SettingItemBase & {
 /** 复合块内嵌控件：仅参与 read / save 路由 */
 type BindingSettingItem = SettingItemBase & {
     kind: "binding";
-    control: ConfigControl;
+    control: SettingControl;
 };
 
 type SettingItem = FullSettingItem | RenderSettingItem | BindingSettingItem;
@@ -41,11 +41,11 @@ export type RegisterSettingItem =
     | Omit<RenderSettingItem, "searchIndex">
     | Omit<BindingSettingItem, "searchIndex">;
 
-const registry = new Map<SettingItem["id"], SettingItem>();
+const settingItemsById = new Map<SettingItem["id"], SettingItem>();
 const itemsByGroupCache = new Map<string, Map<string, MountableSettingItem[]>>();
 
-export const registerItem = (item: RegisterSettingItem) => {
-    registry.set(item.id, {
+export const registerSettingItem = (item: RegisterSettingItem) => {
+    settingItemsById.set(item.id, {
         ...item,
         searchIndex: buildItemSearchIndex(item)
     } as SettingItem);
@@ -56,7 +56,7 @@ export const registerItem = (item: RegisterSettingItem) => {
 
 export const getMountableItemsByTabId = (tabId: string): MountableSettingItem[] => {
     const result: MountableSettingItem[] = [];
-    for (const item of registry.values()) {
+    for (const item of settingItemsById.values()) {
         if (item.kind !== "binding" && item.tabId === tabId) {
             result.push(item);
         }
@@ -83,4 +83,4 @@ export const getMountableItemsByGroup = (tabId: string) => {
     return itemsByGroup;
 };
 
-export const getSettingItem = (id: string) => registry.get(id);
+export const getSettingItem = (id: string) => settingItemsById.get(id);

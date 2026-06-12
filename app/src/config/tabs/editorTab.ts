@@ -2,27 +2,27 @@ import {updateHotkeyTip} from "../../protyle/util/compatibility";
 import {Constants} from "../../constants";
 import {isBrowser} from "../../util/functions";
 import {editorConfigApi} from "./editorRuntime";
-import type {TabBuilder} from "../registry/builder";
+import type {SettingTabBuilder} from "../setting/builder";
 /// #if !BROWSER
 import {ipcRenderer} from "electron";
 /// #endif
 
-/** 编辑器 Tab：各组注册实现（由 registry/tabs.ts 中的 registry 调用） */
-export const registerEditorBehaviorGroup = (p: TabBuilder) => {
+/** 编辑器 Tab：各组注册实现（由 setting/tabs.ts 调用） */
+export const registerEditorBehaviorGroup = (tab: SettingTabBuilder) => {
     const browser = isBrowser();
-    const s = p.group("behavior", window.siyuan.languages.configGroupBehavior);
+    const group = tab.group("behavior", window.siyuan.languages.configGroupBehavior);
     const readOnlyKeymap = window.siyuan.config.keymap.general.editReadonly.custom;
-    s.switch("readOnly", {
+    group.switch("readOnly", {
         title: `${window.siyuan.languages.editReadonly} <code class="fn__code${readOnlyKeymap ? "" : " fn__none"}">${updateHotkeyTip(readOnlyKeymap)}</code>`,
         desc: window.siyuan.languages.editReadonlyTip,
     });
-    s.switch("spellcheck", {
+    group.switch("spellcheck", {
         title: window.siyuan.languages.spellcheck,
         desc: browser ? window.siyuan.languages.spellcheckTip : window.siyuan.languages.spellcheckTip2,
         afterMount: bindSpellcheckLanguagesVisibility,
     });
     if (!browser) {
-        s.slot({
+        group.slot({
             key: "spellcheckLanguages",
             keywords: [
                 window.siyuan.languages.spellcheck,
@@ -32,26 +32,26 @@ export const registerEditorBehaviorGroup = (p: TabBuilder) => {
             afterMount: bindSpellcheckLanguagesChips,
         });
     }
-    s.range("codeTabSpaces", {
+    group.range("codeTabSpaces", {
         title: window.siyuan.languages.md29,
         desc: window.siyuan.languages.md30,
         min: 0,
         max: 8,
         step: 2,
     });
-    s.switch("listLogicalOutdent", {
+    group.switch("listLogicalOutdent", {
         title: window.siyuan.languages.outlineOutdent,
         desc: window.siyuan.languages.outlineOutdentTip,
     });
-    s.switch("listItemDotNumberClickFocus", {
+    group.switch("listItemDotNumberClickFocus", {
         title: window.siyuan.languages.listItemDotNumberClickFocus,
         desc: window.siyuan.languages.listItemDotNumberClickFocusTip,
     });
-    s.switch("pasteURLAutoConvert", {
+    group.switch("pasteURLAutoConvert", {
         title: window.siyuan.languages.pasteURLAutoConvert,
         desc: window.siyuan.languages.pasteURLAutoConvertTip,
     });
-    s.number("dynamicLoadBlocks", {
+    group.number("dynamicLoadBlocks", {
         title: window.siyuan.languages.dynamicLoadBlocks,
         desc: window.siyuan.languages.dynamicLoadBlocksTip,
         min: 48,
@@ -97,21 +97,21 @@ const bindSpellcheckLanguagesChips = async (root: HTMLElement) => {
     /// #endif
 };
 
-export const registerEditorBlockFeaturesGroup = (p: TabBuilder) => {
-    const s = p.group("blockFeatures", window.siyuan.languages.configGroupBlockFeatures);
-    s.switch("displayNetImgMark", {
+export const registerEditorBlockFeaturesGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("blockFeatures", window.siyuan.languages.configGroupBlockFeatures);
+    group.switch("displayNetImgMark", {
         title: window.siyuan.languages.md7,
         desc: window.siyuan.languages.md8,
     });
-    s.switch("displayBookmarkIcon", {
+    group.switch("displayBookmarkIcon", {
         title: window.siyuan.languages.md12,
         desc: window.siyuan.languages.md16,
     });
-    s.switch("embedBlockBreadcrumb", {
+    group.switch("embedBlockBreadcrumb", {
         title: window.siyuan.languages.embedBlockBreadcrumb,
         desc: window.siyuan.languages.embedBlockBreadcrumbTip,
     });
-    s.select("headingEmbedMode", {
+    group.select("headingEmbedMode", {
         title: window.siyuan.languages.headingEmbedMode,
         desc: window.siyuan.languages.headingEmbedModeTip,
         options: [
@@ -120,57 +120,57 @@ export const registerEditorBlockFeaturesGroup = (p: TabBuilder) => {
             {value: 2, label: window.siyuan.languages.showHeadingOnlyBlocks},
         ],
     });
-    s.switch("codeLineWrap", {
+    group.switch("codeLineWrap", {
         title: window.siyuan.languages.md31,
         desc: window.siyuan.languages.md32,
     });
-    s.switch("codeLigatures", {
+    group.switch("codeLigatures", {
         title: window.siyuan.languages.md2,
         desc: window.siyuan.languages.md3,
     });
-    s.switch("codeSyntaxHighlightLineNum", {
+    group.switch("codeSyntaxHighlightLineNum", {
         title: window.siyuan.languages.md27,
         desc: window.siyuan.languages.md28,
     });
 };
 
-export const registerEditorBidirectionalGroup = (p: TabBuilder) => {
-    const s = p.group("bidirectional", window.siyuan.languages.configGroupBidirectionalLinks);
-    s.switch("onlySearchForDoc", {
+export const registerEditorBidirectionalGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("bidirectional", window.siyuan.languages.configGroupBidirectionalLinks);
+    group.switch("onlySearchForDoc", {
         title: window.siyuan.languages.onlySearchForDoc,
         desc: window.siyuan.languages.onlySearchForDocTip,
     });
-    s.number("blockRefDynamicAnchorTextMaxLen", {
+    group.number("blockRefDynamicAnchorTextMaxLen", {
         title: window.siyuan.languages.md37,
         desc: window.siyuan.languages.md38,
         min: 1,
         max: 5120,
     });
-    s.switch("virtualBlockRef", {
+    group.switch("virtualBlockRef", {
         title: window.siyuan.languages.md33,
         desc: window.siyuan.languages.md34,
     });
-    s.textBlock("virtualBlockRefInclude", {
+    group.textBlock("virtualBlockRefInclude", {
         title: window.siyuan.languages.md9,
         desc: window.siyuan.languages.md36,
         mode: "textarea",
     });
-    s.textBlock("virtualBlockRefExclude", {
+    group.textBlock("virtualBlockRefExclude", {
         title: window.siyuan.languages.md35,
         desc: window.siyuan.languages.md41,
         mode: "textarea",
     });
-    s.switch("backlinkContainChildren", {
+    group.switch("backlinkContainChildren", {
         title: window.siyuan.languages.backlinkContainChildren,
         desc: window.siyuan.languages.backlinkContainChildrenTip,
     });
-    s.number("backlinkExpandCount", {
+    group.number("backlinkExpandCount", {
         title: window.siyuan.languages.backlinkExpand,
         desc: window.siyuan.languages.backlinkExpandTip,
         min: 0,
         max: 512,
     });
-    s.number("backmentionExpandCount", {
+    group.number("backmentionExpandCount", {
         title: window.siyuan.languages.backmentionExpand,
         desc: window.siyuan.languages.backmentionExpandTip,
         min: -1,
@@ -178,67 +178,67 @@ export const registerEditorBidirectionalGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerEditorMarkdownInlineGroup = (p: TabBuilder) => {
-    const s = p.group("markdownInline", window.siyuan.languages.configGroupMarkdownInlineSyntax);
-    s.switch("markdown.inlineAsterisk", {
+export const registerEditorMarkdownInlineGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("markdownInline", window.siyuan.languages.configGroupMarkdownInlineSyntax);
+    group.switch("markdown.inlineAsterisk", {
         title: window.siyuan.languages.editorMarkdownInlineAsterisk,
         desc: window.siyuan.languages.editorMarkdownInlineAsteriskTip,
     });
-    s.switch("markdown.inlineUnderscore", {
+    group.switch("markdown.inlineUnderscore", {
         title: window.siyuan.languages.editorMarkdownInlineUnderscore,
         desc: window.siyuan.languages.editorMarkdownInlineUnderscoreTip,
     });
-    s.switch("markdown.inlineSup", {
+    group.switch("markdown.inlineSup", {
         title: window.siyuan.languages.editorMarkdownInlineSup,
         desc: window.siyuan.languages.editorMarkdownInlineSupTip,
     });
-    s.switch("markdown.inlineSub", {
+    group.switch("markdown.inlineSub", {
         title: window.siyuan.languages.editorMarkdownInlineSub,
         desc: window.siyuan.languages.editorMarkdownInlineSubTip,
     });
-    s.switch("markdown.inlineTag", {
+    group.switch("markdown.inlineTag", {
         title: window.siyuan.languages.editorMarkdownInlineTag,
         desc: window.siyuan.languages.editorMarkdownInlineTagTip,
     });
-    s.switch("markdown.inlineMath", {
+    group.switch("markdown.inlineMath", {
         title: window.siyuan.languages.editorMarkdownInlineMath,
         desc: window.siyuan.languages.editorMarkdownInlineMathTip,
     });
-    s.switch("markdown.inlineStrikethrough", {
+    group.switch("markdown.inlineStrikethrough", {
         title: window.siyuan.languages.editorMarkdownInlineStrikethrough,
         desc: window.siyuan.languages.editorMarkdownInlineStrikethroughTip,
     });
-    s.switch("markdown.inlineMark", {
+    group.switch("markdown.inlineMark", {
         title: window.siyuan.languages.editorMarkdownInlineMark,
         desc: window.siyuan.languages.editorMarkdownInlineMarkTip,
     });
 };
 
-export const registerEditorAdvancedGroup = (p: TabBuilder) => {
-    const s = p.group("advanced", window.siyuan.languages.configGroupAdvanced);
-    s.text("plantUMLServePath", {
+export const registerEditorAdvancedGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("advanced", window.siyuan.languages.configGroupAdvanced);
+    group.text("plantUMLServePath", {
         title: window.siyuan.languages.md39,
         desc: window.siyuan.languages.md40,
     });
-    s.textBlock("katexMacros", {
+    group.textBlock("katexMacros", {
         title: window.siyuan.languages.katexMacros,
         desc: window.siyuan.languages.katexMacrosTip,
         mode: "textarea",
     });
-    s.switch("allowSVGScript", {
+    group.switch("allowSVGScript", {
         title: window.siyuan.languages.allowSVGScript,
         desc: window.siyuan.languages.allowSVGScriptTip,
     });
-    s.switch("allowHTMLBLockScript", {
+    group.switch("allowHTMLBLockScript", {
         title: window.siyuan.languages.allowHTMLBLockScript,
         desc: window.siyuan.languages.allowHTMLBLockScriptTip,
     });
 };
 
-export const registerEditorTab = (p: TabBuilder) => {
-    registerEditorBehaviorGroup(p);
-    registerEditorBlockFeaturesGroup(p);
-    registerEditorBidirectionalGroup(p);
-    registerEditorMarkdownInlineGroup(p);
-    registerEditorAdvancedGroup(p);
+export const registerEditorTab = (tab: SettingTabBuilder) => {
+    registerEditorBehaviorGroup(tab);
+    registerEditorBlockFeaturesGroup(tab);
+    registerEditorBidirectionalGroup(tab);
+    registerEditorMarkdownInlineGroup(tab);
+    registerEditorAdvancedGroup(tab);
 };

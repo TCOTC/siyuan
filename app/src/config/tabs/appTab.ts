@@ -2,7 +2,7 @@
 import {ipcRenderer} from "electron";
 import * as path from "path";
 /// #endif
-import type {TabBuilder} from "../registry/builder";
+import type {SettingTabBuilder} from "../setting/builder";
 import {Constants} from "../../constants";
 import {fetchPost} from "../../util/fetch";
 import {exportLayout} from "../../layout/util";
@@ -21,11 +21,11 @@ const genImportUploadButtonHtml = (inputId: string, label: string): string =>
     ${label}
 </button>`;
 
-export const registerAppGeneralGroup = (p: TabBuilder) => {
-    const s = p.group("general", window.siyuan.languages.configGroupGeneral);
+export const registerAppGeneralGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("general", window.siyuan.languages.configGroupGeneral);
 
     if (!isBrowser() && !window.siyuan.config.system.isMicrosoftStore && window.siyuan.config.system.container === "std" && window.siyuan.config.system.os !== "linux") {
-        s.select("system.autoLaunch2", {
+        group.select("system.autoLaunch2", {
             title: window.siyuan.languages.autoLaunch,
             desc: window.siyuan.languages.autoLaunchTip,
             options: [
@@ -36,7 +36,7 @@ export const registerAppGeneralGroup = (p: TabBuilder) => {
             save: (value) => sendAppSetting("system.autoLaunch2", value),
         });
     }
-    s.slot({
+    group.slot({
         key: "networkProxy",
         keywords: [
             window.siyuan.languages.networkProxy,
@@ -102,10 +102,10 @@ const mountNetworkProxy = (root: HTMLElement) => {
     });
 };
 
-export const registerAppDataGroup = (p: TabBuilder) => {
-    const s = p.group("data", window.siyuan.languages.configGroupData);
+export const registerAppDataGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("data", window.siyuan.languages.configGroupData);
 
-    s.button({
+    group.button({
         id: "exportData",
         title: `${window.siyuan.languages.export} Data`,
         desc: window.siyuan.languages.exportDataTip,
@@ -113,7 +113,7 @@ export const registerAppDataGroup = (p: TabBuilder) => {
         icon: "iconUpload",
         afterMount: mountExportData,
     });
-    s.slot({
+    group.slot({
         key: "importData",
         keywords: [window.siyuan.languages.import, window.siyuan.languages.importDataTip],
         html: () => `<div class="fn__flex b3-label config-item config-wrap">
@@ -130,7 +130,7 @@ export const registerAppDataGroup = (p: TabBuilder) => {
             });
         },
     });
-    s.button({
+    group.button({
         id: "exportConf",
         title: window.siyuan.languages.exportConf,
         desc: window.siyuan.languages.exportConfTip,
@@ -144,7 +144,7 @@ export const registerAppDataGroup = (p: TabBuilder) => {
             });
         },
     });
-    s.slot({
+    group.slot({
         key: "importConf",
         keywords: [window.siyuan.languages.importConf, window.siyuan.languages.importConfTip],
         html: () => `<div class="fn__flex b3-label config-item config-wrap">
@@ -198,10 +198,10 @@ const mountExportData = (root: HTMLElement) => {
     });
 };
 
-export const registerAppMaintenanceGroup = (p: TabBuilder) => {
-    const s = p.group("maintenance", window.siyuan.languages.configGroupMaintenance);
+export const registerAppMaintenanceGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("maintenance", window.siyuan.languages.configGroupMaintenance);
 
-    s.button({
+    group.button({
         id: "vacuumDataIndex",
         title: window.siyuan.languages.vacuumDataIndex,
         desc: window.siyuan.languages.vacuumDataIndexTip,
@@ -213,7 +213,7 @@ export const registerAppMaintenanceGroup = (p: TabBuilder) => {
             });
         },
     });
-    s.button({
+    group.button({
         id: "rebuildDataIndex",
         title: window.siyuan.languages.rebuildDataIndex,
         desc: window.siyuan.languages.rebuildDataIndexTip,
@@ -225,7 +225,7 @@ export const registerAppMaintenanceGroup = (p: TabBuilder) => {
             });
         },
     });
-    s.button({
+    group.button({
         id: "clearTempFiles",
         title: window.siyuan.languages.clearTempFiles,
         desc: window.siyuan.languages.clearTempFilesTip,
@@ -237,7 +237,7 @@ export const registerAppMaintenanceGroup = (p: TabBuilder) => {
             });
         },
     });
-    s.button({
+    group.button({
         id: "exportLog",
         title: window.siyuan.languages.systemLog,
         desc: window.siyuan.languages.systemLogTip,
@@ -253,8 +253,8 @@ export const registerAppMaintenanceGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerAppTab = (p: TabBuilder) => {
-    registerAppGeneralGroup(p);
-    registerAppDataGroup(p);
-    registerAppMaintenanceGroup(p);
+export const registerAppTab = (tab: SettingTabBuilder) => {
+    registerAppGeneralGroup(tab);
+    registerAppDataGroup(tab);
+    registerAppMaintenanceGroup(tab);
 };

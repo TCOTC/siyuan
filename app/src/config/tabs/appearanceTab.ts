@@ -1,7 +1,7 @@
 /// #if !BROWSER
 import * as path from "path";
 /// #endif
-import type {TabBuilder} from "../registry/builder";
+import type {SettingTabBuilder} from "../setting/builder";
 import {Constants} from "../../constants";
 import {resetLayout} from "../../layout/util";
 import {desktopModeCookie} from "../../util/cookie";
@@ -18,10 +18,10 @@ import {genConfigItemMainHtml, genListSwitchItemHtml, genSwitchRow} from "../ren
 import {editorConfigApi} from "./editorRuntime";
 import {appearanceThemeModeValue, saveThemeMode} from "./appearanceRuntime";
 
-export const registerAppearanceContentGroup = (p: TabBuilder) => {
-    const s = p.group("content", window.siyuan.languages.configGroupContent);
+export const registerAppearanceContentGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("content", window.siyuan.languages.configGroupContent);
 
-    s.slot({
+    group.slot({
         key: "fontFamily",
         keywords: [window.siyuan.languages.font, window.siyuan.languages.font1],
         html: () =>
@@ -42,7 +42,7 @@ export const registerAppearanceContentGroup = (p: TabBuilder) => {
 </div>`,
         afterMount: mountAppearanceFontFamily,
     });
-    s.range("editor.fontSize", {
+    group.range("editor.fontSize", {
         title: window.siyuan.languages.editorFontSize,
         desc: window.siyuan.languages.fontSizeTip,
         min: 12,
@@ -50,22 +50,22 @@ export const registerAppearanceContentGroup = (p: TabBuilder) => {
         step: 1,
         save: (value) => editorConfigApi.patch("editor.fontSize", value),
     });
-    s.switch("editor.fontSizeScrollZoom", {
+    group.switch("editor.fontSizeScrollZoom", {
         title: window.siyuan.languages.fontSizeScrollZoom,
         desc: window.siyuan.languages.fontSizeScrollZoomTip,
         save: (value) => editorConfigApi.patch("editor.fontSizeScrollZoom", value),
     });
-    s.switch("editor.fullWidth", {
+    group.switch("editor.fullWidth", {
         title: window.siyuan.languages.fullWidth,
         desc: window.siyuan.languages.fullWidthTip,
         save: (value) => editorConfigApi.patch("editor.fullWidth", value),
     });
-    s.switch("editor.justify", {
+    group.switch("editor.justify", {
         title: window.siyuan.languages.justify,
         desc: window.siyuan.languages.justifyTip,
         save: (value) => editorConfigApi.patch("editor.justify", value),
     });
-    s.switch("editor.rtl", {
+    group.switch("editor.rtl", {
         title: window.siyuan.languages.rtl,
         desc: window.siyuan.languages.rtlTip,
         save: (value) => editorConfigApi.patch("editor.rtl", value),
@@ -150,11 +150,11 @@ const mountAppearanceFontFamily = (root: HTMLElement) => {
     }
 };
 
-export const registerAppearanceInterfaceGroup = (p: TabBuilder) => {
+export const registerAppearanceInterfaceGroup = (tab: SettingTabBuilder) => {
     const browser = isBrowser();
-    const s = p.group("interface", window.siyuan.languages.configGroupInterface);
+    const group = tab.group("interface", window.siyuan.languages.configGroupInterface);
 
-    s.select("lang", {
+    group.select("lang", {
         title: window.siyuan.languages.language,
         desc: window.siyuan.languages.language1,
         options: window.siyuan.config.langs.map((lang) => ({
@@ -162,7 +162,7 @@ export const registerAppearanceInterfaceGroup = (p: TabBuilder) => {
             label: `${lang.label} (${lang.name})`,
         })),
     });
-    s.select("__themeMode", {
+    group.select("__themeMode", {
         title: window.siyuan.languages.appearance4,
         desc: window.siyuan.languages.appearance5,
         options: [
@@ -176,7 +176,7 @@ export const registerAppearanceInterfaceGroup = (p: TabBuilder) => {
             saveThemeMode(themeValue);
         },
     });
-    s.stack({
+    group.stack({
         key: "theme",
         keywords: [
             window.siyuan.languages.theme,
@@ -215,7 +215,7 @@ export const registerAppearanceInterfaceGroup = (p: TabBuilder) => {
             })),
         });
     });
-    s.stack({
+    group.stack({
         key: "icon",
         keywords: [
             window.siyuan.languages.icon,
@@ -246,7 +246,7 @@ export const registerAppearanceInterfaceGroup = (p: TabBuilder) => {
             })),
         });
     });
-    s.stack({
+    group.stack({
         key: "codeBlockTheme",
         keywords: [
             window.siyuan.languages.appearance1,
@@ -266,10 +266,10 @@ export const registerAppearanceInterfaceGroup = (p: TabBuilder) => {
     });
 };
 
-export const registerAppearanceControlsGroup = (p: TabBuilder) => {
-    const s = p.group("controls", window.siyuan.languages.configGroupControls);
+export const registerAppearanceControlsGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("controls", window.siyuan.languages.configGroupControls);
 
-    s.select("editor.floatWindowMode", {
+    group.select("editor.floatWindowMode", {
         title: window.siyuan.languages.floatWindowMode,
         desc: window.siyuan.languages.floatWindowModeTip,
         options: [
@@ -280,7 +280,7 @@ export const registerAppearanceControlsGroup = (p: TabBuilder) => {
         save: (value) => editorConfigApi.patch("editor.floatWindowMode", value),
         afterMount: bindFloatWindowModeVisibility,
     });
-    s.number("editor.floatWindowDelay", {
+    group.number("editor.floatWindowDelay", {
         title: window.siyuan.languages.floatWindowDelay,
         desc: window.siyuan.languages.floatWindowDelayTip,
         min: 0,
@@ -288,7 +288,7 @@ export const registerAppearanceControlsGroup = (p: TabBuilder) => {
         unit: "ms",
         save: (value) => editorConfigApi.patch("editor.floatWindowDelay", value),
     });
-    s.select("closeButtonBehavior", {
+    group.select("closeButtonBehavior", {
         title: window.siyuan.languages.appearance10,
         desc: window.siyuan.languages.appearance12,
         options: [
@@ -296,7 +296,7 @@ export const registerAppearanceControlsGroup = (p: TabBuilder) => {
             {value: 1, label: window.siyuan.languages.appearance11},
         ],
     });
-    s.stack({
+    group.stack({
         key: "statusBar",
         keywords: [
             window.siyuan.languages.appearance16,
@@ -317,7 +317,7 @@ export const registerAppearanceControlsGroup = (p: TabBuilder) => {
         });
     });
     if (isBrowser()) {
-        s.slot({
+        group.slot({
             key: "desktopMode",
             keywords: [window.siyuan.languages.desktopMode, window.siyuan.languages.mobileModeTip],
             html: () => genSwitchRow(
@@ -335,7 +335,7 @@ export const registerAppearanceControlsGroup = (p: TabBuilder) => {
             },
         });
     }
-    s.button({
+    group.button({
         id: "resetLayout",
         title: window.siyuan.languages.resetLayout,
         desc: window.siyuan.languages.appearance6,
@@ -413,12 +413,12 @@ const mountAppearanceSetStatusBar = (root: HTMLElement) => {
     });
 };
 
-export const registerAppearancePersonalizationGroup = (p: TabBuilder) => {
+export const registerAppearancePersonalizationGroup = (tab: SettingTabBuilder) => {
     const browser = isBrowser();
-    const s = p.group("personalization", window.siyuan.languages.configGroupPersonalization);
+    const group = tab.group("personalization", window.siyuan.languages.configGroupPersonalization);
 
     if (!browser) {
-        s.button({
+        group.button({
             id: "appearanceOpenEmoji",
             title: window.siyuan.languages.customEmoji,
             desc: window.siyuan.languages.customEmojiTip,
@@ -431,7 +431,7 @@ export const registerAppearancePersonalizationGroup = (p: TabBuilder) => {
             },
         });
     }
-    s.stack({
+    group.stack({
         key: "codeSnippet",
         keywords: [
             window.siyuan.languages.codeSnippet,
@@ -467,9 +467,9 @@ const mountAppearanceCodeSnippet = (root: HTMLElement) => {
     });
 };
 
-export const registerAppearanceTab = (p: TabBuilder) => {
-    registerAppearanceContentGroup(p);
-    registerAppearanceInterfaceGroup(p);
-    registerAppearanceControlsGroup(p);
-    registerAppearancePersonalizationGroup(p);
+export const registerAppearanceTab = (tab: SettingTabBuilder) => {
+    registerAppearanceContentGroup(tab);
+    registerAppearanceInterfaceGroup(tab);
+    registerAppearanceControlsGroup(tab);
+    registerAppearancePersonalizationGroup(tab);
 };

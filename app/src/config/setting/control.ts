@@ -38,7 +38,7 @@ type TextBlockControl = ControlBase & {
     mode: "input-text" | "input-password" | "textarea";
 };
 
-export type ConfigControl =
+export type SettingControl =
     | BooleanControl
     | NumberControl
     | RangeControl
