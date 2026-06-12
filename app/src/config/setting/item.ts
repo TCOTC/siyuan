@@ -19,7 +19,6 @@ type SettingItemBase = {
 type FullSettingItem = SettingItemBase & {
     kind: "full";
     rowParts: RowPart[];
-    control: SettingControl;
 };
 
 /** 自定义 HTML 块：参与 mount、搜索 */

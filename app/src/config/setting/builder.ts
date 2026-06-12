@@ -1,5 +1,5 @@
 import type {App} from "../../index";
-import type {RowPart, StackLine, SwitchQueryItem} from "../render/parts";
+import type {StackLine, SwitchQueryItem} from "../render/parts";
 import {genButtonRowHtml, genStackHtml, genSwitchQueryHtml, genTextPairHtml} from "../render/render";
 import {
     controlBoolean,
@@ -218,14 +218,18 @@ class SettingGroupBuilder<TId extends string> {
     ) {}
 
     /**
-     * 注册标准控件：由 `rowParts` 参与 mount 渲染，并接入 save 路由与设置搜索。
+     * 注册标准单行控件（`kind: full`）。
      */
-    private registerControl(
-        path: string,
-        rowParts: RowPart[],
-        control: SettingControl,
+    private registerFullItem(
+        id: string,
         spec: ControlSpecBase,
+        control: SettingControl,
     ) {
+        const rowParts = [
+            {kind: "title" as const, text: spec.title},
+            ...(spec.desc?.trim() ? [{kind: "desc" as const, text: spec.desc}] : []),
+            control,
+        ];
         const afterMount = control.afterMount || spec.afterMount
             ? async (root: HTMLElement) => {
                 await control.afterMount?.(root);
@@ -233,76 +237,52 @@ class SettingGroupBuilder<TId extends string> {
             }
             : undefined;
         registerSettingItem({
-            id: path,
+            id,
             tabId: this.tab.id,
             groupId: this.groupId,
             kind: "full",
             rowParts,
-            control,
             readValue: (el) => control.readValue(el),
-            save: spec.save ?? this.tab.defaultSave?.bind(null, path),
+            save: spec.save ?? this.tab.defaultSave?.bind(null, id),
             afterMount,
         } as RegisterSettingItem);
         return this;
     }
 
     switch(path: string, spec: SwitchSpec) {
-        const control = controlBoolean(path);
-        return this.registerControl(path, [
-            {kind: "title", text: spec.title},
-            ...(spec.desc ? [{kind: "desc" as const, text: spec.desc}] : []),
-            control,
-        ], control, spec);
+        return this.registerFullItem(path, spec, controlBoolean(path));
     }
 
     number(path: string, spec: NumberSpec) {
-        const control = controlNumber(path, {
+        return this.registerFullItem(path, spec, controlNumber(path, {
             min: spec.min,
             max: spec.max,
             step: spec.step,
             unit: spec.unit,
-        });
-        return this.registerControl(path, [
-            {kind: "title", text: spec.title},
-            {kind: "desc", text: spec.desc ?? ""},
-            control,
-        ], control, spec);
+        }));
     }
 
     range(path: string, spec: RangeSpec) {
-        const control = controlRange(path, {min: spec.min, max: spec.max, step: spec.step});
-        return this.registerControl(path, [
-            {kind: "title", text: spec.title},
-            {kind: "desc", text: spec.desc ?? ""},
-            control,
-        ], control, spec);
+        return this.registerFullItem(path, spec, controlRange(path, {
+            min: spec.min,
+            max: spec.max,
+            step: spec.step,
+        }));
     }
 
     select(path: string, spec: SelectSpec) {
-        const control = controlSelect(path, {options: spec.options, readConfig: spec.readConfig});
-        return this.registerControl(path, [
-            {kind: "title", text: spec.title},
-            {kind: "desc", text: spec.desc ?? ""},
-            control,
-        ], control, spec);
+        return this.registerFullItem(path, spec, controlSelect(path, {
+            options: spec.options,
+            readConfig: spec.readConfig,
+        }));
     }
 
     text(path: string, spec: TextSpec) {
-        const control = controlString(path);
-        return this.registerControl(path, [
-            {kind: "title", text: spec.title},
-            {kind: "desc", text: spec.desc},
-            control,
-        ], control, spec);
+        return this.registerFullItem(path, spec, controlString(path));
     }
 
     textBlock(path: string, spec: TextBlockSpec) {
-        const control = controlTextBlock(path, {mode: spec.mode});
-        return this.registerControl(path, [
-            {kind: "title", text: spec.title},
-            {kind: "desc", text: spec.desc},
-            control,
-        ], control, spec);
+        return this.registerFullItem(path, spec, controlTextBlock(path, {mode: spec.mode}));
     }
 
     textPair(spec: TextPairSpec) {
