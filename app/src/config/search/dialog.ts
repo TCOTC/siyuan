@@ -4,14 +4,14 @@ import {clearSettingTabSearch} from "../setting/mount";
 import {App} from "../../index";
 import {isPhablet} from "../../protyle/util/compatibility";
 
-const readSearchKeywordsLower = (dialogElement: HTMLElement): string | undefined => {
+const getSearchKeywordsLower = (dialogElement: HTMLElement): string | undefined => {
     const searchInput = dialogElement.querySelector(".b3-form__icon input") as HTMLInputElement | null;
     const trimmed = (searchInput?.value ?? "").trim();
     return trimmed ? trimmed.toLowerCase() : undefined;
 };
 
 /** @param visibleInSidebar 为 true 时，侧栏项被搜索过滤隐藏（`display: none`）则视为无 focus */
-const readFocusedTabId = (dialogElement: HTMLElement, visibleInSidebar = false): TSettingTab | null => {
+const getFocusedTabId = (dialogElement: HTMLElement, visibleInSidebar = false): TSettingTab | null => {
     const focusLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
     if (!focusLi || (visibleInSidebar && focusLi.style.display === "none")) {
         return null;
@@ -30,7 +30,7 @@ export const switchSettingTab = (
         return;
     }
 
-    const focusedTabId = readFocusedTabId(dialogElement);
+    const focusedTabId = getFocusedTabId(dialogElement);
     if (tabId === focusedTabId) {
         containerElement.classList.remove("fn__none");
     } else {
@@ -43,7 +43,7 @@ export const switchSettingTab = (
     }
 
     if (!search) {
-        const keywords = readSearchKeywordsLower(dialogElement);
+        const keywords = getSearchKeywordsLower(dialogElement);
         if (keywords) {
             const {visibleItemIds, visibleGroupIds} = getSettingTab(tabId).scanSearch(keywords);
             search = {keywords, visibleItemIds, visibleGroupIds};
@@ -53,20 +53,20 @@ export const switchSettingTab = (
 };
 
 const syncSettingSearch = (dialogElement: HTMLElement, app: App) => {
-    const keywords = readSearchKeywordsLower(dialogElement);
+    const keywords = getSearchKeywordsLower(dialogElement);
     if (!keywords) {
         dialogElement.querySelectorAll(".config__side .b3-list-item").forEach((item: HTMLElement) => {
             item.style.display = "";
         });
         clearSettingTabSearch(dialogElement);
-        const focusedTabId = readFocusedTabId(dialogElement);
+        const focusedTabId = getFocusedTabId(dialogElement);
         if (focusedTabId) {
             switchSettingTab(dialogElement, app, focusedTabId);
         }
         return;
     }
 
-    const focusedTabId = readFocusedTabId(dialogElement, true);
+    const focusedTabId = getFocusedTabId(dialogElement, true);
     let currentMatch: ({tabId: TSettingTab} & Pick<SettingTabMountContext, "visibleItemIds" | "visibleGroupIds">) | undefined;
     for (const item of dialogElement.querySelectorAll<HTMLElement>(".config__side .b3-list-item")) {
         const tabId = item.getAttribute("data-name") as TSettingTab | null;

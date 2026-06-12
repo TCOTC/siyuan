@@ -5,24 +5,20 @@ import {syncRangeRowValue} from "./domIO";
 
 /** 首次挂载：渲染全部注册项并执行 afterMount */
 export const mountSettingTab = async (tabId: string, root: HTMLElement) => {
-    const tabItems = getMountableItemsByTabId(tabId);
-
     root.innerHTML = genGroupedItems(tabId);
 
+    const tabItems = getMountableItemsByTabId(tabId);
     for (const item of tabItems) {
         await item.afterMount?.(root);
-    }
-    for (const item of tabItems) {
-        if (item.kind !== "full") {
-            continue;
-        }
-        for (const part of item.rowParts) {
-            if (part.kind !== "range") {
-                continue;
-            }
-            const rangeEl = root.querySelector<HTMLElement>(`#${CSS.escape(part.id)}`);
-            if (rangeEl) {
-                syncRangeRowValue(rangeEl);
+
+        if (item.kind === "full") {
+            for (const part of item.rowParts) {
+                if (part.kind === "range") {
+                    const rangeEl = root.querySelector<HTMLElement>(`#${CSS.escape(part.id)}`);
+                    if (rangeEl) {
+                        syncRangeRowValue(rangeEl);
+                    }
+                }
             }
         }
     }
