@@ -12,7 +12,7 @@ import {
 } from "./control";
 import {registerSettingGroup} from "./group";
 import {registerSettingItem, type RegisterSettingItem} from "./item";
-import {scanSettingTabSearch} from "../search/match";
+import {scanSettingTabSearch} from "../search/scan";
 import {buildSearchIndex, normalizeSearchText} from "../search/normalize";
 import {applySettingTabSearchVisibility, mountSettingTab} from "./mount";
 
