@@ -30,7 +30,7 @@ const onSettingTabWrapChange = (event: Event) => {
         return;
     }
     const item = getSettingItem(controlId);
-    if (!item?.save || item.kind === "render" || !item.read) {
+    if (!item?.save || !item.read) {
         return;
     }
     const value = item.read(el);

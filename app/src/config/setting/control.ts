@@ -1,3 +1,4 @@
+import {bindPasswordIconaToggle} from "../render/fragments";
 import {getAtPath} from "../util/dotPath";
 import {normalizeNumberInputValue, snapRangeValue} from "./domIO";
 
@@ -12,6 +13,7 @@ type ControlBase = {
     read(): unknown;
     /** change 时从 DOM 读取提交值 */
     readDom(el: HTMLElement): unknown;
+    afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
 
 type BooleanControl = ControlBase & {kind: "switch"};
@@ -183,5 +185,8 @@ export const controlTextBlock = (
         mode: options.mode,
         read: () => options.read?.() ?? coerceString(readConfigAt(id), fallback),
         readDom: (el) => (el as HTMLInputElement | HTMLTextAreaElement).value,
+        afterMount: options.mode === "input-password"
+            ? (root) => bindPasswordIconaToggle(root, id)
+            : undefined,
     };
 };

@@ -10,7 +10,6 @@ import {
     controlTextBlock,
     type SettingControl,
 } from "./control";
-import {bindPasswordIconaToggle} from "../render/fragments";
 import {registerSettingGroup} from "./group";
 import {registerSettingItem, type RegisterSettingItem} from "./item";
 import {scanPanelSettingTabSearch, scanSettingTabSearch} from "../search/match";
@@ -279,6 +278,12 @@ class SettingGroupBuilder<TId extends string> {
         meta: ControlMetaBase,
     ) {
         const id = resolveId(this.tab.namespace, path);
+        const afterMount = control.afterMount || meta.afterMount
+            ? async (root: HTMLElement) => {
+                await control.afterMount?.(root);
+                await meta.afterMount?.(root);
+            }
+            : undefined;
         registerSettingItem({
             id,
             tabId: this.tab.id,
@@ -289,7 +294,7 @@ class SettingGroupBuilder<TId extends string> {
             searchTexts: defaultSearchTexts({title: meta.title, desc: meta.desc, keywords: meta.keywords}),
             read: meta.read ?? ((el) => control.readDom(el)),
             save: meta.save ?? this.tab.defaultSave?.bind(null, id),
-            afterMount: meta.afterMount,
+            afterMount,
         } as RegisterSettingItem);
         return this;
     }
@@ -352,17 +357,11 @@ class SettingGroupBuilder<TId extends string> {
     textBlock(path: string, meta: TextBlockMeta) {
         const id = resolveId(this.tab.namespace, path);
         const control = controlTextBlock(id, {mode: meta.mode, read: meta.readConfig});
-        const afterMount = meta.mode === "input-password"
-            ? async (root: HTMLElement) => {
-                bindPasswordIconaToggle(root, id);
-                await meta.afterMount?.(root);
-            }
-            : meta.afterMount;
         return this.registerControl(path, [
             {kind: "title", text: meta.title},
             {kind: "desc", text: meta.desc},
             control,
-        ], control, {...meta, afterMount});
+        ], control, meta);
     }
 
     textPair(meta: TextPairMeta) {
