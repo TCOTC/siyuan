@@ -30,10 +30,10 @@ const onSettingTabWrapChange = (event: Event) => {
         return;
     }
     const item = getSettingItem(controlId);
-    if (!item?.save || !item.read) {
+    if (!item?.save || !item.readValue) {
         return;
     }
-    const value = item.read(el);
+    const value = item.readValue(el);
     if (value !== undefined) {
         void item.save(value);
     }

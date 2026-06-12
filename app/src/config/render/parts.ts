@@ -13,7 +13,7 @@ export type RowPart =
     | SettingControl;
 
 export const isSettingControl = (part: RowPart): part is SettingControl =>
-    "read" in part && "readDom" in part;
+    "readConfig" in part && "readValue" in part;
 
 /** `config-query` 网格内单条开关 */
 type SwitchQuerySwitchItem = Extract<SettingControl, {kind: "switch"}> & {

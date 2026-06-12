@@ -83,7 +83,7 @@ const genTextBlockFieldHtml = (
 const genSwitchQueryItemHtml = (item: SwitchQueryItem): string => {
     switch (item.kind) {
         case "switch": {
-            const checked = item.read() as boolean;
+            const checked = item.readConfig() as boolean;
             return `<label class="fn__flex">
     <input class="b3-switch" id="${item.id}" type="checkbox"${checked ? " checked" : ""}/>
     <span class="fn__space"></span>
@@ -93,7 +93,7 @@ const genSwitchQueryItemHtml = (item: SwitchQueryItem): string => {
         }
         case "number":
             return `<div class="fn__flex label fn__flex-1">
-    <input class="b3-text-field" id="${item.id}" type="number" min="${item.min ?? ""}" max="${item.max ?? ""}" value="${item.read()}"/>
+    <input class="b3-text-field" id="${item.id}" type="number" min="${item.min ?? ""}" max="${item.max ?? ""}" value="${item.readConfig()}"/>
     <span class="fn__space"></span>
     <div>${item.label}</div>
 </div>`;
@@ -133,9 +133,9 @@ export const genTextPairHtml = (
     `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size96" id="${left.id}" value="${Lute.EscapeHTMLStr(left.read() as string)}">
+    <input class="b3-text-field fn__flex-center fn__size96" id="${left.id}" value="${Lute.EscapeHTMLStr(left.readConfig() as string)}">
     <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size96" id="${right.id}" value="${Lute.EscapeHTMLStr(right.read() as string)}">
+    <input class="b3-text-field fn__flex-center fn__size96" id="${right.id}" value="${Lute.EscapeHTMLStr(right.readConfig() as string)}">
 </div>`;
 
 const genStackRight = (r: StackRight): string => {
@@ -143,17 +143,17 @@ const genStackRight = (r: StackRight): string => {
         case "button":
             return genButtonHtml(r.id, r.label, r.icon);
         case "select":
-            return genSelectOptionsHtml(r.id, r.options, r.read() as number | string);
+            return genSelectOptionsHtml(r.id, r.options, r.readConfig() as number | string);
         case "number":
-            return genNumberInputHtml(r.id, r.read() as number, r.min, r.max, undefined, undefined);
+            return genNumberInputHtml(r.id, r.readConfig() as number, r.min, r.max, undefined, undefined);
         case "switch":
-            return genSwitchInputHtml(r.id, r.read() as boolean);
+            return genSwitchInputHtml(r.id, r.readConfig() as boolean);
     }
 };
 
 const genStackLeft = (left: StackLeft, hasRight: boolean): string => {
     if (left.kind === "textBlock") {
-        return `<div class="${hasRight ? "fn__flex-1 " : ""}fn__block">${genTextBlockFieldHtml(left.id, left.mode, left.read() as string)}</div>`;
+        return `<div class="${hasRight ? "fn__flex-1 " : ""}fn__block">${genTextBlockFieldHtml(left.id, left.mode, left.readConfig() as string)}</div>`;
     }
     if (!hasRight) {
         return left.kind === "title" ? genConfigItemName(left.text) : `<div class="b3-label__text">${left.text}</div>`;
@@ -209,28 +209,28 @@ const renderControlParts = (parts: RowPart[]): string => {
     }
     switch (control.kind) {
         case "switch":
-            return genSwitchRow(control.id, title, desc, control.read() as boolean);
+            return genSwitchRow(control.id, title, desc, control.readConfig() as boolean);
         case "number":
             return `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    ${genNumberInputHtml(control.id, control.read() as number, control.min, control.max, control.step, control.unit)}
+    ${genNumberInputHtml(control.id, control.readConfig() as number, control.min, control.max, control.step, control.unit)}
 </div>`;
         case "range": {
-            const num = control.read() as number;
+            const num = control.readConfig() as number;
             return genRangeRow(control.id, title, desc ?? "", control.min, control.max, control.step, num);
         }
         case "select":
             return `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc)}
     <span class="fn__space"></span>
-    ${genSelectOptionsHtml(control.id, control.options, control.read() as number | string)}
+    ${genSelectOptionsHtml(control.id, control.options, control.readConfig() as number | string)}
 </div>`;
         case "text":
             return `<div class="fn__flex b3-label config-item config-wrap">
     ${genConfigItemMainHtml(title, desc ?? "")}
     <span class="fn__space"></span>
-    <input class="b3-text-field fn__flex-center fn__size200" id="${control.id}" value="${Lute.EscapeHTMLStr(control.read() as string)}"/>
+    <input class="b3-text-field fn__flex-center fn__size200" id="${control.id}" value="${Lute.EscapeHTMLStr(control.readConfig() as string)}"/>
 </div>`;
         case "textBlock": {
             return `<div class="b3-label config-item">
@@ -238,7 +238,7 @@ const renderControlParts = (parts: RowPart[]): string => {
         ${genConfigItemName(title)}
         <div class="b3-label__text">${desc ?? ""}</div>
         <div class="fn__hr--small"></div>
-        ${genTextBlockFieldHtml(control.id, control.mode, control.read() as string)}
+        ${genTextBlockFieldHtml(control.id, control.mode, control.readConfig() as string)}
     </div>
 </div>`;
         }

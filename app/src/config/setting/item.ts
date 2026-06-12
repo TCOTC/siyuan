@@ -10,7 +10,7 @@ type SettingItemBase = {
     groupId: string;
     /** 条目检索串（注册时 normalize） */
     searchIndex: readonly string[];
-    read?: (el: HTMLElement) => unknown;
+    readValue?: (el: HTMLElement) => unknown;
     save?: (value: unknown) => void | Promise<void>;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
@@ -30,7 +30,7 @@ type RenderSettingItem = SettingItemBase & {
     searchTexts?: () => string[];
 };
 
-/** 复合块内嵌控件：仅参与 read / save 路由 */
+/** 复合块内嵌控件：仅参与 readValue / save 路由 */
 type BindingSettingItem = SettingItemBase & {
     kind: "binding";
     control: SettingControl;

@@ -9,10 +9,10 @@ type SelectOption = {
 
 type ControlBase = {
     id: string;
-    /** mount 时从 config 读取初值 */
-    read(): unknown;
-    /** change 时从 DOM 读取提交值 */
-    readDom(el: HTMLElement): unknown;
+    /** mount 时从 config 读取初值（含自定义逻辑） */
+    readConfig(): unknown;
+    /** change 时从 DOM 解析提交值 */
+    readValue(el: HTMLElement): unknown;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
 
@@ -81,19 +81,19 @@ const coerceSelectValue = (
 const isNumericSelect = (options: SelectOption[]): boolean =>
     options.length > 0 && typeof options[0].value === "number";
 
-const readSelectDom = (el: HTMLElement, options: SelectOption[]): number | string => {
+const readSelectValue = (el: HTMLElement, options: SelectOption[]): number | string => {
     const select = el as HTMLSelectElement;
     return isNumericSelect(options) ? parseInt(select.value, 10) : select.value;
 };
 
 export const controlBoolean = (
     id: string,
-    options?: {read?: () => boolean},
+    options?: {readConfig?: () => boolean},
 ): BooleanControl => ({
     kind: "switch",
     id,
-    read: () => options?.read?.() ?? Boolean(readConfigAt(id)),
-    readDom: (el) => (el as HTMLInputElement).checked,
+    readConfig: () => options?.readConfig?.() ?? Boolean(readConfigAt(id)),
+    readValue: (el) => (el as HTMLInputElement).checked,
 });
 
 export const controlNumber = (
@@ -104,10 +104,10 @@ export const controlNumber = (
         step?: string;
         unit?: string;
         fallback?: number;
-        read?: () => number;
+        readConfig?: () => number;
     },
 ): NumberControl => {
-    const {min, max, step, unit, fallback = 0, read} = options ?? {};
+    const {min, max, step, unit, fallback = 0, readConfig} = options ?? {};
     return {
         kind: "number",
         id,
@@ -115,21 +115,21 @@ export const controlNumber = (
         max,
         step,
         unit,
-        read: () => {
-            const n = read?.() ?? coerceNumber(readConfigAt(id), fallback);
+        readConfig: () => {
+            const n = readConfig?.() ?? coerceNumber(readConfigAt(id), fallback);
             return clampNumber(n, min, max);
         },
-        readDom: (el) => clampNumber(normalizeNumberInputValue(el as HTMLInputElement), min, max),
+        readValue: (el) => clampNumber(normalizeNumberInputValue(el as HTMLInputElement), min, max),
     };
 };
 
 export const controlRange = (
     id: string,
-    options: {min: number; max: number; step: number; read?: () => number},
+    options: {min: number; max: number; step: number; readConfig?: () => number},
 ): RangeControl => {
-    const {min, max, step, read} = options;
-    const readSnapped = () => {
-        const raw = read?.() ?? coerceNumber(readConfigAt(id), min);
+    const {min, max, step, readConfig} = options;
+    const readConfigSnapped = () => {
+        const raw = readConfig?.() ?? coerceNumber(readConfigAt(id), min);
         return snapRangeValue(raw, min, max, step);
     };
     return {
@@ -138,8 +138,8 @@ export const controlRange = (
         min,
         max,
         step,
-        read: readSnapped,
-        readDom: (el) => {
+        readConfig: readConfigSnapped,
+        readValue: (el) => {
             const n = normalizeNumberInputValue(el as HTMLInputElement);
             return snapRangeValue(Number.isNaN(n) ? min : n, min, max, step);
         },
@@ -148,25 +148,25 @@ export const controlRange = (
 
 export const controlSelect = (
     id: string,
-    options: {options: SelectOption[]; read?: () => number | string},
+    options: {options: SelectOption[]; readConfig?: () => number | string},
 ): SelectControl => ({
     kind: "select",
     id,
     options: options.options,
-    read: () => options.read?.() ?? coerceSelectValue(readConfigAt(id), options.options),
-    readDom: (el) => readSelectDom(el, options.options),
+    readConfig: () => options.readConfig?.() ?? coerceSelectValue(readConfigAt(id), options.options),
+    readValue: (el) => readSelectValue(el, options.options),
 });
 
 export const controlString = (
     id: string,
-    options?: {read?: () => string; fallback?: string},
+    options?: {readConfig?: () => string; fallback?: string},
 ): StringControl => {
     const fallback = options?.fallback ?? "";
     return {
         kind: "text",
         id,
-        read: () => options?.read?.() ?? coerceString(readConfigAt(id), fallback),
-        readDom: (el) => (el as HTMLInputElement | HTMLTextAreaElement).value,
+        readConfig: () => options?.readConfig?.() ?? coerceString(readConfigAt(id), fallback),
+        readValue: (el) => (el as HTMLInputElement | HTMLTextAreaElement).value,
     };
 };
 
@@ -174,7 +174,7 @@ export const controlTextBlock = (
     id: string,
     options: {
         mode: "input-text" | "input-password" | "textarea";
-        read?: () => string;
+        readConfig?: () => string;
         fallback?: string;
     },
 ): TextBlockControl => {
@@ -183,8 +183,8 @@ export const controlTextBlock = (
         kind: "textBlock",
         id,
         mode: options.mode,
-        read: () => options.read?.() ?? coerceString(readConfigAt(id), fallback),
-        readDom: (el) => (el as HTMLInputElement | HTMLTextAreaElement).value,
+        readConfig: () => options.readConfig?.() ?? coerceString(readConfigAt(id), fallback),
+        readValue: (el) => (el as HTMLInputElement | HTMLTextAreaElement).value,
         afterMount: options.mode === "input-password"
             ? (root) => bindPasswordIconaToggle(root, id)
             : undefined,

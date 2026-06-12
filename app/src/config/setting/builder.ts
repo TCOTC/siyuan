@@ -243,7 +243,7 @@ class SettingGroupBuilder<TId extends string> {
             rowParts,
             control,
             searchTexts: defaultSearchTexts({title: spec.title, desc: spec.desc}),
-            read: (el) => control.readDom(el),
+            readValue: (el) => control.readValue(el),
             save: spec.save ?? this.tab.defaultSave?.bind(null, path),
             afterMount,
         } as RegisterSettingItem);
@@ -283,7 +283,7 @@ class SettingGroupBuilder<TId extends string> {
     }
 
     select(path: string, spec: SelectSpec) {
-        const control = controlSelect(path, {options: spec.options, read: spec.readConfig});
+        const control = controlSelect(path, {options: spec.options, readConfig: spec.readConfig});
         return this.registerControl(path, [
             {kind: "title", text: spec.title},
             {kind: "desc", text: spec.desc ?? ""},
@@ -410,7 +410,7 @@ class SettingGroupBuilder<TId extends string> {
                 groupId: this.groupId,
                 kind: "binding",
                 control: entry.control,
-                read: (el) => entry.control.readDom(el),
+                readValue: (el) => entry.control.readValue(el),
                 save: entry.save ?? this.tab.defaultSave?.bind(null, entry.control.id),
             } as RegisterSettingItem);
         }
