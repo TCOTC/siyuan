@@ -95,8 +95,8 @@ type SwitchQuerySpec = {
 type TextPairSpec = {
     title: string;
     desc: string;
-    leftPath: string;
-    rightPath: string;
+    leftId: string;
+    rightId: string;
 };
 type StackSpec = {
     key: string;
@@ -177,8 +177,8 @@ class StackLineBuilder {
         return this;
     }
 
-    select(path: string, spec: StackSelectSpec) {
-        const control = controlSelect(path, {options: spec.options});
+    select(id: string, spec: StackSelectSpec) {
+        const control = controlSelect(id, {options: spec.options});
         this.lines.push({
             left: {kind: "desc", text: spec.desc},
             right: control,
@@ -186,8 +186,8 @@ class StackLineBuilder {
         return this;
     }
 
-    switch(path: string, spec: StackSwitchSpec) {
-        const control = controlBoolean(path);
+    switch(id: string, spec: StackSwitchSpec) {
+        const control = controlBoolean(id);
         this.lines.push({
             left: {kind: "desc", text: spec.desc},
             right: control,
@@ -195,8 +195,8 @@ class StackLineBuilder {
         return this;
     }
 
-    number(path: string, spec: StackNumberSpec) {
-        const control = controlNumber(path, {min: spec.min, max: spec.max});
+    number(id: string, spec: StackNumberSpec) {
+        const control = controlNumber(id, {min: spec.min, max: spec.max});
         this.lines.push({
             left: {kind: "desc", text: spec.desc},
             right: control,
@@ -204,8 +204,8 @@ class StackLineBuilder {
         return this;
     }
 
-    textBlock(path: string, spec: StackTextBlockSpec) {
-        const control = controlTextBlock(path, {mode: spec.mode});
+    textBlock(id: string, spec: StackTextBlockSpec) {
+        const control = controlTextBlock(id, {mode: spec.mode});
         this.lines.push({left: control});
         return this;
     }
@@ -249,12 +249,12 @@ class SettingGroupBuilder<TId extends string> {
         return this;
     }
 
-    switch(path: string, spec: SwitchSpec) {
-        return this.registerFullItem(path, spec, controlBoolean(path));
+    switch(id: string, spec: SwitchSpec) {
+        return this.registerFullItem(id, spec, controlBoolean(id));
     }
 
-    number(path: string, spec: NumberSpec) {
-        return this.registerFullItem(path, spec, controlNumber(path, {
+    number(id: string, spec: NumberSpec) {
+        return this.registerFullItem(id, spec, controlNumber(id, {
             min: spec.min,
             max: spec.max,
             step: spec.step,
@@ -262,34 +262,34 @@ class SettingGroupBuilder<TId extends string> {
         }));
     }
 
-    range(path: string, spec: RangeSpec) {
-        return this.registerFullItem(path, spec, controlRange(path, {
+    range(id: string, spec: RangeSpec) {
+        return this.registerFullItem(id, spec, controlRange(id, {
             min: spec.min,
             max: spec.max,
             step: spec.step,
         }));
     }
 
-    select(path: string, spec: SelectSpec) {
-        return this.registerFullItem(path, spec, controlSelect(path, {
+    select(id: string, spec: SelectSpec) {
+        return this.registerFullItem(id, spec, controlSelect(id, {
             options: spec.options,
             readConfig: spec.readConfig,
         }));
     }
 
-    text(path: string, spec: TextSpec) {
-        return this.registerFullItem(path, spec, controlString(path));
+    text(id: string, spec: TextSpec) {
+        return this.registerFullItem(id, spec, controlString(id));
     }
 
-    textBlock(path: string, spec: TextBlockSpec) {
-        return this.registerFullItem(path, spec, controlTextBlock(path, {mode: spec.mode}));
+    textBlock(id: string, spec: TextBlockSpec) {
+        return this.registerFullItem(id, spec, controlTextBlock(id, {mode: spec.mode}));
     }
 
     textPair(spec: TextPairSpec) {
-        const leftControl = controlString(spec.leftPath);
-        const rightControl = controlString(spec.rightPath);
+        const leftControl = controlString(spec.leftId);
+        const rightControl = controlString(spec.rightId);
         this.composite({
-            key: `textPair_${spec.leftPath}_${spec.rightPath}`,
+            key: `textPair_${spec.leftId}_${spec.rightId}`,
             keywords: [spec.title, spec.desc],
             html: () => genTextPairHtml(spec.title, spec.desc, leftControl, rightControl),
             controls: [

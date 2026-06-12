@@ -63,14 +63,14 @@ const registerExportFormatGroup = (tab: SettingTabBuilder) => {
     group.textPair({
         title: window.siyuan.languages.export13,
         desc: window.siyuan.languages.export14,
-        leftPath: "export.blockRefTextLeft",
-        rightPath: "export.blockRefTextRight",
+        leftId: "export.blockRefTextLeft",
+        rightId: "export.blockRefTextRight",
     });
     group.textPair({
         title: window.siyuan.languages.export15,
         desc: window.siyuan.languages.export16,
-        leftPath: "export.tagOpenMarker",
-        rightPath: "export.tagCloseMarker",
+        leftId: "export.tagOpenMarker",
+        rightId: "export.tagCloseMarker",
     });
 };
 
