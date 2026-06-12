@@ -20,6 +20,10 @@ const onSettingTabWrapInput = (event: Event) => {
 };
 
 const onSettingTabWrapChange = (event: Event) => {
+    if (window.siyuan.config.readonly) {
+        console.warn("[config] setting save skipped because config is readonly");
+        return;
+    }
     const el = event.target as HTMLElement;
     if (!el.matches(".b3-switch, .b3-select, .b3-textarea, .b3-text-field, .b3-slider")) {
         return;
