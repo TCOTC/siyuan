@@ -5,7 +5,7 @@ import {buildItemSearchIndex} from "../search/normalize";
 type SettingItemBase = {
     id: string;
     tabId: string;
-    groupKey: string;
+    groupId: string;
     /** 条目检索串（注册时 normalize） */
     searchIndex: readonly string[];
     read?: (el: HTMLElement) => unknown;
@@ -72,11 +72,11 @@ export const getMountableItemsByGroup = (tabId: string) => {
     }
     itemsByGroup = new Map<string, MountableSettingItem[]>();
     for (const item of getMountableItemsByTabId(tabId)) {
-        const groupItems = itemsByGroup.get(item.groupKey);
+        const groupItems = itemsByGroup.get(item.groupId);
         if (groupItems) {
             groupItems.push(item);
         } else {
-            itemsByGroup.set(item.groupKey, [item]);
+            itemsByGroup.set(item.groupId, [item]);
         }
     }
     itemsByGroupCache.set(tabId, itemsByGroup);

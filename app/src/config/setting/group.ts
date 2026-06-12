@@ -1,7 +1,7 @@
 import {normalizeSearchText} from "../search/normalize";
 
 interface SettingGroup {
-    key: string;
+    id: string;
     tabId: string;
     title: string;
     order: number;
@@ -12,13 +12,13 @@ interface SettingGroup {
 const groupsByTab = new Map<string, Map<string, SettingGroup>>();
 const groupOrderByTab = new Map<string, number>();
 
-export const registerSettingGroup = (tabId: string, key: string, title: string): SettingGroup => {
+export const registerSettingGroup = (tabId: string, groupId: string, title: string): SettingGroup => {
     let tabGroups = groupsByTab.get(tabId);
     if (!tabGroups) {
         tabGroups = new Map();
         groupsByTab.set(tabId, tabGroups);
     }
-    const existing = tabGroups.get(key);
+    const existing = tabGroups.get(groupId);
     if (existing) {
         return existing;
     }
@@ -26,13 +26,13 @@ export const registerSettingGroup = (tabId: string, key: string, title: string):
     groupOrderByTab.set(tabId, order + 1);
     const searchText = normalizeSearchText(title);
     const group: SettingGroup = {
-        key,
+        id: groupId,
         tabId,
         title,
         order,
         searchIndex: searchText ? [searchText] : [],
     };
-    tabGroups.set(key, group);
+    tabGroups.set(groupId, group);
     return group;
 };
 

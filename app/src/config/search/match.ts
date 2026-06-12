@@ -13,17 +13,17 @@ export const scanSettingTabSearch = (
     keywords: string,
 ): SettingTabSearchResult => {
     const visibleItemIds = new Set<string>();
-    const visibleGroupKeys = new Set<string>();
+    const visibleGroupIds = new Set<string>();
 
     if (stringsMatchQuery([normalizeSearchText(tabTitle)], keywords)) {
         const itemsByGroup = getMountableItemsByGroup(tabId);
         for (const group of getSettingGroupsByTabId(tabId)) {
-            visibleGroupKeys.add(group.key);
-            for (const item of itemsByGroup.get(group.key) ?? []) {
+            visibleGroupIds.add(group.id);
+            for (const item of itemsByGroup.get(group.id) ?? []) {
                 visibleItemIds.add(item.id);
             }
         }
-        return {matches: true, visibleItemIds, visibleGroupKeys};
+        return {matches: true, visibleItemIds, visibleGroupIds};
     }
 
     let matches = false;
@@ -31,21 +31,21 @@ export const scanSettingTabSearch = (
     for (const group of getSettingGroupsByTabId(tabId)) {
         if (stringsMatchQuery(group.searchIndex, keywords)) {
             matches = true;
-            visibleGroupKeys.add(group.key);
-            for (const item of itemsByGroup.get(group.key) ?? []) {
+            visibleGroupIds.add(group.id);
+            for (const item of itemsByGroup.get(group.id) ?? []) {
                 visibleItemIds.add(item.id);
             }
             continue;
         }
-        for (const item of itemsByGroup.get(group.key) ?? []) {
+        for (const item of itemsByGroup.get(group.id) ?? []) {
             if (stringsMatchQuery(item.searchIndex, keywords)) {
                 matches = true;
                 visibleItemIds.add(item.id);
-                visibleGroupKeys.add(group.key);
+                visibleGroupIds.add(group.id);
             }
         }
     }
-    return {matches, visibleItemIds, visibleGroupKeys};
+    return {matches, visibleItemIds, visibleGroupIds};
 };
 
 /** 面板型 SettingTab 的侧栏命中判断 */

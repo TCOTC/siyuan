@@ -30,11 +30,11 @@ export const mountSettingTab = async (tabId: string, root: HTMLElement) => {
 export const applySettingTabSearchVisibility = (
     root: HTMLElement,
     visibleItemIds: Set<string>,
-    visibleGroupKeys: Set<string>,
+    visibleGroupIds: Set<string>,
 ) => {
-    root.querySelectorAll("[data-config-group-key]").forEach((groupEl) => {
-        const groupKey = groupEl.getAttribute("data-config-group-key");
-        const groupVisible = groupKey && visibleGroupKeys.has(groupKey);
+    root.querySelectorAll("[data-config-group-id]").forEach((groupEl) => {
+        const groupId = groupEl.getAttribute("data-config-group-id");
+        const groupVisible = groupId && visibleGroupIds.has(groupId);
         groupEl.classList.toggle("config-search-hidden", !groupVisible);
         if (!groupVisible) {
             return;
@@ -56,7 +56,7 @@ export const applySettingTabSearchVisibility = (
 };
 
 export const clearSettingTabSearch = (root: HTMLElement) => {
-    root.querySelectorAll("[data-config-group-key], [data-config-item-id]").forEach((el) => {
+    root.querySelectorAll("[data-config-group-id], [data-config-item-id]").forEach((el) => {
         el.classList.remove("config-search-hidden", "config-item--last-visible");
     });
 };

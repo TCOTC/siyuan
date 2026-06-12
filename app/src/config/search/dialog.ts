@@ -35,8 +35,8 @@ export const switchSettingTab = (
     if (!search) {
         const keywords = readSearchKeywordsLower(dialogElement);
         if (keywords) {
-            const {visibleItemIds, visibleGroupKeys} = getSettingTab(tabId).scanSearch(keywords);
-            search = {keywords, visibleItemIds, visibleGroupKeys};
+            const {visibleItemIds, visibleGroupIds} = getSettingTab(tabId).scanSearch(keywords);
+            search = {keywords, visibleItemIds, visibleGroupIds};
         }
     }
     void getSettingTab(tabId).mount(containerElement, search, app);
@@ -54,14 +54,14 @@ const syncSettingSearch = (dialogElement: HTMLElement, app: App) => {
 
     const focusedLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
     const focusedTabId = (focusedLi && focusedLi.style.display !== "none") ? focusedLi.getAttribute("data-name") as TSettingTab | null : null;
-    let currentMatch: ({tabId: TSettingTab} & Pick<SettingTabMountContext, "visibleItemIds" | "visibleGroupKeys">) | undefined;
+    let currentMatch: ({tabId: TSettingTab} & Pick<SettingTabMountContext, "visibleItemIds" | "visibleGroupIds">) | undefined;
     for (const item of dialogElement.querySelectorAll<HTMLElement>(".config__side .b3-list-item")) {
         const tabId = item.getAttribute("data-name") as TSettingTab | null;
         if (!tabId) {
             item.style.display = "none";
             continue;
         }
-        const {matches, visibleItemIds, visibleGroupKeys} = getSettingTab(tabId).scanSearch(keywords);
+        const {matches, visibleItemIds, visibleGroupIds} = getSettingTab(tabId).scanSearch(keywords);
         if (!matches) {
             item.style.display = "none";
             continue;
@@ -69,7 +69,7 @@ const syncSettingSearch = (dialogElement: HTMLElement, app: App) => {
         item.style.display = "";
         // 优先使用当前标签页；若当前标签页已不在命中集合，则切到侧栏顺序中的第一个命中项
         if (tabId === focusedTabId || !currentMatch) {
-            currentMatch = {tabId, visibleItemIds, visibleGroupKeys};
+            currentMatch = {tabId, visibleItemIds, visibleGroupIds};
         }
     }
 
@@ -77,7 +77,7 @@ const syncSettingSearch = (dialogElement: HTMLElement, app: App) => {
         switchSettingTab(dialogElement, app, currentMatch.tabId, {
             keywords,
             visibleItemIds: currentMatch.visibleItemIds,
-            visibleGroupKeys: currentMatch.visibleGroupKeys,
+            visibleGroupIds: currentMatch.visibleGroupIds,
         });
     } else {
         dialogElement.querySelectorAll(".config__tab-container").forEach((item) => {

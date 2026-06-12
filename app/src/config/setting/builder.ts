@@ -265,7 +265,7 @@ class StackLineBuilder {
 class SettingGroupBuilder<TId extends string> {
     constructor(
         private readonly tab: ItemsSettingTabOptions<TId>,
-        readonly groupKey: string,
+        readonly groupId: string,
     ) {}
 
     /**
@@ -287,7 +287,7 @@ class SettingGroupBuilder<TId extends string> {
         registerSettingItem({
             id,
             tabId: this.tab.id,
-            groupKey: this.groupKey,
+            groupId: this.groupId,
             kind: "full",
             rowParts,
             control,
@@ -447,7 +447,7 @@ class SettingGroupBuilder<TId extends string> {
         registerSettingItem({
             id,
             tabId: this.tab.id,
-            groupKey: this.groupKey,
+            groupId: this.groupId,
             kind: "render",
             html: spec.html,
             searchTexts: () => [...spec.keywords],
@@ -470,7 +470,7 @@ class SettingGroupBuilder<TId extends string> {
             registerSettingItem({
                 id: entry.control.id,
                 tabId: this.tab.id,
-                groupKey: this.groupKey,
+                groupId: this.groupId,
                 kind: "binding",
                 control: entry.control,
                 read: entry.read ?? ((el) => entry.control.readDom(el)),
@@ -484,24 +484,24 @@ class SettingGroupBuilder<TId extends string> {
 export class SettingTabBuilder<TId extends string = string> {
     constructor(private readonly tab: ItemsSettingTabOptions<TId>) {}
 
-    group(groupKey: string, groupTitle: string) {
-        registerSettingGroup(this.tab.id, groupKey, groupTitle);
-        return new SettingGroupBuilder(this.tab, groupKey);
+    group(groupId: string, groupTitle: string) {
+        registerSettingGroup(this.tab.id, groupId, groupTitle);
+        return new SettingGroupBuilder(this.tab, groupId);
     }
 }
 
-/** `scanSearch` 返回值：侧栏过滤用 `matches`，条目型 SettingTab 另含可见条目 ID / 分组键 */
+/** `scanSearch` 返回值：侧栏过滤用 `matches`，条目型 SettingTab 另含可见条目 ID / 分组 ID */
 export interface SettingTabSearchResult {
     matches: boolean;
     visibleItemIds?: Set<string>;
-    visibleGroupKeys?: Set<string>;
+    visibleGroupIds?: Set<string>;
 }
 
 /** mount 时的搜索上下文（`keywords` 由壳层持有，与扫描结果在调用处拼装） */
 export interface SettingTabMountContext {
     keywords: string;
     visibleItemIds?: Set<string>;
-    visibleGroupKeys?: Set<string>;
+    visibleGroupIds?: Set<string>;
 }
 
 export type SettingTab = SettingTabShell & {
@@ -530,15 +530,15 @@ export class SettingBuilder {
         };
         return {
             ...shell,
-            mount: async (root, {visibleItemIds, visibleGroupKeys} = {}, app) => {
+            mount: async (root, {visibleItemIds, visibleGroupIds} = {}, app) => {
                 ensureRegistered();
                 const wasMounted = root.innerHTML !== "";
                 if (!wasMounted) {
                     await mountSettingTab(options.id, root);
                     await afterMount?.(root, app);
                 }
-                if (visibleItemIds && visibleGroupKeys) {
-                    applySettingTabSearchVisibility(root, visibleItemIds, visibleGroupKeys);
+                if (visibleItemIds && visibleGroupIds) {
+                    applySettingTabSearchVisibility(root, visibleItemIds, visibleGroupIds);
                 }
             },
             scanSearch: (keywords) => {

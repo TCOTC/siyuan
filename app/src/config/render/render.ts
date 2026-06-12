@@ -281,10 +281,10 @@ export const genGroupedItems = (tabId: string): string => {
     const itemsByGroup = getMountableItemsByGroup(tabId);
     const parts: string[] = [];
     for (const group of groups) {
-        const groupItems = itemsByGroup.get(group.key) ?? [];
+        const groupItems = itemsByGroup.get(group.id) ?? [];
         const itemsHtml = groupItems.map((item) => renderItemHtml(item)).join("");
         const title = group.title || undefined;
-        parts.push(genConfigGroup(itemsHtml, title, {"data-config-group-key": group.key}));
+        parts.push(genConfigGroup(itemsHtml, title, {"data-config-group-id": group.id}));
     }
     return parts.join("");
 };
