@@ -16,6 +16,27 @@ import {Protyle} from "../protyle";
 import {App} from "../index";
 import {disabledProtyle, onGet} from "../protyle/util/onGet";
 import {removeLoading} from "../protyle/ui/initUI";
+import {switchSettingPanelSubTab} from "./setting/mount";
+
+/** 资源 Tab 挂载（面板页，不走注册表渲染） */
+export const mountAssetsTab = (root: HTMLElement, keywords?: string, app?: App) => {
+    if (root.innerHTML === "") {
+        assets.element = root;
+        root.innerHTML = assets.genHTML();
+        if (app) {
+            assets.bindEvent(app);
+        }
+    } else {
+        assets.element = root;
+    }
+    if (keywords) {
+        switchSettingPanelSubTab(root, keywords, [
+            {type: "remove", label: window.siyuan.languages.unreferencedAssets},
+            {type: "removeAV", label: window.siyuan.languages.unreferencedAV},
+            {type: "missing", label: window.siyuan.languages.missingAssets},
+        ]);
+    }
+};
 
 export const assets = {
     element: undefined as Element,

@@ -1,4 +1,5 @@
 import {genGroupedItems} from "../render/render";
+import {normalizeSearchText} from "../search/normalize";
 import {getMountableItemsByTabId} from "./item";
 import {syncRangeRowValue} from "./domIO";
 
@@ -59,4 +60,27 @@ export const clearSettingTabSearch = (root: HTMLElement) => {
     root.querySelectorAll("[data-config-group-id], [data-config-item-id]").forEach((el) => {
         el.classList.remove("config-search-hidden", "config-item--last-visible");
     });
+};
+
+/** 面板型 SettingTab：根据全局搜索关键词切换 layout-tab-bar 子 Tab */
+export const switchSettingPanelSubTab = (
+    root: HTMLElement,
+    keywords: string,
+    subTabs: {type: string; label: string}[],
+) => {
+    const focusedType = root.querySelector(".layout-tab-bar .item--focus")?.getAttribute("data-type");
+    const focusedTab = subTabs.find((t) => t.type === focusedType);
+    if (focusedTab && normalizeSearchText(focusedTab.label).includes(keywords)) {
+        return;
+    }
+    for (const tab of subTabs) {
+        if (!normalizeSearchText(tab.label).includes(keywords)) {
+            continue;
+        }
+        const tabItem = root.querySelector(`.layout-tab-bar .item[data-type="${tab.type}"]`) as HTMLElement | null;
+        if (tabItem && !tabItem.classList.contains("item--focus")) {
+            tabItem.click();
+        }
+        break;
+    }
 };

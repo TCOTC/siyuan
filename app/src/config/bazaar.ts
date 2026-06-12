@@ -16,6 +16,30 @@ import {escapeAttr, escapeHtml} from "../util/escape";
 import {uninstall} from "../plugin/uninstall";
 import {afterLoadPlugin, loadPlugin, loadPlugins} from "../plugin/loader";
 import {useShell} from "../util/pathName";
+import {switchSettingPanelSubTab} from "./setting/mount";
+
+/** 集市 Tab 挂载（面板页，不走注册表渲染） */
+export const mountBazaarTab = (root: HTMLElement, keywords?: string, app?: App) => {
+    if (root.innerHTML === "") {
+        bazaar.element = root;
+        root.innerHTML = bazaar.genHTML();
+        if (app) {
+            bazaar.bindEvent(app);
+        }
+    } else {
+        bazaar.element = root;
+    }
+    if (keywords) {
+        switchSettingPanelSubTab(root, keywords, [
+            {type: "downloaded", label: window.siyuan.languages.downloaded},
+            {type: "plugin", label: window.siyuan.languages.plugin},
+            {type: "theme", label: window.siyuan.languages.theme},
+            {type: "icon", label: window.siyuan.languages.icon},
+            {type: "template", label: window.siyuan.languages.template},
+            {type: "widget", label: window.siyuan.languages.widget},
+        ]);
+    }
+};
 
 export const bazaar = {
     element: undefined as Element,

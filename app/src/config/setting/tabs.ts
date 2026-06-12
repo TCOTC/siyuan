@@ -7,8 +7,8 @@ import {searchConfigApi} from "../tabs/searchRuntime";
 import {appearanceConfigApi} from "../tabs/appearanceRuntime";
 import {mountSyncTabExtras, patchSyncConfig} from "../tabs/syncRuntime";
 import {mountAccessTab} from "../tabs/accessRuntime";
-import {bazaar} from "../bazaar";
-import {assets} from "../assets";
+import {mountBazaarTab} from "../bazaar";
+import {mountAssetsTab} from "../assets";
 import {collectKeymapTabSearchStrings, mountKeymapTab} from "../tabs/keymapUi";
 import {isHuawei, isInHarmony} from "../../protyle/util/compatibility";
 import {isMobile} from "../../util/functions";
@@ -62,13 +62,7 @@ const settingTabs = {
             window.siyuan.languages.template,
             window.siyuan.languages.widget,
         ],
-        mount: (root, _keywords, app) => {
-            bazaar.element = root;
-            root.innerHTML = bazaar.genHTML();
-            if (app) {
-                bazaar.bindEvent(app);
-            }
-        },
+        mount: mountBazaarTab,
     }),
     flashcard: setting.tab({
         id: "flashcard",
@@ -94,13 +88,7 @@ const settingTabs = {
             window.siyuan.languages.unreferencedAV,
             window.siyuan.languages.missingAssets,
         ],
-        mount: (root, _keywords, app) => {
-            assets.element = root;
-            root.innerHTML = assets.genHTML();
-            if (app) {
-                assets.bindEvent(app);
-            }
-        },
+        mount: mountAssetsTab,
     }),
     export: setting.tab({
         id: "export",
