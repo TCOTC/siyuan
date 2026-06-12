@@ -92,7 +92,7 @@ const genSwitchQueryItemHtml = (item: SwitchQueryItem): string => {
 </label>`;
         }
         case "number":
-            return `<div class="fn__flex label fn__flex-1">
+            return `<div class="fn__flex label fn__flex-1" style="overflow: visible;">
     <input class="b3-text-field" id="${item.id}" type="number" min="${item.min ?? ""}" max="${item.max ?? ""}" value="${item.readConfig()}"/>
     <span class="fn__space"></span>
     <div>${item.label}</div>

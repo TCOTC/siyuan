@@ -83,7 +83,7 @@ export const renderPublishAuthAccounts = () => {
     <span class="fn__space"></span>
     ${removeButtonHtml}
 </li>`).join("");
-    publishAuthAccounts.innerHTML = `<ul class="fn__flex-1">${listItemHtml}</ul>`;
+    publishAuthAccounts.innerHTML = `<ul class="fn__flex-1" style="overflow: visible;">${listItemHtml}</ul>`;
 };
 
 /** 访问授权 Tab：按控件 id 路由到各 API */

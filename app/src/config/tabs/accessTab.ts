@@ -276,7 +276,7 @@ const registerAccessPublishGroup = (tab: SettingTabBuilder) => {
             window.siyuan.languages.memo,
             window.siyuan.languages.delete,
         ],
-        html: () => '<div class="b3-label config-item"><div class="fn__flex-1" id="publishAuthAccounts"></div></div>',
+        html: () => '<div class="b3-label config-item"><div class="fn__flex-1" id="publishAuthAccounts" style="overflow: visible;"></div></div>',
         afterMount: mountPublishAuthAccounts,
     });
 };

@@ -61,7 +61,7 @@ const genNetworkProxyHtml = (): string => {
     <div class="b3-label__text">
         ${window.siyuan.languages.about17}
     </div>
-    <div class="b3-label__text fn__flex config-wrap">
+    <div class="b3-label__text fn__flex config-wrap" style="overflow: visible !important;">
         <select id="networkProxyScheme" class="b3-select">
             <option value="" ${proxy.scheme === "" ? "selected" : ""}>${window.siyuan.languages.directConnection}</option>
             <option value="socks5" ${proxy.scheme === "socks5" ? "selected" : ""}>SOCKS5</option>
