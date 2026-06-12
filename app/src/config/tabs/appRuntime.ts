@@ -57,6 +57,7 @@ export const sendAppSetting = (controlId: string, value: unknown) => {
             break;
         }
         default:
+            console.warn(`[config] sendAppSetting: unhandled controlId "${controlId}"`);
             break;
     }
 };

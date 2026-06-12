@@ -7,8 +7,8 @@ import {searchConfigApi} from "../tabs/searchRuntime";
 import {appearanceConfigApi} from "../tabs/appearanceRuntime";
 import {mountSyncTabExtras, patchSyncConfig} from "../tabs/syncRuntime";
 import {mountAccessTab} from "../tabs/accessRuntime";
-import {mountBazaarTab} from "../bazaar";
-import {mountAssetsTab} from "../assets";
+import {collectBazaarTabSearchStrings, mountBazaarTab} from "../bazaar";
+import {collectAssetsTabSearchStrings, mountAssetsTab} from "../assets";
 import {collectKeymapTabSearchStrings, mountKeymapTab} from "../tabs/keymapUi";
 import {isHuawei, isInHarmony} from "../../protyle/util/compatibility";
 import {isMobile} from "../../util/functions";
@@ -50,15 +50,7 @@ const settingTabs = {
         icon: "iconBazaar",
         title: () => window.siyuan.languages.bazaar,
         hidden: () => !!(isMobile() || isHuawei() || isInHarmony()),
-        searchStrings: () => [
-            window.siyuan.languages.bazaar,
-            window.siyuan.languages.downloaded,
-            window.siyuan.languages.plugin,
-            window.siyuan.languages.theme,
-            window.siyuan.languages.icon,
-            window.siyuan.languages.template,
-            window.siyuan.languages.widget,
-        ],
+        searchStrings: collectBazaarTabSearchStrings,
         mount: mountBazaarTab,
     }),
     flashcard: setting.tab({
@@ -77,12 +69,7 @@ const settingTabs = {
         id: "assets",
         icon: "iconImage",
         title: () => window.siyuan.languages.assets,
-        searchStrings: () => [
-            window.siyuan.languages.assets,
-            window.siyuan.languages.unreferencedAssets,
-            window.siyuan.languages.unreferencedAV,
-            window.siyuan.languages.missingAssets,
-        ],
+        searchStrings: collectAssetsTabSearchStrings,
         mount: mountAssetsTab,
     }),
     export: setting.tab({

@@ -18,6 +18,17 @@ import {afterLoadPlugin, loadPlugin, loadPlugins} from "../plugin/loader";
 import {useShell} from "../util/pathName";
 import {switchSettingPanelSubTab} from "./setting/mount";
 
+/** 集市 Tab 侧栏 / 全局搜索索引文案 */
+export const collectBazaarTabSearchStrings = (): string[] => [
+    window.siyuan.languages.bazaar,
+    window.siyuan.languages.downloaded,
+    window.siyuan.languages.plugin,
+    window.siyuan.languages.theme,
+    window.siyuan.languages.icon,
+    window.siyuan.languages.template,
+    window.siyuan.languages.widget,
+];
+
 /** 集市 Tab 挂载（面板页，不走注册表渲染） */
 export const mountBazaarTab = (root: HTMLElement, keywords?: string, app?: App) => {
     if (root.innerHTML === "") {

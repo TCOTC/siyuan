@@ -13,7 +13,7 @@ import {escapeAttr} from "../../util/escape";
 import {buildRangeValues} from "../setting/domIO";
 import {genConfigItemMainHtml, genConfigItemName, genSwitchRow} from "./fragments";
 
-const genNumberInputHtml = (
+export const genNumberInputHtml = (
     id: string,
     value: number,
     min?: number,
@@ -100,7 +100,7 @@ const genSwitchQueryItemHtml = (item: SwitchQueryItem): string => {
     }
 };
 
-const genButtonHtml = (id: string, label: string, icon: string): string =>
+export const genButtonHtml = (id: string, label: string, icon: string): string =>
     `<button class="b3-button b3-button--outline fn__flex-center fn__size200" id="${id}">
         <svg><use xlink:href="#${icon}"></use></svg>
         ${label}

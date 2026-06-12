@@ -111,6 +111,7 @@ export const sendAccessSetting = (controlId: string, value: unknown) => {
             break;
         }
         default:
+            console.warn(`[config] sendAccessSetting: unhandled controlId "${controlId}"`);
             break;
     }
 };

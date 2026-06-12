@@ -124,6 +124,7 @@ export const patchSyncConfig = (controlId: string, value: unknown) => {
             break;
         }
         default:
+            console.warn(`[config] patchSyncConfig: unhandled controlId "${controlId}"`);
             break;
     }
 };

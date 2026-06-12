@@ -6,6 +6,7 @@ import {fileConfigApi} from "./fileRuntime";
 import type {SettingTabBuilder} from "../setting/builder";
 import {controlNumber, controlSelect, controlString} from "../setting/control";
 import {genConfigItemName} from "../render/fragments";
+import {genButtonHtml, genNumberInputHtml} from "../render/render";
 
 const isMobileKernelContainer = () =>
     ["android", "ios", "harmony"].includes(window.siyuan.config.system.container);
@@ -173,12 +174,13 @@ const registerFileManagementGroup = (tab: SettingTabBuilder) => {
         window.siyuan.languages.purge,
         window.siyuan.languages.historyRetentionDays,
     ];
+    const historyRetentionDaysControl = controlNumber("editor.historyRetentionDays", {min: 1, max: 3650});
     group.composite({
         key: "historyRetention",
         keywords: historyKeywords,
         html: () => `<div class="b3-label config-item">
     <div class="fn__block">
-        <div class="config-name">${window.siyuan.languages.historyRetentionDaysTip}</div>
+        ${genConfigItemName(window.siyuan.languages.historyRetentionDaysTip)}
     </div>
     <div class="fn__hr--small"></div>
     <div class="fn__flex config-wrap">
@@ -186,9 +188,7 @@ const registerFileManagementGroup = (tab: SettingTabBuilder) => {
             <div class="b3-label__text">${window.siyuan.languages.clearHistory}</div>
         </div>
         <span class="fn__space"></span>
-        <button class="b3-button b3-button--outline fn__flex-center fn__size200" id="clearHistory">
-            <svg><use xlink:href="#iconTrashcan"></use></svg>${window.siyuan.languages.purge}
-        </button>
+        ${genButtonHtml("clearHistory", window.siyuan.languages.purge, "iconTrashcan")}
     </div>
     <div class="fn__hr--small"></div>
     <div class="fn__flex config-wrap">
@@ -196,14 +196,10 @@ const registerFileManagementGroup = (tab: SettingTabBuilder) => {
             <div class="b3-label__text">${window.siyuan.languages.historyRetentionDays}</div>
         </div>
         <span class="fn__space"></span>
-        <input class="b3-text-field fn__size200" id="editor.historyRetentionDays" type="number" min="1" max="3650" value="${window.siyuan.config.editor.historyRetentionDays}"/>
+        ${genNumberInputHtml(historyRetentionDaysControl.id, historyRetentionDaysControl.readConfig() as number, historyRetentionDaysControl.min, historyRetentionDaysControl.max)}
     </div>
 </div>`,
         afterMount: (root) => {
-            const daysEl = root.querySelector<HTMLInputElement>(`#${CSS.escape("editor.historyRetentionDays")}`);
-            if (daysEl) {
-                daysEl.value = String(window.siyuan.config.editor.historyRetentionDays);
-            }
             root.querySelector("#clearHistory")?.addEventListener("click", () => {
                 confirmDialog(
                     window.siyuan.languages.clearHistory,
@@ -215,7 +211,7 @@ const registerFileManagementGroup = (tab: SettingTabBuilder) => {
             });
         },
         controls: [{
-            control: controlNumber("editor.historyRetentionDays", {min: 1, max: 3650}),
+            control: historyRetentionDaysControl,
             save: (v) => editorConfigApi.patch("historyRetentionDays", v),
         }],
     });
