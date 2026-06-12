@@ -10,6 +10,15 @@ const readSearchKeywordsLower = (dialogElement: HTMLElement): string | undefined
     return trimmed ? trimmed.toLowerCase() : undefined;
 };
 
+/** @param visibleInSidebar 为 true 时，侧栏项被搜索过滤隐藏（`display: none`）则视为无 focus */
+const readFocusedTabId = (dialogElement: HTMLElement, visibleInSidebar = false): TSettingTab | null => {
+    const focusLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
+    if (!focusLi || (visibleInSidebar && focusLi.style.display === "none")) {
+        return null;
+    }
+    return focusLi.getAttribute("data-name") as TSettingTab | null;
+};
+
 export const switchSettingTab = (
     dialogElement: HTMLElement,
     app: App,
@@ -21,9 +30,10 @@ export const switchSettingTab = (
         return;
     }
 
-    const focusLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
-    const focusedTabId = focusLi?.getAttribute("data-name") as TSettingTab;
-    if (tabId !== focusedTabId) {
+    const focusedTabId = readFocusedTabId(dialogElement);
+    if (tabId === focusedTabId) {
+        containerElement.classList.remove("fn__none");
+    } else {
         dialogElement.querySelectorAll(".config__tab-container").forEach((container) => {
             container.classList.toggle("fn__none", container !== containerElement);
         });
@@ -49,11 +59,14 @@ const syncSettingSearch = (dialogElement: HTMLElement, app: App) => {
             item.style.display = "";
         });
         clearSettingTabSearch(dialogElement);
+        const focusedTabId = readFocusedTabId(dialogElement);
+        if (focusedTabId) {
+            switchSettingTab(dialogElement, app, focusedTabId);
+        }
         return;
     }
 
-    const focusedLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
-    const focusedTabId = (focusedLi && focusedLi.style.display !== "none") ? focusedLi.getAttribute("data-name") as TSettingTab | null : null;
+    const focusedTabId = readFocusedTabId(dialogElement, true);
     let currentMatch: ({tabId: TSettingTab} & Pick<SettingTabMountContext, "visibleItemIds" | "visibleGroupIds">) | undefined;
     for (const item of dialogElement.querySelectorAll<HTMLElement>(".config__side .b3-list-item")) {
         const tabId = item.getAttribute("data-name") as TSettingTab | null;
