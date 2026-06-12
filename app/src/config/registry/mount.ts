@@ -1,5 +1,3 @@
-import type {RegistryTabSearchVisibility} from "../search/match";
-import {scanRegistryTabSearch} from "../search/match";
 import {genGroupedItems} from "../render/render";
 import {getMountableItemsByTabId} from "./item";
 import {syncRangeRowValue} from "./domIO";
@@ -31,11 +29,12 @@ export const mountConfigTab = async (tabId: string, root: HTMLElement) => {
 
 export const applyConfigTabSearchVisibility = (
     root: HTMLElement,
-    visibility: RegistryTabSearchVisibility,
+    visibleItemIds: Set<string>,
+    visibleGroupKeys: Set<string>,
 ) => {
     root.querySelectorAll("[data-config-group-key]").forEach((groupEl) => {
         const groupKey = groupEl.getAttribute("data-config-group-key");
-        const groupVisible = groupKey && visibility.visibleGroupKeys.has(groupKey);
+        const groupVisible = groupKey && visibleGroupKeys.has(groupKey);
         groupEl.classList.toggle("config-search-hidden", !groupVisible);
         if (!groupVisible) {
             return;
@@ -45,7 +44,7 @@ export const applyConfigTabSearchVisibility = (
         groupEl.querySelectorAll("[data-config-item-id]").forEach((itemEl) => {
             itemEl.classList.remove("config-item--last-visible");
             const itemId = itemEl.getAttribute("data-config-item-id");
-            const itemVisible = itemId && visibility.visibleItemIds.has(itemId);
+            const itemVisible = itemId && visibleItemIds.has(itemId);
             itemEl.classList.toggle("config-search-hidden", !itemVisible);
             if (itemVisible) {
                 lastVisibleItem = itemEl;
@@ -54,22 +53,6 @@ export const applyConfigTabSearchVisibility = (
         // 标记每组最后一个未隐藏条目，不显示 border-bottom
         lastVisibleItem?.classList.add("config-item--last-visible");
     });
-};
-
-/** 设置搜索：切换注册项 / 分组的显隐，不重建 DOM，因为有的设置项在挂载的时候会请求数据，避免搜索时重复请求 */
-export const applyConfigTabSearch = (
-    root: HTMLElement,
-    tabId: string,
-    tabTitle: string,
-    searchQueryLower?: string,
-    registryVisibility?: RegistryTabSearchVisibility,
-) => {
-    if (!searchQueryLower) {
-        clearConfigTabSearch(root);
-        return;
-    }
-    const visibility = registryVisibility ?? scanRegistryTabSearch(tabId, tabTitle, searchQueryLower);
-    applyConfigTabSearchVisibility(root, visibility);
 };
 
 export const clearConfigTabSearch = (root: HTMLElement) => {

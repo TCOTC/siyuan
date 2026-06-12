@@ -183,10 +183,7 @@ export const initRightMenu = (app: App) => {
                         bindEvent(modelMainElement: HTMLElement) {
                             const root = modelMainElement.firstElementChild as HTMLElement;
                             bindSettingSaveDelegation(root);
-                            const tab = getConfigTab(configTabDef.id);
-                            if (tab) {
-                                void tab.mount(root, undefined, app);
-                            }
+                            void getConfigTab(configTabDef.id).mount(root, undefined, app);
                         }
                     });
                 }

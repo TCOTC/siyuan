@@ -70,6 +70,7 @@ const openSettingDialog = (app: App, initialTab: TConfigTab = "editor") => {
     initConfigSearch(dialog.element, app);
     (dialog.element.querySelector(".b3-dialog__container") as HTMLElement).style.maxWidth = "1280px";
     dialog.element.querySelectorAll(".config__side .b3-list-item").forEach(item => {
+        // 兼容社区 JS 代码片段模拟点击，不做事件委托
         item.addEventListener("click", () => {
             const tabId = item.getAttribute("data-name") as TConfigTab;
             switchConfigTab(dialog.element, app, tabId);

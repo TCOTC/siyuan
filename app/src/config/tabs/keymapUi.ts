@@ -12,6 +12,7 @@ import {sendGlobalShortcut, sendUnregisterGlobalShortcut} from "../../boot/globa
 import {normalizeSearchText} from "../search/normalize";
 import {genButtonRowHtml, genConfigGroup} from "../render/render";
 import type {Plugin} from "../../plugin";
+import type {App} from "../../index";
 
 const keymapToolbarSearchStrings = (): string[] => [
     window.siyuan.languages.keymapTip,
@@ -77,7 +78,7 @@ const bindKeymapToolbar = (root: HTMLElement) => {
 };
 
 /** 快捷键 Tab 挂载（面板页，不走注册表渲染） */
-export const mountKeymapTab = async (root: HTMLElement, searchQuery?: string) => {
+export const mountKeymapTab = async (root: HTMLElement, keywords?: string, _app?: App) => {
     if (root.innerHTML === "") {
         root.innerHTML = genKeymapTabHtml();
         bindKeymapToolbar(root);
@@ -86,7 +87,7 @@ export const mountKeymapTab = async (root: HTMLElement, searchQuery?: string) =>
             bindKeymapList(root);
         }
     }
-    const query = searchQuery?.trim();
+    const query = keywords?.trim();
     const searchElement = root.querySelector("#keymapInput") as HTMLInputElement | null;
     const searchKeymapElement = root.querySelector("#searchByKey") as HTMLInputElement | null;
     const keymapListElement = root.querySelector("#keymapList") as HTMLElement | null;
@@ -102,12 +103,11 @@ export const mountKeymapTab = async (root: HTMLElement, searchQuery?: string) =>
     }
     // 设置窗口全局搜索进入快捷键 Tab，仅当命中具体命令名时才写入搜索框并筛选列表，
     // 命中分组名时不写入搜索框，完整展示分组
-    const queryLower = query.toLowerCase();
     searchKeymapElement.value = "";
     searchKeymapElement.dataset.keymap = "";
-    if (buildKeymapCommandTexts().some((text) => normalizeSearchText(text).includes(queryLower))) {
-        searchElement.value = queryLower;
-        searchKeymapList(keymapListElement, queryLower, "");
+    if (buildKeymapCommandTexts().some((text) => normalizeSearchText(text).includes(query))) {
+        searchElement.value = query;
+        searchKeymapList(keymapListElement, query, "");
     } else {
         searchElement.value = "";
         resetKeymapList(keymapListElement);

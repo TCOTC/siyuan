@@ -13,10 +13,8 @@ import {
 import {bindPasswordIconaToggle} from "../render/fragments";
 import {registerGroup} from "./group";
 import {registerItem, RegisterSettingItem} from "./item";
-import type {RegistryTabSearchVisibility} from "../search/match";
-import {scanRegistryTabSearch, stringsMatchQuery} from "../search/match";
-import {normalizeSearchText} from "../search/normalize";
-import {applyConfigTabSearch, mountConfigTab} from "./mount";
+import {scanPanelTabSearch, scanRegistryTabSearch} from "../search/match";
+import {applyConfigTabSearchVisibility, mountConfigTab} from "./mount";
 
 type SaveFn = (value: unknown) => void | Promise<void>;
 
@@ -38,7 +36,7 @@ export interface ConfigTabOptions<TId extends string = string> extends ConfigTab
 
 export interface PanelTabOptions<TId extends string = string> extends ConfigTabShell<TId> {
     searchStrings: () => string[];
-    mount: (root: HTMLElement, searchQuery?: string, app?: App) => void | Promise<void>;
+    mount: (root: HTMLElement, keywords?: string, app?: App) => void | Promise<void>;
 }
 
 type ControlMetaBase = {
@@ -493,19 +491,27 @@ export class TabBuilder<TId extends string = string> {
     }
 }
 
-interface ConfigTabSearchScan {
+/** `scanSearch` 返回值：侧栏过滤用 `matches`，注册表 Tab 另含条目可见条目 ID / 分组键 */
+export interface ConfigTabSearchResult {
     matches: boolean;
-    registryVisibility?: RegistryTabSearchVisibility;
+    visibleItemIds?: Set<string>;
+    visibleGroupKeys?: Set<string>;
+}
+
+/** mount 时的搜索上下文（`keywords` 由壳层持有，与扫描结果在调用处拼装） */
+export interface ConfigTabMountSearch {
+    keywords: string;
+    visibleItemIds?: Set<string>;
+    visibleGroupKeys?: Set<string>;
 }
 
 export type ConfigTab = ConfigTabShell & {
     mount: (
         root: HTMLElement,
-        searchQueryLower?: string,
+        search?: Partial<ConfigTabMountSearch>,
         app?: App,
-        registryVisibility?: RegistryTabSearchVisibility,
     ) => Promise<void>;
-    scanSearch: (queryLower: string) => ConfigTabSearchScan;
+    scanSearch: (keywords: string) => ConfigTabSearchResult;
 };
 
 export class RegistryBuilder {
@@ -514,6 +520,7 @@ export class RegistryBuilder {
         register: (tab: TabBuilder<TId>) => void,
     ): ConfigTab {
         const {afterMount, ...shell} = options;
+        // 延迟注册至首次 mount / scanSearch：import 时 languages 未就绪，且搜索可能先于 mount
         let registered = false;
         const ensureRegistered = () => {
             if (registered) {
@@ -524,30 +531,20 @@ export class RegistryBuilder {
         };
         return {
             ...shell,
-            mount: async (root, searchQueryLower, app, registryVisibility) => {
+            mount: async (root, {visibleItemIds, visibleGroupKeys} = {}, app) => {
                 ensureRegistered();
-                if (root.innerHTML === "") {
+                const wasMounted = root.innerHTML !== "";
+                if (!wasMounted) {
                     await mountConfigTab(options.id, root);
                     await afterMount?.(root, app);
                 }
-                applyConfigTabSearch(
-                    root,
-                    options.id,
-                    options.title(),
-                    searchQueryLower,
-                    registryVisibility,
-                );
+                if (visibleItemIds && visibleGroupKeys) {
+                    applyConfigTabSearchVisibility(root, visibleItemIds, visibleGroupKeys);
+                }
             },
-            scanSearch: (queryLower) => {
+            scanSearch: (keywords) => {
                 ensureRegistered();
-                const scan = scanRegistryTabSearch(options.id, options.title(), queryLower);
-                return {
-                    matches: scan.matches,
-                    registryVisibility: {
-                        visibleGroupKeys: scan.visibleGroupKeys,
-                        visibleItemIds: scan.visibleItemIds,
-                    },
-                };
+                return scanRegistryTabSearch(options.id, options.title(), keywords);
             },
         };
     }
@@ -555,30 +552,11 @@ export class RegistryBuilder {
     panel<TId extends string>(
         options: PanelTabOptions<TId>,
     ): ConfigTab {
-        const {searchStrings, mount: panelMount, ...shell} = options;
-        let normalizedTitle: string | undefined;
-        const getNormalizedTitle = () => {
-            if (normalizedTitle === undefined) {
-                normalizedTitle = normalizeSearchText(options.title());
-            }
-            return normalizedTitle;
-        };
-        let cachedSearchIndex: readonly string[] | undefined;
-        const getSearchIndex = () => {
-            if (!cachedSearchIndex) {
-                cachedSearchIndex = searchStrings()
-                    .map(normalizeSearchText)
-                    .filter((s) => s.length > 0);
-            }
-            return cachedSearchIndex;
-        };
+        const {searchStrings, mount, ...shell} = options;
         return {
             ...shell,
-            mount: async (root, searchQueryLower, app) => panelMount(root, searchQueryLower, app),
-            scanSearch: (queryLower) => ({
-                matches: getNormalizedTitle().includes(queryLower)
-                    || stringsMatchQuery(getSearchIndex(), queryLower),
-            }),
+            mount: async (root, {keywords} = {}, app) => mount(root, keywords, app),
+            scanSearch: (keywords) => scanPanelTabSearch(options.title(), searchStrings(), keywords),
         };
     }
 }

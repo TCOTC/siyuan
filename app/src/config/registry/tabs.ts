@@ -62,7 +62,7 @@ export const configTabs = {
             window.siyuan.languages.template,
             window.siyuan.languages.widget,
         ],
-        mount: (root, _searchQuery, app) => {
+        mount: (root, _keywords, app) => {
             bazaar.element = root;
             root.innerHTML = bazaar.genHTML();
             if (app) {
@@ -94,7 +94,7 @@ export const configTabs = {
             window.siyuan.languages.unreferencedAV,
             window.siyuan.languages.missingAssets,
         ],
-        mount: (root, _searchQuery, app) => {
+        mount: (root, _keywords, app) => {
             assets.element = root;
             root.innerHTML = assets.genHTML();
             if (app) {
@@ -154,7 +154,7 @@ export const configTabs = {
 
 export type TConfigTab = keyof typeof configTabs;
 
-export const getConfigTab = (id: TConfigTab): ConfigTab | undefined => configTabs[id];
+export const getConfigTab = (id: TConfigTab): ConfigTab => configTabs[id];
 
 export interface IConfigTabShell<TId extends string = string> {
     id: TId;
