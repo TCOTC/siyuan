@@ -13,15 +13,7 @@ import type {App} from "../index";
 
 /// #if !MOBILE
 const openSettingDialog = (app: App, initialTab: TSettingTab = "editor") => {
-    const exitDialog = window.siyuan.dialogs.find((item) => {
-        if (item.element.querySelector(".config__tab-container")) {
-            item.destroy();
-            return true;
-        }
-    });
-    if (exitDialog) {
-        return exitDialog;
-    }
+    window.siyuan.dialogs.find((item) => item.element.querySelector(".config__tab-container"))?.destroy();
     let range: Range;
     if (getSelection().rangeCount > 0) {
         range = getSelection().getRangeAt(0);
