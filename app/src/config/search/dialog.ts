@@ -10,11 +10,6 @@ const readSearchKeywordsLower = (dialogElement: HTMLElement): string | undefined
     return trimmed ? trimmed.toLowerCase() : undefined;
 };
 
-const getFocusedConfigTabId = (dialogElement: HTMLElement): TConfigTab | undefined => {
-    const focusLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
-    return focusLi?.getAttribute("data-name") as TConfigTab | undefined;
-};
-
 export const switchConfigTab = (
     dialogElement: HTMLElement,
     app: App,
@@ -26,7 +21,8 @@ export const switchConfigTab = (
         return;
     }
 
-    const focusedTabId = getFocusedConfigTabId(dialogElement);
+    const focusLi = dialogElement.querySelector(".config__side .b3-list-item.b3-list-item--focus") as HTMLElement | null;
+    const focusedTabId = focusLi?.getAttribute("data-name") as TConfigTab;
     if (tabId !== focusedTabId) {
         dialogElement.querySelectorAll(".config__tab-container").forEach((container) => {
             container.classList.toggle("fn__none", container !== containerElement);

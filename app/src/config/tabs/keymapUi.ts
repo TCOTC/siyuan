@@ -87,14 +87,13 @@ export const mountKeymapTab = async (root: HTMLElement, keywords?: string, _app?
             bindKeymapList(root);
         }
     }
-    const query = keywords?.trim();
     const searchElement = root.querySelector("#keymapInput") as HTMLInputElement | null;
     const searchKeymapElement = root.querySelector("#searchByKey") as HTMLInputElement | null;
     const keymapListElement = root.querySelector("#keymapList") as HTMLElement | null;
     if (!searchElement || !searchKeymapElement || !keymapListElement) {
         return;
     }
-    if (!query) {
+    if (!keywords) {
         searchElement.value = "";
         searchKeymapElement.value = "";
         searchKeymapElement.dataset.keymap = "";
@@ -105,9 +104,9 @@ export const mountKeymapTab = async (root: HTMLElement, keywords?: string, _app?
     // 命中分组名时不写入搜索框，完整展示分组
     searchKeymapElement.value = "";
     searchKeymapElement.dataset.keymap = "";
-    if (buildKeymapCommandTexts().some((text) => normalizeSearchText(text).includes(query))) {
-        searchElement.value = query;
-        searchKeymapList(keymapListElement, query, "");
+    if (buildKeymapCommandTexts().some((text) => normalizeSearchText(text).includes(keywords))) {
+        searchElement.value = keywords;
+        searchKeymapList(keymapListElement, keywords, "");
     } else {
         searchElement.value = "";
         resetKeymapList(keymapListElement);
@@ -120,7 +119,7 @@ export const collectKeymapTabSearchStrings = (): string[] => [
     ...buildKeymapKeywords(),
     ...buildKeymapCommandTexts(),
     ...buildKeymapPluginDisplayNames(),
-].map(normalizeSearchText).filter((s) => s.length > 0);
+];
 
 const buildKeymapKeywords = (): string[] => [
     // 输入框占位符和按钮文案
@@ -586,23 +585,23 @@ const resetKeymapList = (keymapListElement: HTMLElement) => {
     finishKeymapListSearch(keymapListElement, false);
 };
 
-const searchKeymapList = (keymapListElement: HTMLElement, value: string, keymapStr: string) => {
-    const valueLower = value.trim().toLowerCase();
-    const keymapLower = keymapStr.trim().toLowerCase();
-    if (!valueLower && !keymapLower) {
+const searchKeymapList = (keymapListElement: HTMLElement, keywords: string, keymapStr: string) => {
+    const keywordsLower = keywords.trim().toLowerCase();
+    const keymapStrLower = keymapStr.trim().toLowerCase();
+    if (!keywordsLower && !keymapStrLower) {
         resetKeymapList(keymapListElement);
         return;
     }
     keymapListElement.querySelectorAll(".b3-list-item--hide-action > .b3-list-item__text").forEach((item) => {
         const liElement = item.parentElement;
         let matchedKeymap = true;
-        if (keymapLower) {
+        if (keymapStrLower) {
             const dataValue = liElement.querySelector(".b3-text-field").getAttribute("data-value") || "";
-            if (!dataValue || dataValue.toLowerCase().indexOf(keymapLower) === -1) {
+            if (!dataValue || dataValue.toLowerCase().indexOf(keymapStrLower) === -1) {
                 matchedKeymap = false;
             }
         }
-        if (matchedKeymap && (!valueLower || normalizeSearchText(item.textContent || "").includes(valueLower))) {
+        if (matchedKeymap && (!keywordsLower || normalizeSearchText(item.textContent || "").includes(keywordsLower))) {
             liElement.classList.remove("fn__none");
             liElement.parentElement.classList.remove("fn__none");
             liElement.parentElement.parentElement.classList.remove("fn__none");
