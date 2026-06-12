@@ -38,7 +38,7 @@ interface PanelSettingTabOptions<TId extends string = string> extends SettingTab
     mount: (root: HTMLElement, keywords?: string, app?: App) => void | Promise<void>;
 }
 
-type ControlMetaBase = {
+type ControlSpecBase = {
     title: string;
     desc?: string;
     read?: (el: HTMLElement) => unknown;
@@ -46,22 +46,22 @@ type ControlMetaBase = {
     afterMount?: (root: HTMLElement) => void | Promise<void>;
     keywords?: string[];
 };
-type SwitchMeta = ControlMetaBase & {
+type SwitchSpec = ControlSpecBase & {
     /** 省略时按控件 id 从 config 读取 */
     readConfig?: () => boolean;
 };
-type NumberMeta = ControlMetaBase & {
+type NumberSpec = ControlSpecBase & {
     min?: number;
     max?: number;
     step?: string;
     unit?: string;
 };
-type RangeMeta = ControlMetaBase & {
+type RangeSpec = ControlSpecBase & {
     min: number;
     max: number;
     step: number;
 };
-type SelectMeta = ControlMetaBase & {
+type SelectSpec = ControlSpecBase & {
     options: {
         value: number | string;
         label?: string;
@@ -69,38 +69,38 @@ type SelectMeta = ControlMetaBase & {
     /** 省略时按控件 id 从 config 读取；虚拟 / 派生项需显式传入 */
     readConfig?: () => number | string;
 };
-type TextMeta = ControlMetaBase & {
+type TextSpec = ControlSpecBase & {
     desc: string;
 };
-type TextBlockMeta = TextMeta & {
+type TextBlockSpec = TextSpec & {
     mode: "input-text" | "input-password" | "textarea";
     /** 省略时按控件 id 从 config 读取 */
     readConfig?: () => string;
 };
-type SlotMeta = {
+type SlotSpec = {
     key: string;
     keywords: string[];
     html: () => string;
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
-type CompositeControlMeta = {
+type CompositeControlSpec = {
     control: SettingControl;
     read?: (el: HTMLElement) => unknown;
     save?: SaveFn;
 };
-type CompositeMeta = SlotMeta & {
-    controls: CompositeControlMeta[];
+type CompositeSpec = SlotSpec & {
+    controls: CompositeControlSpec[];
 };
 type SwitchQueryInputItem =
     | {kind: "switch"; id: string; label: string; icon?: string}
     | {kind: "number"; id: string; label: string; min?: number; max?: number};
-type SwitchQueryMeta = {
+type SwitchQuerySpec = {
     key: string;
     title: string;
     footer?: string;
     items: SwitchQueryInputItem[];
 };
-type TextPairMeta = {
+type TextPairSpec = {
     key?: string;
     title: string;
     desc: string;
@@ -108,17 +108,17 @@ type TextPairMeta = {
     rightPath: string;
     keywords?: string[];
 };
-type StackMeta = {
+type StackSpec = {
     key: string;
     keywords?: string[];
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
-type StackButtonMeta = {
+type StackButtonSpec = {
     id: string;
     label: string;
     icon: string;
 };
-type StackSelectMeta = {
+type StackSelectSpec = {
     desc: string;
     options: {
         value: number | string;
@@ -126,19 +126,19 @@ type StackSelectMeta = {
     }[];
     readConfig?: () => number | string;
 };
-type StackNumberMeta = {
+type StackNumberSpec = {
     desc: string;
     min?: number;
     max?: number;
 };
-type StackSwitchMeta = {
+type StackSwitchSpec = {
     desc: string;
 };
-type StackTextBlockMeta = {
+type StackTextBlockSpec = {
     mode: "input-text" | "input-password" | "textarea";
     readConfig?: () => string;
 };
-type ButtonMeta = {
+type ButtonSpec = {
     key?: string;
     id: string;
     title: string;
@@ -149,8 +149,8 @@ type ButtonMeta = {
     afterMount?: (root: HTMLElement) => void | Promise<void>;
 };
 
-const stackLinesToControls = (lines: StackLine[]): CompositeControlMeta[] => {
-    const controls: CompositeControlMeta[] = [];
+const stackLinesToControls = (lines: StackLine[]): CompositeControlSpec[] => {
+    const controls: CompositeControlSpec[] = [];
     for (const line of lines) {
         if (line.left.kind === "textBlock") {
             controls.push({control: line.left});
@@ -188,11 +188,11 @@ const resolveId = (namespace: string, path: string) => {
     return `${namespace}.${path}`;
 };
 
-const defaultSearchTexts = (meta: {title?: string; desc?: string; keywords?: string[]}) => {
-    if (meta.keywords) {
-        return () => [...meta.keywords!];
+const defaultSearchTexts = (spec: {title?: string; desc?: string; keywords?: string[]}) => {
+    if (spec.keywords) {
+        return () => [...spec.keywords!];
     }
-    return () => [meta.title, meta.desc].filter((s): s is string => Boolean(s));
+    return () => [spec.title, spec.desc].filter((s): s is string => Boolean(s));
 };
 
 /** stack 组合行内逐行注册；由 `SettingGroupBuilder.stack` 回调使用 */
@@ -211,10 +211,10 @@ class StackLineBuilder {
     }
 
     /** 为上一行（通常为 title / desc）追加右侧按钮 */
-    button(meta: StackButtonMeta) {
+    button(spec: StackButtonSpec) {
         const last = this.lines[this.lines.length - 1];
         if (last) {
-            last.right = {kind: "button", ...meta};
+            last.right = {kind: "button", ...spec};
         }
         return this;
     }
@@ -224,39 +224,39 @@ class StackLineBuilder {
         return this;
     }
 
-    select(path: string, meta: StackSelectMeta) {
+    select(path: string, spec: StackSelectSpec) {
         const id = resolveId(this.namespace, path);
-        const control = controlSelect(id, {options: meta.options, read: meta.readConfig});
+        const control = controlSelect(id, {options: spec.options, read: spec.readConfig});
         this.lines.push({
-            left: {kind: "desc", text: meta.desc},
+            left: {kind: "desc", text: spec.desc},
             right: control,
         });
         return this;
     }
 
-    switch(path: string, meta: StackSwitchMeta) {
+    switch(path: string, spec: StackSwitchSpec) {
         const id = resolveId(this.namespace, path);
         const control = controlBoolean(id);
         this.lines.push({
-            left: {kind: "desc", text: meta.desc},
+            left: {kind: "desc", text: spec.desc},
             right: control,
         });
         return this;
     }
 
-    number(path: string, meta: StackNumberMeta) {
+    number(path: string, spec: StackNumberSpec) {
         const id = resolveId(this.namespace, path);
-        const control = controlNumber(id, {min: meta.min, max: meta.max});
+        const control = controlNumber(id, {min: spec.min, max: spec.max});
         this.lines.push({
-            left: {kind: "desc", text: meta.desc},
+            left: {kind: "desc", text: spec.desc},
             right: control,
         });
         return this;
     }
 
-    textBlock(path: string, meta: StackTextBlockMeta) {
+    textBlock(path: string, spec: StackTextBlockSpec) {
         const id = resolveId(this.namespace, path);
-        const control = controlTextBlock(id, {mode: meta.mode, read: meta.readConfig});
+        const control = controlTextBlock(id, {mode: spec.mode, read: spec.readConfig});
         this.lines.push({left: control});
         return this;
     }
@@ -275,13 +275,13 @@ class SettingGroupBuilder<TId extends string> {
         path: string,
         rowParts: RowPart[],
         control: SettingControl,
-        meta: ControlMetaBase,
+        spec: ControlSpecBase,
     ) {
         const id = resolveId(this.tab.namespace, path);
-        const afterMount = control.afterMount || meta.afterMount
+        const afterMount = control.afterMount || spec.afterMount
             ? async (root: HTMLElement) => {
                 await control.afterMount?.(root);
-                await meta.afterMount?.(root);
+                await spec.afterMount?.(root);
             }
             : undefined;
         registerSettingItem({
@@ -291,90 +291,90 @@ class SettingGroupBuilder<TId extends string> {
             kind: "full",
             rowParts,
             control,
-            searchTexts: defaultSearchTexts({title: meta.title, desc: meta.desc, keywords: meta.keywords}),
-            read: meta.read ?? ((el) => control.readDom(el)),
-            save: meta.save ?? this.tab.defaultSave?.bind(null, id),
+            searchTexts: defaultSearchTexts({title: spec.title, desc: spec.desc, keywords: spec.keywords}),
+            read: spec.read ?? ((el) => control.readDom(el)),
+            save: spec.save ?? this.tab.defaultSave?.bind(null, id),
             afterMount,
         } as RegisterSettingItem);
         return this;
     }
 
-    switch(path: string, meta: SwitchMeta) {
+    switch(path: string, spec: SwitchSpec) {
         const id = resolveId(this.tab.namespace, path);
-        const control = controlBoolean(id, {read: meta.readConfig});
+        const control = controlBoolean(id, {read: spec.readConfig});
         return this.registerControl(path, [
-            {kind: "title", text: meta.title},
-            ...(meta.desc ? [{kind: "desc" as const, text: meta.desc}] : []),
+            {kind: "title", text: spec.title},
+            ...(spec.desc ? [{kind: "desc" as const, text: spec.desc}] : []),
             control,
-        ], control, meta);
+        ], control, spec);
     }
 
-    number(path: string, meta: NumberMeta) {
+    number(path: string, spec: NumberSpec) {
         const id = resolveId(this.tab.namespace, path);
         const control = controlNumber(id, {
-            min: meta.min,
-            max: meta.max,
-            step: meta.step,
-            unit: meta.unit,
+            min: spec.min,
+            max: spec.max,
+            step: spec.step,
+            unit: spec.unit,
         });
         return this.registerControl(path, [
-            {kind: "title", text: meta.title},
-            {kind: "desc", text: meta.desc ?? ""},
+            {kind: "title", text: spec.title},
+            {kind: "desc", text: spec.desc ?? ""},
             control,
-        ], control, meta);
+        ], control, spec);
     }
 
-    range(path: string, meta: RangeMeta) {
+    range(path: string, spec: RangeSpec) {
         const id = resolveId(this.tab.namespace, path);
-        const control = controlRange(id, {min: meta.min, max: meta.max, step: meta.step});
+        const control = controlRange(id, {min: spec.min, max: spec.max, step: spec.step});
         return this.registerControl(path, [
-            {kind: "title", text: meta.title},
-            {kind: "desc", text: meta.desc ?? ""},
+            {kind: "title", text: spec.title},
+            {kind: "desc", text: spec.desc ?? ""},
             control,
-        ], control, meta);
+        ], control, spec);
     }
 
-    select(path: string, meta: SelectMeta) {
+    select(path: string, spec: SelectSpec) {
         const id = resolveId(this.tab.namespace, path);
-        const control = controlSelect(id, {options: meta.options, read: meta.readConfig});
+        const control = controlSelect(id, {options: spec.options, read: spec.readConfig});
         return this.registerControl(path, [
-            {kind: "title", text: meta.title},
-            {kind: "desc", text: meta.desc ?? ""},
+            {kind: "title", text: spec.title},
+            {kind: "desc", text: spec.desc ?? ""},
             control,
-        ], control, meta);
+        ], control, spec);
     }
 
-    text(path: string, meta: TextMeta) {
+    text(path: string, spec: TextSpec) {
         const id = resolveId(this.tab.namespace, path);
         const control = controlString(id);
         return this.registerControl(path, [
-            {kind: "title", text: meta.title},
-            {kind: "desc", text: meta.desc},
+            {kind: "title", text: spec.title},
+            {kind: "desc", text: spec.desc},
             control,
-        ], control, meta);
+        ], control, spec);
     }
 
-    textBlock(path: string, meta: TextBlockMeta) {
+    textBlock(path: string, spec: TextBlockSpec) {
         const id = resolveId(this.tab.namespace, path);
-        const control = controlTextBlock(id, {mode: meta.mode, read: meta.readConfig});
+        const control = controlTextBlock(id, {mode: spec.mode, read: spec.readConfig});
         return this.registerControl(path, [
-            {kind: "title", text: meta.title},
-            {kind: "desc", text: meta.desc},
+            {kind: "title", text: spec.title},
+            {kind: "desc", text: spec.desc},
             control,
-        ], control, meta);
+        ], control, spec);
     }
 
-    textPair(meta: TextPairMeta) {
-        const leftId = resolveId(this.tab.namespace, meta.leftPath);
-        const rightId = resolveId(this.tab.namespace, meta.rightPath);
+    textPair(spec: TextPairSpec) {
+        const leftId = resolveId(this.tab.namespace, spec.leftPath);
+        const rightId = resolveId(this.tab.namespace, spec.rightPath);
         const leftControl = controlString(leftId);
         const rightControl = controlString(rightId);
-        const searchTexts = meta.keywords ?? [meta.title, meta.desc];
-        const key = meta.key ?? `textPair_${meta.leftPath}_${meta.rightPath}`;
+        const searchTexts = spec.keywords ?? [spec.title, spec.desc];
+        const key = spec.key ?? `textPair_${spec.leftPath}_${spec.rightPath}`;
         this.composite({
             key,
             keywords: searchTexts,
-            html: () => genTextPairHtml(meta.title, meta.desc, leftControl, rightControl),
+            html: () => genTextPairHtml(spec.title, spec.desc, leftControl, rightControl),
             controls: [
                 {control: leftControl},
                 {control: rightControl},
@@ -383,42 +383,42 @@ class SettingGroupBuilder<TId extends string> {
         return this;
     }
 
-    stack(meta: StackMeta, configure: (b: StackLineBuilder) => void) {
+    stack(spec: StackSpec, configure: (b: StackLineBuilder) => void) {
         const builder = new StackLineBuilder(this.tab.namespace);
         configure(builder);
         const lines = builder.getLines();
-        const searchTexts = meta.keywords ?? [];
+        const searchTexts = spec.keywords ?? [];
         this.composite({
-            key: meta.key,
+            key: spec.key,
             keywords: searchTexts,
             html: () => genStackHtml(lines),
-            afterMount: meta.afterMount,
+            afterMount: spec.afterMount,
             controls: stackLinesToControls(lines),
         });
         return this;
     }
 
-    button(meta: ButtonMeta) {
-        const searchTexts = meta.keywords ?? [meta.title, meta.desc, meta.label].filter((s): s is string => Boolean(s));
-        const key = meta.key ?? `button_${meta.id}`;
+    button(spec: ButtonSpec) {
+        const searchTexts = spec.keywords ?? [spec.title, spec.desc, spec.label].filter((s): s is string => Boolean(s));
+        const key = spec.key ?? `button_${spec.id}`;
         this.slot({
             key,
             keywords: searchTexts,
-            html: () => genButtonRowHtml(meta.id, meta.title, meta.desc, meta.label, meta.icon),
-            afterMount: meta.afterMount,
+            html: () => genButtonRowHtml(spec.id, spec.title, spec.desc, spec.label, spec.icon),
+            afterMount: spec.afterMount,
         });
         return this;
     }
 
-    switchQuery(meta: SwitchQueryMeta) {
+    switchQuery(spec: SwitchQuerySpec) {
         const searchTexts = [
-            meta.title,
-            ...(meta.footer ? [meta.footer] : []),
-            ...meta.items.map((item) => item.label),
+            spec.title,
+            ...(spec.footer ? [spec.footer] : []),
+            ...spec.items.map((item) => item.label),
         ];
         const items: SwitchQueryItem[] = [];
-        const controls: CompositeControlMeta[] = [];
-        for (const item of meta.items) {
+        const controls: CompositeControlSpec[] = [];
+        for (const item of spec.items) {
             const id = resolveId(this.tab.namespace, item.id);
             if (item.kind === "switch") {
                 const control = controlBoolean(id);
@@ -431,9 +431,9 @@ class SettingGroupBuilder<TId extends string> {
             }
         }
         this.composite({
-            key: meta.key,
+            key: spec.key,
             keywords: searchTexts,
-            html: () => genSwitchQueryHtml(meta.title, items, meta.footer),
+            html: () => genSwitchQueryHtml(spec.title, items, spec.footer),
             controls,
         });
         return this;
@@ -442,16 +442,16 @@ class SettingGroupBuilder<TId extends string> {
     /**
      * 纯展示 / 自行绑定事件的块。
      */
-    slot(meta: SlotMeta) {
-        const id = `${this.tab.namespace}.__slot.${meta.key}`;
+    slot(spec: SlotSpec) {
+        const id = `${this.tab.namespace}.__slot.${spec.key}`;
         registerSettingItem({
             id,
             tabId: this.tab.id,
             groupKey: this.groupKey,
             kind: "render",
-            html: meta.html,
-            searchTexts: () => [...meta.keywords],
-            afterMount: meta.afterMount,
+            html: spec.html,
+            searchTexts: () => [...spec.keywords],
+            afterMount: spec.afterMount,
         } as RegisterSettingItem);
         return this;
     }
@@ -459,14 +459,14 @@ class SettingGroupBuilder<TId extends string> {
     /**
      * 自定义 HTML 块 + 内嵌控件 save：分别声明 render 项与 binding 项。
      */
-    composite(meta: CompositeMeta) {
+    composite(spec: CompositeSpec) {
         this.slot({
-            key: meta.key,
-            keywords: meta.keywords,
-            html: meta.html,
-            afterMount: meta.afterMount,
+            key: spec.key,
+            keywords: spec.keywords,
+            html: spec.html,
+            afterMount: spec.afterMount,
         });
-        for (const entry of meta.controls) {
+        for (const entry of spec.controls) {
             registerSettingItem({
                 id: entry.control.id,
                 tabId: this.tab.id,
