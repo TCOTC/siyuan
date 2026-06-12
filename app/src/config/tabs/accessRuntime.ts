@@ -4,6 +4,11 @@ import {isMobile} from "../../util/functions";
 /** 访问授权 Tab 根节点，供 send 回调更新局部 UI */
 let accessTabElement: HTMLElement | undefined;
 
+/** 设置对话框关闭后释放 Tab 根节点引用，避免持有已脱离文档的 DOM */
+export const clearAccessTabElement = () => {
+    accessTabElement = undefined;
+};
+
 /** 访问授权 Tab 挂载后记录根节点（供 setting/tabs.ts afterMount 调用） */
 export const mountAccessTab = (root: HTMLElement) => {
     accessTabElement = root;

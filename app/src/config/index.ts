@@ -7,6 +7,8 @@ import {Dialog} from "../dialog";
 import {Constants} from "../constants";
 import {focusByRange} from "../protyle/util/selection";
 import {getSettingTabDefs} from "./setting/tabs";
+import {clearAccessTabElement} from "./tabs/accessRuntime";
+import {clearSyncTabElement} from "./tabs/syncRuntime";
 /// #endif
 import type {TSettingTab} from "./setting/tabs";
 import type {App} from "../index";
@@ -50,6 +52,8 @@ const openSettingDialog = (app: App, initialTab: TSettingTab = "editor") => {
         width: "90vw",
         height: "90vh",
         destroyCallback() {
+            clearSyncTabElement();
+            clearAccessTabElement();
             if (range) {
                 focusByRange(range);
             }
