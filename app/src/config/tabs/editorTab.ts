@@ -28,7 +28,7 @@ const registerEditorBehaviorGroup = (tab: SettingTabBuilder) => {
                 window.siyuan.languages.spellcheck,
                 window.siyuan.languages.spellcheckTip2,
             ],
-            html: () => `<div class="fn__flex b3-label config-item fn__none"><div class="b3-chips" id="editor.spellcheckLanguages"></div></div>`,
+            html: () => '<div class="fn__flex b3-label config-item fn__none"><div class="b3-chips" id="editor.spellcheckLanguages"></div></div>',
             afterMount: bindSpellcheckLanguagesChips,
         });
     }

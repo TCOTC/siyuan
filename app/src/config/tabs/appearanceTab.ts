@@ -36,8 +36,8 @@ const registerAppearanceContentGroup = (tab: SettingTabBuilder) => {
         data-display="${escapeAttr(window.siyuan.config.editor.fontFamilyDisplay)}"
         value="${escapeAttr(window.siyuan.config.editor.fontFamilyDisplay || window.siyuan.config.editor.fontFamily || window.siyuan.languages.default)}"
         readonly
-        style="font-family: ${ window.siyuan.config.editor.fontFamily ? window.siyuan.config.editor.fontFamily + ", " : ""}var(--b3-font-family);
-        ${ window.siyuan.config.editor.fontWeight ? `font-weight: ${window.siyuan.config.editor.fontWeight};` : ""}"
+        style="font-family: ${window.siyuan.config.editor.fontFamily ? window.siyuan.config.editor.fontFamily + ", var(--b3-font-family)" : "var(--b3-font-family)"};
+        ${window.siyuan.config.editor.fontWeight ? `font-weight: ${window.siyuan.config.editor.fontWeight};` : ""}"
     >
 </div>`,
         afterMount: mountAppearanceFontFamily,

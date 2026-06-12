@@ -139,7 +139,7 @@ const registerAppDataGroup = (tab: SettingTabBuilder) => {
         afterMount: (root) => {
             root.querySelector("#exportConf")?.addEventListener("click", () => {
                 fetchPost("/api/system/exportConf", {}, (response) => {
-                    saveExportFile(response.data.zip);
+                    void saveExportFile(response.data.zip);
                 });
             });
         },
@@ -163,7 +163,7 @@ const registerAppDataGroup = (tab: SettingTabBuilder) => {
                         return;
                     }
                     showMessage(window.siyuan.languages.imported);
-                    exportLayout({
+                    void exportLayout({
                         errorExit: true,
                         cb: exitSiYuan,
                     });
@@ -246,7 +246,7 @@ const registerAppMaintenanceGroup = (tab: SettingTabBuilder) => {
         afterMount: (root) => {
             root.querySelector("#exportLog")?.addEventListener("click", () => {
                 fetchPost("/api/system/exportLog", {}, (response) => {
-                    saveExportFile(response.data.zip);
+                    void saveExportFile(response.data.zip);
                 });
             });
         },

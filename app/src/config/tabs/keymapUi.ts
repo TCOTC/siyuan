@@ -39,7 +39,7 @@ const genKeymapTabHtml = () => genKeymapToolbarHtml() + genConfigGroup(genKeymap
 
 const bindKeymapToolbar = (root: HTMLElement) => {
     root.querySelector("#keymapRefreshBtn")?.addEventListener("click", () => {
-        exportLayout({
+        void exportLayout({
             cb() {
                 window.location.reload();
             },
@@ -64,7 +64,7 @@ const bindKeymapToolbar = (root: HTMLElement) => {
                 }
                 sendGlobalShortcut(window.siyuan.ws.app);
                 /// #endif
-                exportLayout({
+                void exportLayout({
                     cb() {
                         window.location.reload();
                     },

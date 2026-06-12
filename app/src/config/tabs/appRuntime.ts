@@ -32,7 +32,7 @@ export const sendAppSetting = (controlId: string, value: unknown) => {
         case "system.networkServe": {
             const networkServe = Boolean(value) as Config.ISystem["networkServe"];
             fetchPost("/api/system/setNetworkServe", {networkServe}, () => {
-                exportLayout({
+                void exportLayout({
                     errorExit: true,
                     cb: exitSiYuan,
                 });
@@ -42,7 +42,7 @@ export const sendAppSetting = (controlId: string, value: unknown) => {
         case "system.networkServeTLS": {
             const networkServeTLS = Boolean(value) as Config.ISystem["networkServeTLS"];
             fetchPost("/api/system/setNetworkServeTLS", {networkServeTLS}, () => {
-                exportLayout({
+                void exportLayout({
                     errorExit: true,
                     cb: exitSiYuan,
                 });

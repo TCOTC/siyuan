@@ -120,7 +120,7 @@ const registerAccessServerGroup = (tab: SettingTabBuilder) => {
             afterMount: (root) => {
                 root.querySelector("#exportCACert")?.addEventListener("click", () => {
                     fetchPost("/api/system/exportTLSCACert", {}, (response) => {
-                        saveExportFile(response.data.path);
+                        void saveExportFile(response.data.path);
                     });
                 });
             },
@@ -134,7 +134,7 @@ const registerAccessServerGroup = (tab: SettingTabBuilder) => {
             afterMount: (root) => {
                 root.querySelector("#exportCABundle")?.addEventListener("click", () => {
                     fetchPost("/api/system/exportTLSCABundle", {}, (response) => {
-                        saveExportFile(response.data.path);
+                        void saveExportFile(response.data.path);
                     });
                 });
             },
@@ -183,7 +183,7 @@ const registerAccessServerGroup = (tab: SettingTabBuilder) => {
             root.querySelector("#openLocalServer")?.addEventListener("click", () => {
                 const url = `http://127.0.0.1:${location.port}`;
                 /// #if !BROWSER
-                shell.openExternal(url);
+                void shell.openExternal(url);
                 /// #else
                 window.open(url);
                 /// #endif

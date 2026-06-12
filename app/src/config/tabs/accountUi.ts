@@ -272,7 +272,7 @@ const bindAccountPaymentEvent = (accountSettingsRoot: Element) => {
 
 const genAccountPaymentHTML = () => {
     if (!window.siyuan.user) {
-        return `<div id="configAccountPayment" class="fn__none"></div>`;
+        return '<div id="configAccountPayment" class="fn__none"></div>';
     }
 
     const isIOS = debugIsSimulateIOS();

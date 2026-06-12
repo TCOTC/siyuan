@@ -353,7 +353,7 @@ const bindProviderConfigEvent = (configElement: Element, root: Element) => {
     const exportButton = configElement.querySelector("#exportSyncConfig");
     exportButton?.addEventListener("click", () => {
         fetchPost(exportButton.getAttribute("data-type") === "s3" ? "/api/sync/exportSyncProviderS3" : "/api/sync/exportSyncProviderWebDAV", {}, (response) => {
-            saveExportFile(response.data.zip);
+            void saveExportFile(response.data.zip);
         });
     });
 
@@ -518,5 +518,5 @@ const buildCloudSpaceHtml = (data: CloudSpaceDisplayData, loading: boolean) =>
         </ul>
         </div>
     </div>
-    ${loading ? `<div class="fn__loading"><img width="64px" src="/stage/loading-pure.svg"></div>` : ""}
+    ${loading ? '<div class="fn__loading"><img width="64px" src="/stage/loading-pure.svg"></div>' : ""}
 </div>`;
