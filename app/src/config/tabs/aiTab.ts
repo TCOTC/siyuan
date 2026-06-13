@@ -1,8 +1,41 @@
 import type {SettingTabBuilder} from "../setting/builder";
+import {controlBoolean, controlString} from "../setting/control";
+import {bindPasswordIconaToggle, genSwitchRow} from "../render/fragments";
+import {aiConfigApi} from "./aiRuntime";
+import {
+    EMBEDDING_API_BASE_URL_ID,
+    EMBEDDING_API_KEY_ID,
+    EMBEDDING_API_MODEL_ID,
+    EMBEDDING_ENABLED_ID,
+    genChatProvidersBlockHtml,
+    genEmbeddingProviderHtml,
+    genMcpServersBlockHtml,
+    getEmbeddingProvider,
+    mountChatProvidersBlock,
+    mountMcpServersBlock,
+    upsertEmbeddingProvider,
+} from "./aiUi";
 
 const registerAiServiceGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("service", window.siyuan.languages.configGroupServiceConnection);
 
+    const openAIEnabledControl = controlBoolean("ai.openAI.enabled", {
+        readConfig: () => window.siyuan.config.ai.openAI?.enabled !== false,
+    });
+    group.composite({
+        key: "openAIEnabled",
+        keywords: ["启用主模型", "openAI", "enabled"],
+        html: () => genSwitchRow(
+            openAIEnabledControl.id,
+            "启用主模型",
+            "关闭后 ChatGPT 与 Agent 将不再使用下方主模型配置（仍可使用其他提供商）。",
+            openAIEnabledControl.readConfig() as boolean,
+        ),
+        controls: [{
+            control: openAIEnabledControl,
+            save: (value) => aiConfigApi.patch("openAI.enabled", value),
+        }],
+    });
     group.select("ai.openAI.apiProvider", {
         title: window.siyuan.languages.apiProvider,
         desc: window.siyuan.languages.apiProviderTip,
@@ -105,7 +138,107 @@ const registerAiModelGroup = (tab: SettingTabBuilder) => {
     });
 };
 
+const registerAiProvidersGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("providers", "额外模型");
+
+    group.slot({
+        key: "chatProviders",
+        keywords: [
+            "providers",
+            "模型提供商",
+            "Agent",
+            "apiKey",
+            "apiModel",
+            "Azure",
+            "OpenAI",
+        ],
+        html: genChatProvidersBlockHtml,
+        afterMount: mountChatProvidersBlock,
+    });
+};
+
+const registerAiEmbeddingGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("embedding", "语义搜索");
+
+    const enabledControl = controlBoolean(EMBEDDING_ENABLED_ID, {
+        readConfig: () => getEmbeddingProvider()?.enabled !== false,
+    });
+    const apiKeyControl = controlString(EMBEDDING_API_KEY_ID, {
+        readConfig: () => getEmbeddingProvider()?.apiKey ?? "",
+    });
+    const apiBaseURLControl = controlString(EMBEDDING_API_BASE_URL_ID, {
+        readConfig: () => getEmbeddingProvider()?.apiBaseURL ?? "https://api.openai.com/v1",
+    });
+    const apiModelControl = controlString(EMBEDDING_API_MODEL_ID, {
+        readConfig: () => getEmbeddingProvider()?.apiModel ?? "text-embedding-3-small",
+    });
+
+    group.composite({
+        key: "embeddingProvider",
+        keywords: [
+            "语义搜索",
+            "Embedding",
+            "向量",
+            "embedding",
+            "apiKey",
+            "apiBaseURL",
+            "apiModel",
+        ],
+        html: () => genEmbeddingProviderHtml(
+            EMBEDDING_ENABLED_ID,
+            EMBEDDING_API_KEY_ID,
+            EMBEDDING_API_BASE_URL_ID,
+            EMBEDDING_API_MODEL_ID,
+            () => enabledControl.readConfig() as boolean,
+            () => apiKeyControl.readConfig() as string,
+            () => apiBaseURLControl.readConfig() as string,
+            () => apiModelControl.readConfig() as string,
+        ),
+        afterMount: (root) => {
+            bindPasswordIconaToggle(root, EMBEDDING_API_KEY_ID);
+        },
+        controls: [
+            {
+                control: enabledControl,
+                save: (value) => upsertEmbeddingProvider({enabled: value as boolean}),
+            },
+            {
+                control: apiKeyControl,
+                save: (value) => upsertEmbeddingProvider({apiKey: value as string}),
+            },
+            {
+                control: apiBaseURLControl,
+                save: (value) => upsertEmbeddingProvider({apiBaseURL: value as string}),
+            },
+            {
+                control: apiModelControl,
+                save: (value) => upsertEmbeddingProvider({apiModel: value as string}),
+            },
+        ],
+    });
+};
+
+const registerAiMcpGroup = (tab: SettingTabBuilder) => {
+    const group = tab.group("mcp", "MCP");
+
+    group.slot({
+        key: "mcpServers",
+        keywords: [
+            "MCP",
+            "Model Context Protocol",
+            "stdio",
+            "http",
+            "工具",
+        ],
+        html: genMcpServersBlockHtml,
+        afterMount: mountMcpServersBlock,
+    });
+};
+
 export const registerAiTab = (tab: SettingTabBuilder) => {
     registerAiServiceGroup(tab);
     registerAiModelGroup(tab);
+    registerAiProvidersGroup(tab);
+    registerAiEmbeddingGroup(tab);
+    registerAiMcpGroup(tab);
 };
