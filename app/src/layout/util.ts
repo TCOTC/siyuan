@@ -29,7 +29,6 @@ import {App} from "../index";
 import {afterLoadPlugin} from "../plugin/loader";
 import {newCenterEmptyTab, resizeTabs, setTabPosition} from "./tabUtil";
 import {setStorageVal} from "../protyle/util/compatibility";
-import {desktopModeCookie} from "../util/cookie";
 import {adjustDockPadding} from "./dock/util";
 import {setTitle} from "../util/processTitle";
 
@@ -116,7 +115,6 @@ const dockToJSON = (dock: Dock) => {
 };
 
 export const resetLayout = () => {
-    desktopModeCookie.remove();
     if (window.siyuan.config.readonly) {
         window.location.reload();
     } else {

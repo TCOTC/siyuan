@@ -11,6 +11,7 @@ import {Dialog} from "../../dialog";
 import {genConfigItemMainHtml, genConfigItemName} from "../render/fragments";
 import {getSyncProviderConfigKeywords} from "./syncUi";
 import {patchSyncConfig} from "./syncRuntime";
+import {openHistory} from "../../history/history";
 
 const registerSyncGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("sync", window.siyuan.languages.configGroupSync);
@@ -86,11 +87,25 @@ const registerSyncGroup = (tab: SettingTabBuilder) => {
     });
     group.slot({
         key: "syncCloudBackup",
-        keywords: [window.siyuan.languages.cloudBackup, window.siyuan.languages.cloudBackupTip],
-        html: () => `<div class="fn__flex b3-label config-item" id="syncCloudBackupBlock">
-    <div class="fn__flex-center">${window.siyuan.languages.cloudBackup}</div>
-    <div class="b3-list-item__meta fn__flex-center">${window.siyuan.languages.cloudBackupTip}</div>
+        keywords: [
+            window.siyuan.languages.cloudBackup,
+            window.siyuan.languages.cloudBackupTip,
+            window.siyuan.languages.dataSnapshot,
+        ],
+        html: () => `<div class="b3-label config-item" id="syncCloudBackupBlock">
+    <div class="fn__flex config-wrap">
+        ${genConfigItemMainHtml(window.siyuan.languages.cloudBackup, window.siyuan.languages.cloudBackupTip)}
+        <div class="fn__space"></div>
+        <button class="b3-button b3-button--outline fn__flex-center fn__size200" id="openCloudBackup">
+            <svg><use xlink:href="#iconHistory"></use></svg>${window.siyuan.languages.dataSnapshot}
+        </button>
+    </div>
 </div>`,
+        afterMount: (root) => {
+            root.querySelector("#openCloudBackup")?.addEventListener("click", () => {
+                openHistory(window.siyuan.ws.app, "repo");
+            });
+        },
     });
 };
 

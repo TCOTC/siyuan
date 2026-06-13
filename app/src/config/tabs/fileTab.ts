@@ -123,7 +123,8 @@ const registerFileNewDocumentGroup = (tab: SettingTabBuilder) => {
         ],
     });
 
-    if (!isMobileKernelContainer()) {
+    if (isMobileKernelContainer()) {
+        // 仅移动端内核支持使用闪念速记 https://github.com/siyuan-note/siyuan/issues/14414
         const shorthandTitle = window.siyuan.languages.fileTree26;
         const shorthandDesc = window.siyuan.languages.fileTree27;
         group.composite({

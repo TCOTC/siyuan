@@ -81,6 +81,10 @@ const registerSearchLimitsGroup = (tab: SettingTabBuilder) => {
         title: window.siyuan.languages.searchCaseSensitive,
         desc: window.siyuan.languages.searchCaseSensitive1,
     });
+    group.switch("search.hanSensitive", {
+        title: window.siyuan.languages.searchHanSensitive,
+        desc: window.siyuan.languages.searchHanSensitive1,
+    });
 };
 
 export const registerSearchTab = (tab: SettingTabBuilder) => {

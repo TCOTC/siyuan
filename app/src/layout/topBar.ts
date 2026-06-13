@@ -20,10 +20,37 @@ import {isBrowser, isWindow} from "../util/functions";
 import {fetchPost} from "../util/fetch";
 import {needSubscribe} from "../util/needSubscribe";
 import * as dayjs from "dayjs";
-import {exportLayout} from "./util";
+import {exportLayout, resizeTopBar} from "./util";
+import {setTabPosition} from "./tabUtil";
 import {commandPanel} from "../boot/globalEvent/command/panel";
 import {openTopBarMenu} from "../plugin/openTopBarMenu";
 import {getWorkspaceName} from "../util/processTitle";
+
+const sendTrafficLightPosition = (zoom: number) => {
+    /// #if !BROWSER
+    const position = Constants.SIZE_ZOOM.find((item) => item.zoom === zoom).position;
+    ipcRenderer.send(Constants.SIYUAN_CMD, {
+        cmd: "setTrafficLightPosition",
+        zoom,
+        position: {
+            x: position.x,
+            y: ((window.siyuan.config.appearance.hideToolbar && !isWindow()) ? 5 * zoom : 0) + position.y,
+        },
+    });
+    /// #endif
+};
+
+/** 同步顶栏隐藏后的布局（运行时切换 hideToolbar 时调用） */
+export const syncHideToolbarLayout = () => {
+    document.body.classList.toggle("body--toolbar-hide", window.siyuan.config.appearance.hideToolbar);
+    resizeTopBar();
+    setTabPosition();
+    /// #if !BROWSER
+    if (!isWindow()) {
+        sendTrafficLightPosition(window.siyuan.storage[Constants.LOCAL_ZOOM]);
+    }
+    /// #endif
+};
 
 export const updateBarModeIcon = () => {
     document.querySelector("#barMode use")?.setAttribute(
@@ -296,15 +323,7 @@ export const setZoom = (type: "zoomIn" | "zoomOut" | "restore") => {
     }
 
     webFrame.setZoomFactor(zoom);
-    const position = Constants.SIZE_ZOOM.find((item) => item.zoom === zoom).position;
-    ipcRenderer.send(Constants.SIYUAN_CMD, {
-        cmd: "setTrafficLightPosition",
-        zoom,
-        position: {
-            x: position.x,
-            y: ((window.siyuan.config.appearance.hideToolbar && !isWindow()) ? 5 * zoom : 0) + position.y
-        },
-    });
+    sendTrafficLightPosition(zoom);
     window.siyuan.storage[Constants.LOCAL_ZOOM] = zoom;
     setStorageVal(Constants.LOCAL_ZOOM, zoom);
     if (!isWindow()) {

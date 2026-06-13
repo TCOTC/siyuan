@@ -1,6 +1,6 @@
 import {adjustDockPadding} from "../../layout/dock/util";
 import {exportLayout} from "../../layout/util";
-import {updateBarModeIcon} from "../../layout/topBar";
+import {syncHideToolbarLayout, updateBarModeIcon} from "../../layout/topBar";
 import {fetchPost} from "../../util/fetch";
 import {loadAssets} from "../../util/assets";
 import {createConfigNamespaceApi} from "../util/namespaceApi";
@@ -57,12 +57,18 @@ const applyAppearanceConfig = async (data: Config.IAppearance) => {
         }
     }
 
-    if (data.hideStatusBar !== window.siyuan.config.appearance.hideStatusBar) {
+    const prevAppearance = window.siyuan.config.appearance;
+    window.siyuan.config.appearance = data;
+
+    if (data.hideStatusBar !== prevAppearance.hideStatusBar) {
         document.getElementById("status").classList.toggle("fn__none", data.hideStatusBar);
         adjustDockPadding();
     }
 
-    window.siyuan.config.appearance = data;
+    if (data.hideToolbar !== prevAppearance.hideToolbar) {
+        syncHideToolbarLayout();
+    }
+
     loadAssets(data);
     updateBarModeIcon();
 };

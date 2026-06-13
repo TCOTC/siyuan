@@ -14,7 +14,9 @@ import {useShell} from "../../util/pathName";
 import {updateHotkeyTip} from "../../protyle/util/compatibility";
 import {Menu} from "../../plugin/Menu";
 import {escapeAttr} from "../../util/escape";
-import {genConfigItemMainHtml, genListSwitchItemHtml, genSwitchRow} from "../render/fragments";
+import {genConfigItemMainHtml, genListSwitchItemHtml} from "../render/fragments";
+import {genStackHtml} from "../render/render";
+import {controlBoolean} from "../setting/control";
 import {editorConfigApi} from "./editorRuntime";
 import {appearanceThemeModeValue, saveThemeMode} from "./appearanceRuntime";
 
@@ -105,7 +107,7 @@ const mountAppearanceFontFamily = (root: HTMLElement) => {
                 fontMenu.addItem({
                     iconHTML: "",
                     checked: item.family === curFamily && item.weight === curWeight,
-                    label: `<div style='font-family:"${item.family}", var(--b3-font-family);'>${item.displayName}</div>`,
+                    label: `<div style='font-family:"${item.family}", var(--b3-font-family);${item.weight ? ` font-weight: ${item.weight};` : ""}'>${item.displayName}</div>`,
                     click: () => {
                         const family = fontFamilyEl.dataset.family || "";
                         const weight = parseInt(fontFamilyEl.dataset.weight || "0", 10);
@@ -296,6 +298,10 @@ const registerAppearanceControlsGroup = (tab: SettingTabBuilder) => {
             {value: 1, label: window.siyuan.languages.appearance11},
         ],
     });
+    group.switch("appearance.hideToolbar", {
+        title: window.siyuan.languages.appearance19,
+        desc: window.siyuan.languages.appearance20,
+    });
     group.stack({
         key: "statusBar",
         keywords: [
@@ -316,41 +322,64 @@ const registerAppearanceControlsGroup = (tab: SettingTabBuilder) => {
             icon: "iconSettings",
         });
     });
-    if (isBrowser()) {
-        group.slot({
-            key: "desktopMode",
-            keywords: [window.siyuan.languages.desktopMode, window.siyuan.languages.mobileModeTip],
-            html: () => genSwitchRow(
-                "desktopMode",
-                window.siyuan.languages.desktopMode,
-                window.siyuan.languages.mobileModeTip,
-                desktopModeCookie.read(),
-            ),
+    const desktopModeControl = controlBoolean("desktopMode", {
+        readConfig: () => desktopModeCookie.read(),
+    });
+    // https://github.com/siyuan-note/siyuan/issues/13952
+    group.composite({
+        key: "desktopMode",
+        keywords: [
+            window.siyuan.languages.desktopMode,
+            window.siyuan.languages.mobileModeTip,
+            window.siyuan.languages.reset,
+        ],
+        html: () => genStackHtml([
+            {
+                left: {kind: "title", text: window.siyuan.languages.desktopMode},
+                right: {
+                    kind: "button",
+                    id: "resetDesktopMode",
+                    label: window.siyuan.languages.reset,
+                    icon: "iconUndo",
+                },
+            },
+            {
+                left: {kind: "desc", text: window.siyuan.languages.mobileModeTip},
+                right: desktopModeControl,
+            },
+        ]),
+        controls: [{
+            control: desktopModeControl,
+            save: (value) => {
+                desktopModeCookie.set(value as boolean);
+                window.location.href = "/";
+            },
+        }],
+        afterMount: (root) => {
+            root.querySelector("#resetDesktopMode")?.addEventListener("click", () => {
+                desktopModeCookie.remove();
+                window.location.href = "/";
+            });
+        },
+    });
+    if (!isMobile()) {
+        group.button({
+            id: "resetLayout",
+            title: window.siyuan.languages.resetLayout,
+            desc: window.siyuan.languages.appearance6,
+            label: window.siyuan.languages.reset,
+            icon: "iconUndo",
             afterMount: (root) => {
-                root.querySelector("#desktopMode")?.addEventListener("change", (event: Event) => {
-                    const checked = (event.target as HTMLInputElement).checked;
-                    desktopModeCookie.set(checked);
-                    window.location.href = "/";
+                root.querySelector("#resetLayout")?.addEventListener("click", () => {
+                    confirmDialog(
+                        "⚠️ " + window.siyuan.languages.reset,
+                        window.siyuan.languages.appearance6,
+                        resetLayout
+                    );
                 });
             },
         });
     }
-    group.button({
-        id: "resetLayout",
-        title: window.siyuan.languages.resetLayout,
-        desc: window.siyuan.languages.appearance6,
-        label: window.siyuan.languages.reset,
-        icon: "iconUndo",
-        afterMount: (root) => {
-            root.querySelector("#resetLayout")?.addEventListener("click", () => {
-                confirmDialog(
-                    "⚠️ " + window.siyuan.languages.reset,
-                    window.siyuan.languages.appearance6,
-                    resetLayout
-                );
-            });
-        },
-    });
 };
 
 const bindFloatWindowModeVisibility = (root: HTMLElement) => {

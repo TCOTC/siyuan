@@ -202,6 +202,18 @@ const registerAppMaintenanceGroup = (tab: SettingTabBuilder) => {
     const group = tab.group("maintenance", window.siyuan.languages.configGroupMaintenance);
 
     group.button({
+        id: "reloadUI",
+        title: window.siyuan.languages.reloadUI,
+        desc: window.siyuan.languages.reloadUITip,
+        label: window.siyuan.languages.reloadUI,
+        icon: "iconRefresh",
+        afterMount: (root) => {
+            root.querySelector("#reloadUI")?.addEventListener("click", () => {
+                fetchPost("/api/ui/reloadUI", {});
+            });
+        },
+    });
+    group.button({
         id: "vacuumDataIndex",
         title: window.siyuan.languages.vacuumDataIndex,
         desc: window.siyuan.languages.vacuumDataIndexTip,
