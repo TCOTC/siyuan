@@ -300,10 +300,10 @@ class SettingGroupBuilder<TId extends string> {
         return this;
     }
 
-    stack(spec: StackSpec, configure: (b: StackLineBuilder) => void) {
-        const builder = new StackLineBuilder();
-        configure(builder);
-        const lines = builder.getLines();
+    stack(spec: StackSpec, configure: (stack: StackLineBuilder) => void) {
+        const stack = new StackLineBuilder();
+        configure(stack);
+        const lines = stack.getLines();
         this.composite({
             key: spec.key,
             keywords: spec.keywords,

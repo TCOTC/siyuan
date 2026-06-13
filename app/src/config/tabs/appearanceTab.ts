@@ -191,23 +191,23 @@ const registerAppearanceInterfaceGroup = (tab: SettingTabBuilder) => {
                 });
             }
         },
-    }, (b) => {
-        b.title(window.siyuan.languages.theme);
+    }, (stack) => {
+        stack.title(window.siyuan.languages.theme);
         if (!browser) {
-            b.button({
+            stack.button({
                 id: "appearanceOpenTheme",
                 label: window.siyuan.languages.appearance9,
                 icon: "iconFolder",
             });
         }
-        b.select("appearance.themeLight", {
+        stack.select("appearance.themeLight", {
             desc: window.siyuan.languages.theme11,
             options: window.siyuan.config.appearance.lightThemes.map((item) => ({
                 value: item.name,
                 label: item.label,
             })),
         });
-        b.select("appearance.themeDark", {
+        stack.select("appearance.themeDark", {
             desc: window.siyuan.languages.theme12,
             options: window.siyuan.config.appearance.darkThemes.map((item) => ({
                 value: item.name,
@@ -229,16 +229,16 @@ const registerAppearanceInterfaceGroup = (tab: SettingTabBuilder) => {
                 });
             }
         },
-    }, (b) => {
-        b.title(window.siyuan.languages.icon);
+    }, (stack) => {
+        stack.title(window.siyuan.languages.icon);
         if (!browser) {
-            b.button({
+            stack.button({
                 id: "appearanceOpenIcon",
                 label: window.siyuan.languages.appearance8,
                 icon: "iconFolder",
             });
         }
-        b.select("appearance.icon", {
+        stack.select("appearance.icon", {
             desc: window.siyuan.languages.theme2,
             options: window.siyuan.config.appearance.icons.map((item) => ({
                 value: item.name,
@@ -253,13 +253,13 @@ const registerAppearanceInterfaceGroup = (tab: SettingTabBuilder) => {
             window.siyuan.languages.appearance2,
             window.siyuan.languages.appearance3,
         ],
-    }, (b) => {
-        b.title(window.siyuan.languages.appearance1);
-        b.select("appearance.codeBlockThemeLight", {
+    }, (stack) => {
+        stack.title(window.siyuan.languages.appearance1);
+        stack.select("appearance.codeBlockThemeLight", {
             desc: window.siyuan.languages.appearance2,
             options: Constants.SIYUAN_CONFIG_APPEARANCE_LIGHT_CODE.map(value => ({value})),
         });
-        b.select("appearance.codeBlockThemeDark", {
+        stack.select("appearance.codeBlockThemeDark", {
             desc: window.siyuan.languages.appearance3,
             options: Constants.SIYUAN_CONFIG_APPEARANCE_DARK_CODE.map(value => ({value})),
         });
@@ -304,13 +304,13 @@ const registerAppearanceControlsGroup = (tab: SettingTabBuilder) => {
             window.siyuan.languages.appearance18,
         ],
         afterMount: mountAppearanceSetStatusBar,
-    }, (b) => {
-        b.title(window.siyuan.languages.appearance16);
-        b.switch("appearance.hideStatusBar", {
+    }, (stack) => {
+        stack.title(window.siyuan.languages.appearance16);
+        stack.switch("appearance.hideStatusBar", {
             desc: window.siyuan.languages.appearance17,
         });
-        b.desc(window.siyuan.languages.appearance18);
-        b.button({
+        stack.desc(window.siyuan.languages.appearance18);
+        stack.button({
             id: "statusBarSetting",
             label: window.siyuan.languages.config,
             icon: "iconSettings",
@@ -440,17 +440,17 @@ const registerAppearancePersonalizationGroup = (tab: SettingTabBuilder) => {
             window.siyuan.languages.config,
         ],
         afterMount: mountAppearanceCodeSnippet,
-    }, (b) => {
-        b.title(window.siyuan.languages.codeSnippet);
+    }, (stack) => {
+        stack.title(window.siyuan.languages.codeSnippet);
         if ("zh_CN" === window.siyuan.config.lang) {
-            b.button({
+            stack.button({
                 id: "codeSnippetCommunityShare",
                 label: window.siyuan.languages.visitCommunityShare,
                 icon: "iconUpload",
             });
         }
-        b.desc(window.siyuan.languages.codeSnippetTip);
-        b.button({
+        stack.desc(window.siyuan.languages.codeSnippetTip);
+        stack.button({
             id: "codeSnippet",
             label: window.siyuan.languages.config,
             icon: "iconSettings",

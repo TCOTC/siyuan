@@ -189,15 +189,15 @@ const registerAccessServerGroup = (tab: SettingTabBuilder) => {
                 /// #endif
             });
         },
-    }, (b) => {
-        b.title(window.siyuan.languages.about2);
-        b.button({
+    }, (stack) => {
+        stack.title(window.siyuan.languages.about2);
+        stack.button({
             id: "openLocalServer",
             label: window.siyuan.languages.about4,
             icon: "iconLink",
         });
-        b.desc(window.siyuan.languages.about3.replace("${port}", location.port));
-        b.desc((() => {
+        stack.desc(window.siyuan.languages.about3.replace("${port}", location.port));
+        stack.desc((() => {
             const parts: string[] = [];
             for (const serverAddr of window.siyuan.config.serverAddrs) {
                 if (!serverAddr.trim()) {
@@ -207,7 +207,7 @@ const registerAccessServerGroup = (tab: SettingTabBuilder) => {
             }
             return parts.join(" ");
         })());
-        b.desc(window.siyuan.languages.about18);
+        stack.desc(window.siyuan.languages.about18);
     });
 };
 

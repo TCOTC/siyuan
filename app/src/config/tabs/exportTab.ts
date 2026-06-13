@@ -99,14 +99,14 @@ const registerExportPdfGroup = (tab: SettingTabBuilder) => {
             window.siyuan.languages.export28,
             window.siyuan.languages.export29,
         ],
-    }, (b) => {
-        b.title(window.siyuan.languages.export27);
-        b.desc(window.siyuan.languages.export28);
-        b.textBlock("export.pdfWatermarkStr", {
+    }, (stack) => {
+        stack.title(window.siyuan.languages.export27);
+        stack.desc(window.siyuan.languages.export28);
+        stack.textBlock("export.pdfWatermarkStr", {
             mode: "input-text",
         });
-        b.desc(`<a href="https://pdfcpu.io/core/watermark#description" target="_blank">${window.siyuan.languages.export29}</a>`);
-        b.textBlock("export.pdfWatermarkDesc", {
+        stack.desc(`<a href="https://pdfcpu.io/core/watermark#description" target="_blank">${window.siyuan.languages.export29}</a>`);
+        stack.textBlock("export.pdfWatermarkDesc", {
             mode: "textarea",
         });
     });
@@ -123,14 +123,14 @@ const registerExportImagesGroup = (tab: SettingTabBuilder) => {
             window.siyuan.languages.export29,
             window.siyuan.languages.export10,
         ],
-    }, (b) => {
-        b.title(window.siyuan.languages.export30);
-        b.desc(window.siyuan.languages.export28);
-        b.textBlock("export.imageWatermarkStr", {
+    }, (stack) => {
+        stack.title(window.siyuan.languages.export30);
+        stack.desc(window.siyuan.languages.export28);
+        stack.textBlock("export.imageWatermarkStr", {
             mode: "input-text",
         });
-        b.desc(`${window.siyuan.languages.export29}<div class="fn__hr--small"></div>${window.siyuan.languages.export10}`);
-        b.textBlock("export.imageWatermarkDesc", {
+        stack.desc(`${window.siyuan.languages.export29}<div class="fn__hr--small"></div>${window.siyuan.languages.export10}`);
+        stack.textBlock("export.imageWatermarkDesc", {
             mode: "textarea",
         });
     });
@@ -151,15 +151,15 @@ const registerExportPandocGroup = (tab: SettingTabBuilder) => {
             window.siyuan.languages.config,
         ],
         afterMount: mountExportPandocStack,
-    }, (b) => {
-        b.title(`${window.siyuan.languages.export19}<span class="fn__space"></span><a href="javascript:void(0)" id="pandocBinPathDisplay" style="word-break: break-all">${Lute.EscapeHTMLStr(window.siyuan.config.export.pandocBin)}</a>`);
-        b.button({
+    }, (stack) => {
+        stack.title(`${window.siyuan.languages.export19}<span class="fn__space"></span><a href="javascript:void(0)" id="pandocBinPathDisplay" style="word-break: break-all">${Lute.EscapeHTMLStr(window.siyuan.config.export.pandocBin)}</a>`);
+        stack.button({
             id: "pandocBinReset",
             label: window.siyuan.languages.reset,
             icon: "iconUndo",
         });
-        b.desc(window.siyuan.languages.export20);
-        b.button({
+        stack.desc(window.siyuan.languages.export20);
+        stack.button({
             id: "pandocBinChooser",
             label: window.siyuan.languages.config,
             icon: "iconSettings",

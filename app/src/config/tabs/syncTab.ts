@@ -163,19 +163,19 @@ const registerRepoGroup = (tab: SettingTabBuilder) => {
                 });
             });
         },
-    }, (b) => {
-        b.title(window.siyuan.languages.dataRepoPurge);
-        b.desc(window.siyuan.languages.dataRepoPurgeTip);
-        b.button({
+    }, (stack) => {
+        stack.title(window.siyuan.languages.dataRepoPurge);
+        stack.desc(window.siyuan.languages.dataRepoPurgeTip);
+        stack.button({
             id: "purgeRepo",
             label: window.siyuan.languages.purge,
             icon: "iconTrashcan",
         });
-        b.number("repo.indexRetentionDays", {
+        stack.number("repo.indexRetentionDays", {
             desc: window.siyuan.languages.dataRepoAutoPurgeIndexRetentionDays,
             min: 1,
         });
-        b.number("repo.retentionIndexesDaily", {
+        stack.number("repo.retentionIndexesDaily", {
             desc: window.siyuan.languages.dataRepoAutoPurgeRetentionIndexesDaily,
             min: 1,
         });
